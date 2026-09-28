@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "boxinger",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "PATH=$HOME/.local/node/bin:$PATH npm run dev"],
+      "port": 3000
+    }
+  ]
+}

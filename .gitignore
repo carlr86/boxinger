@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+.env
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+supabase/.temp/
+supabase/.branches/
+# legacy MVP
+legacy/data/
+__pycache__/
+*.pyc
+
+# handoff original de Claude Design (el contenido ya está en design/)
+*.zip

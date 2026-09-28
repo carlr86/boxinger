@@ -1,0 +1,115 @@
+# Puesta en marcha
+
+Pasos para dejar Boxinger funcionando con Supabase, Resend, PayPal, Mercado Pago y Vercel.
+Hacé primero todo en modo prueba (sandbox) y después repetí los pasos de pagos con credenciales productivas.
+
+## 1. Supabase
+
+### Base de datos
+
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>     # pide la contraseña de la base
+npx supabase db push                              # aplica supabase/migrations/*
+```
+
+Las migraciones crean tablas, funciones, políticas RLS, el bucket `media` (logos y avatares) y los precios iniciales:
+**USD 9,99** y **ARS 14.999** (placeholder: cambialo desde el panel de Admin › Suscripciones › Programar nuevo precio, o con SQL antes de lanzar).
+
+### Super Admin
+
+Registrate en la app con tu email y después, en SQL Editor:
+
+```sql
+update public.profiles set is_super_admin = true where email = 'tu@email.com';
+```
+
+El panel queda en `/app/admin`.
+
+### Auth
+
+**Authentication › URL Configuration**
+
+- Site URL: `https://www.boxinger.com`
+- Redirect URLs: `https://www.boxinger.com/app/**`, `http://localhost:3000/app/**` y las URLs de preview de Vercel (`https://*-<tu-equipo>.vercel.app/app/**`).
+
+**Authentication › Providers › Email**: activado, con *Confirm email* activado (hasta verificar, el usuario puede ver buzones pero no participar). Largo mínimo de contraseña: 8.
+
+**Authentication › Providers › Google**
+
+1. En Google Cloud Console › APIs & Services › Credentials, creá un *OAuth client ID* de tipo *Web application*.
+2. *Authorized redirect URI*: `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. Pegá Client ID y Client Secret en Supabase.
+
+Si alguien se registró con email y contraseña y después entra con Google con el mismo email, Supabase vincula las dos formas de acceso a la misma cuenta (requiere el email verificado).
+
+**Authentication › Sessions**: *Time-box user sessions* en 30 días (PRD).
+
+**Authentication › Emails › SMTP Settings** (para que los emails de Supabase salgan por Resend):
+
+| Campo | Valor |
+| --- | --- |
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | tu `RESEND_API_KEY` |
+| Sender | `hola@boxinger.com` · Boxinger |
+
+**Authentication › Emails › Templates**: usá links con `token_hash` para que funcionen desde cualquier dispositivo. En cada plantilla reemplazá el link por:
+
+| Plantilla | Link |
+| --- | --- |
+| Confirm signup | `{{ .SiteURL }}/app/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}` |
+| Reset password | `{{ .SiteURL }}/app/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` |
+| Magic link | `{{ .SiteURL }}/app/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}` |
+| Change email | `{{ .SiteURL }}/app/auth/confirm?token_hash={{ .TokenHash }}&type=email_change` |
+
+Textos sugeridos en español: *Confirmá tu email para empezar a usar Boxinger* / *Creá una nueva contraseña (el link vale 1 hora)*.
+En **Authentication › Rate Limits** podés ajustar el límite de emails y registros por hora.
+
+## 2. Emails: Resend
+
+Resend es el proveedor elegido: plan gratis de 3.000 emails/mes (100/día), SDK oficial para Next.js, SMTP para los emails de Supabase y buena entregabilidad.
+
+1. Creá la cuenta en resend.com y agregá el dominio `boxinger.com` (Domains › Add). Cargá en tu DNS los registros SPF, DKIM y (recomendado) DMARC que te muestra.
+2. Creá una API key con permiso *Sending access* → `RESEND_API_KEY`.
+3. Usala también como contraseña SMTP en Supabase (paso anterior).
+
+Emails que manda la app (plantillas en `src/lib/email/templates.ts`): cambio de estado de una idea, nuevo comentario, respuesta del Equipo, idea lanzada, invitación a la Comunidad, invitación al equipo, activación de cliente, bienvenida a Pro, cancelación, pago fallido, cambio de precio, resumen diario del buzón y avisos al Super Admin (nuevos clientes, pagos fallidos, churn, resumen semanal).
+Todos pasan por la tabla `email_outbox` y respetan las preferencias de cada usuario. Sin `RESEND_API_KEY`, se escriben en la consola del servidor.
+
+## 3. PayPal (USD)
+
+1. developer.paypal.com › Apps & Credentials › *Create App* (primero en **Sandbox**). Copiá Client ID y Secret.
+2. En la app › *Webhooks › Add Webhook*: URL `https://www.boxinger.com/api/billing/paypal/webhook` con los eventos:
+   `BILLING.SUBSCRIPTION.ACTIVATED`, `BILLING.SUBSCRIPTION.RE-ACTIVATED`, `BILLING.SUBSCRIPTION.UPDATED`, `BILLING.SUBSCRIPTION.CANCELLED`, `BILLING.SUBSCRIPTION.SUSPENDED`, `BILLING.SUBSCRIPTION.EXPIRED`, `BILLING.SUBSCRIPTION.PAYMENT.FAILED`, `PAYMENT.SALE.COMPLETED`, `PAYMENT.SALE.DENIED`, `PAYMENT.SALE.REFUNDED`.
+   Copiá el *Webhook ID* → `PAYPAL_WEBHOOK_ID`.
+3. El producto "Boxinger Pro" y un plan por cada precio en USD se crean solos la primera vez que alguien paga.
+4. Para producción: repetí con la app **Live** y `PAYPAL_ENV=live`.
+
+Cómo funciona: *Pasar a Pro* crea la suscripción en PayPal y redirige a aprobarla. Al volver (`/api/billing/paypal/return`) y con el webhook `ACTIVATED`, la cuenta pasa a Pro. Los precios especiales y los cambios de precio se aplican a cada suscripción con `PATCH /v1/billing/subscriptions/{id}` desde el próximo cobro.
+
+## 4. Mercado Pago (ARS, Argentina)
+
+1. mercadopago.com.ar/developers › *Tus integraciones › Crear aplicación* (producto: Suscripciones). Copiá el *Access Token* (primero el de prueba, `TEST-…`) → `MP_ACCESS_TOKEN`.
+2. En la aplicación › *Webhooks*: URL `https://www.boxinger.com/api/billing/mercadopago/webhook`, eventos **Planes y suscripciones** (`subscription_preapproval`, `subscription_authorized_payment`). Copiá la *Clave secreta* → `MP_WEBHOOK_SECRET`.
+3. Para probar, creá usuarios de prueba (vendedor y comprador) en *Cuentas de prueba*.
+
+Cómo funciona: *Pasar a Pro › Mercado Pago* crea un `preapproval` en pesos con el precio ARS vigente y redirige a `init_point`. El comprador tiene que pagar con la cuenta de Mercado Pago del email de su cuenta de Boxinger. Al volver (`/api/billing/mercadopago/return`) y con el webhook, la cuenta pasa a Pro. Los cambios de precio y precios especiales actualizan `auto_recurring.transaction_amount` del preapproval.
+
+## 5. Vercel y GitHub
+
+1. Subí el repo a GitHub e importalo en vercel.com (framework Next.js, sin cambios de build).
+2. Cargá las variables de `.env.example` en *Settings › Environment Variables* (Production y Preview). `NEXT_PUBLIC_SITE_URL=https://www.boxinger.com` en Production.
+3. `CRON_SECRET`: un valor aleatorio largo (`openssl rand -hex 32`). `vercel.json` programa `/api/cron/daily` todos los días a las 11:00 UTC (8:00 en Argentina). Ese proceso aplica precios programados, vence precios especiales, pasa a Free las suscripciones canceladas al fin del período, manda el resumen diario, las alertas de churn, el resumen semanal (lunes) y reintenta emails.
+4. Dominio: agregá `www.boxinger.com` y `boxinger.com` (redirigido a www) en *Settings › Domains*.
+
+## 6. Desarrollo local
+
+```bash
+cp .env.example .env.local     # completá con las claves de Supabase (y opcionalmente el resto)
+npm install
+npm run dev                    # http://localhost:3000
+```
+
+Para probar webhooks en local usá un túnel (por ejemplo `cloudflared tunnel --url http://localhost:3000`) y apuntá los webhooks de sandbox a esa URL.

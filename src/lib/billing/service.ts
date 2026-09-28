@@ -1,0 +1,125 @@
+import 'server-only';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { sendNow } from '@/lib/email/outbox';
+
+export type SubRow = {
+  account_id: string; plan: 'free' | 'pro'; status: string; provider: string | null; provider_subscription_id: string | null;
+  currency: 'USD' | 'ARS'; list_amount: number | null; charged_amount: number | null; pro_since: string | null;
+  current_period_end: string | null; cancel_at_period_end: boolean;
+  deal_type: 'pct' | 'fixed' | null; deal_value: number | null; deal_until: string | null;
+};
+
+export type PriceRow = { id: string; currency: 'USD' | 'ARS'; amount: number; paypal_plan_id: string | null; effective_from: string };
+
+export async function currentPrice(currency: 'USD' | 'ARS'): Promise<PriceRow> {
+  const { data, error } = await supabaseAdmin().from('price_schedule').select('id, currency, amount, paypal_plan_id, effective_from')
+    .eq('currency', currency).is('cancelled_at', null).lte('effective_from', new Date().toISOString())
+    .order('effective_from', { ascending: false }).order('created_at', { ascending: false }).limit(1).single();
+  if (error || !data) throw new Error('No hay precio vigente en ' + currency);
+  return { ...data, amount: Number(data.amount) } as PriceRow;
+}
+
+const dealActive = (s: SubRow) => !!s.deal_type && (!s.deal_until || new Date(s.deal_until) > new Date());
+
+/** Same rule as public.effective_amount(): deal if active, otherwise the list price the subscription follows. */
+export async function effectiveAmount(s: SubRow, list?: number): Promise<number> {
+  const base = list ?? (s.list_amount != null ? Number(s.list_amount) : (await currentPrice(s.currency)).amount);
+  if (!dealActive(s)) return base;
+  return s.deal_type === 'fixed' ? Number(s.deal_value) : Math.round(base * (1 - Number(s.deal_value) / 100) * 100) / 100;
+}
+
+export async function accountOwner(accountId: string) {
+  const admin = supabaseAdmin();
+  const { data } = await admin.from('accounts').select('id, owner_id, profiles:owner_id (name, email)').eq('id', accountId).single();
+  const p = (data as unknown as { profiles: { name: string; email: string } } | null)?.profiles;
+  return { ownerId: data?.owner_id as string | undefined, name: p?.name || '', email: p?.email || '' };
+}
+
+export async function findAccount(provider: string, subId: string | null, ref?: string | null): Promise<string | null> {
+  const admin = supabaseAdmin();
+  if (subId) {
+    const { data } = await admin.from('subscriptions').select('account_id').eq('provider_subscription_id', subId).maybeSingle();
+    if (data) return data.account_id;
+  }
+  if (ref && /^[0-9a-f-]{36}$/i.test(ref)) {
+    const { data } = await admin.from('accounts').select('id').eq('id', ref).maybeSingle();
+    if (data) return data.id;
+  }
+  return null;
+}
+
+/** Provider confirmed the subscription: the account is Pro. */
+export async function activate(accountId: string, o: { provider: 'paypal' | 'mercadopago'; subId: string; currency: 'USD' | 'ARS'; amount: number; periodEnd?: string | null }) {
+  const admin = supabaseAdmin();
+  const { data: before } = await admin.from('subscriptions').select('*').eq('account_id', accountId).single();
+  const wasPro = before?.plan === 'pro' && ['active', 'past_due'].includes(before.status) && before.provider_subscription_id === o.subId;
+  const list = (await currentPrice(o.currency)).amount;
+  // A different subscription replacing an older one (e.g. switched provider): cancel the old one.
+  if (before?.provider_subscription_id && before.provider_subscription_id !== o.subId && before.plan === 'pro' && ['active', 'past_due'].includes(before.status)) {
+    const { cancelProviderSubscription } = await import('./sync');
+    await cancelProviderSubscription(before.provider, before.provider_subscription_id).catch(() => {});
+  }
+  await admin.from('subscriptions').update({
+    plan: 'pro', status: 'active', provider: o.provider, provider_subscription_id: o.subId, currency: o.currency,
+    list_amount: before?.provider_subscription_id === o.subId && before?.list_amount ? before.list_amount : list,
+    charged_amount: o.amount, pro_since: wasPro ? before!.pro_since : before?.pro_since && before.plan === 'pro' ? before.pro_since : new Date().toISOString(),
+    current_period_end: o.periodEnd || before?.current_period_end || null, cancel_at_period_end: false, updated_at: new Date().toISOString(),
+  }).eq('account_id', accountId);
+  if (!wasPro) {
+    const owner = await accountOwner(accountId);
+    if (owner.email) await sendNow(owner.email, 'pro_welcome', {}, owner.ownerId, 'welcome:' + o.subId);
+  }
+}
+
+export async function setPeriodEnd(accountId: string, periodEnd: string | null) {
+  if (!periodEnd) return;
+  await supabaseAdmin().from('subscriptions').update({ current_period_end: periodEnd, status: 'active', updated_at: new Date().toISOString() }).eq('account_id', accountId).eq('plan', 'pro');
+}
+
+/** Cancelled at the provider: stays Pro until the paid period ends (the daily job downgrades). */
+export async function cancelled(accountId: string, subId: string, periodEnd?: string | null) {
+  const admin = supabaseAdmin();
+  const { data: s } = await admin.from('subscriptions').select('*').eq('account_id', accountId).single();
+  if (!s || s.provider_subscription_id !== subId || s.status === 'cancelled') return;
+  const end = periodEnd || s.current_period_end || new Date().toISOString();
+  await admin.from('subscriptions').update({ status: 'cancelled', cancel_at_period_end: true, current_period_end: end, updated_at: new Date().toISOString() }).eq('account_id', accountId);
+  const owner = await accountOwner(accountId);
+  if (owner.email) await sendNow(owner.email, 'pro_cancelled', { until: end }, owner.ownerId, 'cancel:' + subId);
+}
+
+export async function expired(accountId: string, subId: string) {
+  const admin = supabaseAdmin();
+  await admin.from('subscriptions').update({ plan: 'free', status: 'expired', free_since: new Date().toISOString(), cancel_at_period_end: false, updated_at: new Date().toISOString() })
+    .eq('account_id', accountId).eq('provider_subscription_id', subId);
+}
+
+export async function paymentFailed(accountId: string, provider: string, subId: string, key: string) {
+  const admin = supabaseAdmin();
+  await admin.from('subscriptions').update({ status: 'past_due', updated_at: new Date().toISOString() }).eq('account_id', accountId).eq('provider_subscription_id', subId).eq('plan', 'pro');
+  const owner = await accountOwner(accountId);
+  const name = provider === 'paypal' ? 'PayPal' : 'Mercado Pago';
+  if (owner.email) await sendNow(owner.email, 'payment_failed', { provider: name }, owner.ownerId, 'payfail:' + key);
+  await admin.rpc('notify_super_admins', { p_pref: 'payfail', p_template: 'admin_payfail', p_payload: { name: owner.name, email: owner.email, provider: name }, p_dedupe: 'payfail:' + key });
+}
+
+export async function recordPayment(o: { accountId: string | null; provider: 'paypal' | 'mercadopago'; paymentId: string; subId: string | null; amount: number; currency: string; status: string; paidAt?: string | null; raw: unknown }) {
+  await supabaseAdmin().from('payments').upsert({
+    account_id: o.accountId, provider: o.provider, provider_payment_id: o.paymentId, provider_subscription_id: o.subId,
+    amount: o.amount, currency: o.currency, status: o.status, paid_at: o.paidAt || null, raw: o.raw as object,
+  }, { onConflict: 'provider,provider_payment_id' });
+}
+
+/** Stores a webhook once; returns false when it was already processed. */
+export async function claimEvent(provider: string, eventId: string, type: string, payload: unknown): Promise<boolean> {
+  const admin = supabaseAdmin();
+  const { data: prev } = await admin.from('billing_events').select('id, processed_at').eq('provider', provider).eq('event_id', eventId).maybeSingle();
+  if (prev?.processed_at) return false;
+  if (!prev) await admin.from('billing_events').insert({ provider, event_id: eventId, event_type: type, payload: payload as object });
+  return true;
+}
+
+export async function finishEvent(provider: string, eventId: string, error?: string) {
+  await supabaseAdmin().from('billing_events').update(error ? { error } : { processed_at: new Date().toISOString(), error: null }).eq('provider', provider).eq('event_id', eventId);
+}
+
+export const addMonth = (d = new Date()) => { const x = new Date(d); x.setMonth(x.getMonth() + 1); return x.toISOString(); };
