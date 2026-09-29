@@ -64,7 +64,7 @@ Al volver a Free: el primer buzón del primer equipo sigue activo; el resto qued
 | `board_favorites` | Favoritos en Mis Buzones. |
 | `invitations` | Invitaciones al equipo, a la Comunidad y activación de clientes creados por el Admin (token, vencimiento). |
 | `categories` | Categorías por buzón (máx. 12; Feature, Mejora funcional y Propuesta por defecto). |
-| `ideas` | Idea: origen, estado, motivo de rechazo, oculta, y campos Pro (impacto, esfuerzo, columna y orden del Roadmap, prioridad, desarrollo, checks de diseño y PRD). |
+| `ideas` | Idea: origen, estado, motivo de rechazo, oculta, y campos Pro (impacto, esfuerzo, Growth, columna y orden del Roadmap, prioridad, desarrollo, checks de diseño y PRD). Growth (adquisición, activación, retención, monetización, prevenir churn) y los demás campos Pro solo se envían al Equipo. |
 | `votes` | 1 por (idea, usuario): Importante / Interesante / No importante. |
 | `comments`, `comment_replies`, `reactions` | Comentarios planos, 1 respuesta del Equipo por comentario, Like / No like. |
 | `status_changes` | Historial de estados. |

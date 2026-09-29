@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Drawer, Popconfirm, Tooltip } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Avatar, Bar, Choice, Dots, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { DEV, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE, VOTE_KEYS } from '@/lib/constants';
+import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE, VOTE_KEYS } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail } from '@/lib/types';
@@ -161,43 +161,8 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
           </div>
 
           {team && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Impacto y esfuerzo <ProPill /></span>
-                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.status === 'aprobada' || i.status === 'rechazada' ? 'Visible en la card para el Equipo.' : 'Se muestra en la card cuando la idea se aprueba o se rechaza.'}</span>}
-              </div>
-              {!api.pro ? (
-                <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ flex: 1, minWidth: 200, fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>Calificá cada idea por impacto y esfuerzo para priorizar mejor. Disponible en el plan Pro.</span>
-                  <button type="button" className="bx-btn-primary" onClick={api.goPro}>Ver plan Pro</button>
-                </div>
-              ) : (
-                <>
-                  {(['impact', 'effort'] as const).map((k) => {
-                    const v = rateOf(i, k), h = hov && hov.k === k ? hov.n : 0;
-                    return (
-                      <div key={k} style={{ display: 'grid', gridTemplateColumns: '96px auto 1fr auto', alignItems: 'center', gap: 12, fontSize: 14 }}>
-                        <span style={{ color: 'rgba(0,0,0,0.65)' }}>{k === 'impact' ? 'Impacto' : 'Esfuerzo'}</span>
-                        <Dots v={v} k={k} big hover={h} onHover={(n) => setHov(n ? { k, n } : null)}
-                          onPick={(n) => { setHov(null); act(rpc('update_idea_plan', { p_id: i.id, p_patch: { [k]: v === n ? 0 : n } })); }} />
-                        <span style={{ fontSize: 13, color: v || h ? 'rgba(0,0,0,0.88)' : 'rgba(0,0,0,0.45)' }}>{RATE_L[h || v]}</span>
-                        {v > 0 ? <a style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }} onClick={() => act(rpc('update_idea_plan', { p_id: i.id, p_patch: { [k]: 0 } }))}>Quitar</a> : <span />}
-                      </div>
-                    );
-                  })}
-                  {quad && (
-                    <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 6, padding: '8px 12px', fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
-                      <strong style={{ fontWeight: 600, color: 'rgba(0,0,0,0.88)' }}>{quad[0]}</strong> · {quad[1]}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {team && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>Gestión del Equipo</span>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Gestión de la idea</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <select className="bx-select" value={i.status} disabled={!api.canWrite} onChange={(e) => api.setStatus(i.id, e.target.value)}>
                   {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
@@ -245,6 +210,74 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                     <span key={n}>{dshort(h.at)} · {IDEA_STATUS[h.from].l} → {IDEA_STATUS[h.to].l}</span>
                   ))}
                 </div>
+              )}
+            </div>
+          )}
+
+          {team && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Impacto y esfuerzo <ProPill /></span>
+                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.status === 'aprobada' || i.status === 'rechazada' ? 'Visible en la card para el Equipo.' : 'Se muestra en la card cuando la idea se aprueba o se rechaza.'}</span>}
+              </div>
+              {!api.pro ? (
+                <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ flex: 1, minWidth: 200, fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>Calificá cada idea por impacto y esfuerzo para priorizar mejor. Disponible en el plan Pro.</span>
+                  <button type="button" className="bx-btn-primary" onClick={api.goPro}>Ver plan Pro</button>
+                </div>
+              ) : (
+                <>
+                  {(['impact', 'effort'] as const).map((k) => {
+                    const v = rateOf(i, k), h = hov && hov.k === k ? hov.n : 0;
+                    return (
+                      <div key={k} style={{ display: 'grid', gridTemplateColumns: '96px auto 1fr auto', alignItems: 'center', gap: 12, fontSize: 14 }}>
+                        <span style={{ color: 'rgba(0,0,0,0.65)' }}>{k === 'impact' ? 'Impacto' : 'Esfuerzo'}</span>
+                        <Dots v={v} k={k} big hover={h} onHover={(n) => setHov(n ? { k, n } : null)}
+                          onPick={(n) => { setHov(null); act(rpc('update_idea_plan', { p_id: i.id, p_patch: { [k]: v === n ? 0 : n } })); }} />
+                        <span style={{ fontSize: 13, color: v || h ? 'rgba(0,0,0,0.88)' : 'rgba(0,0,0,0.45)' }}>{RATE_L[h || v]}</span>
+                        {v > 0 ? <a style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }} onClick={() => act(rpc('update_idea_plan', { p_id: i.id, p_patch: { [k]: 0 } }))}>Quitar</a> : <span />}
+                      </div>
+                    );
+                  })}
+                  {quad && (
+                    <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 6, padding: '8px 12px', fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
+                      <strong style={{ fontWeight: 600, color: 'rgba(0,0,0,0.88)' }}>{quad[0]}</strong> · {quad[1]}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {team && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Growth <ProPill /></span>
+                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Solo visible para el Equipo. Se muestra en la card cuando la idea se aprueba.</span>}
+              </div>
+              {!api.pro ? (
+                <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ flex: 1, minWidth: 200, fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>Marcá en qué etapa del crecimiento impacta cada idea. Disponible en el plan Pro.</span>
+                  <button type="button" className="bx-btn-primary" onClick={api.goPro}>Ver plan Pro</button>
+                </div>
+              ) : (
+                <>
+                  <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>¿En qué impacta esta idea? Podés marcar varias.</span>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {GROWTH_KEYS.map((k) => {
+                      const cur = i.growth || [];
+                      const on = cur.includes(k);
+                      const g = GROWTH[k];
+                      return (
+                        <button key={k} type="button" disabled={!api.canWrite} aria-pressed={on}
+                          onClick={() => act(rpc('update_idea_plan', { p_id: i.id, p_patch: { growth: on ? cur.filter((x) => x !== k) : cur.concat(k) } }))}
+                          style={{ height: 30, padding: '0 12px', borderRadius: 15, fontSize: 13, cursor: api.canWrite ? 'pointer' : 'not-allowed', border: '1px solid ' + (on ? g.bd : '#d9d9d9'), background: on ? g.bg : '#fff', color: on ? g.fg : 'rgba(0,0,0,0.65)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          {on && <span aria-hidden>✓</span>}{g.l}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
           )}

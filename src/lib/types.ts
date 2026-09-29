@@ -39,6 +39,7 @@ export interface Idea {
   launched_at?: string | null;
   chk_design?: boolean;
   chk_prd?: boolean;
+  growth?: string[];
 }
 
 export interface Reply {

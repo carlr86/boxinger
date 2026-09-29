@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { IDEA_STATUS, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS } from '@/lib/constants';
+import { GROWTH, IDEA_STATUS, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
@@ -144,6 +144,11 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
               <span>{k === 'impact' ? 'Impacto' : 'Esfuerzo'}</span><Dots v={rateOf(i, k)} k={k} />
             </div>
           ))}
+        </div>
+      )}
+      {api.isTeam && api.pro && i.status === 'aprobada' && !!i.growth?.length && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }} title="Growth · solo visible para el Equipo">
+          {i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{GROWTH[k].l}</Tag>)}
         </div>
       )}
       {backlog && i.approved_at && (

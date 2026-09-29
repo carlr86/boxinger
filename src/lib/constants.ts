@@ -59,3 +59,12 @@ export const TEXT2 = 'rgba(0,0,0,0.65)';
 export const TEXT3 = 'rgba(0,0,0,0.45)';
 export const BORDER = '#f0f0f0';
 export const MAX_MEMBERS = 4;
+
+export const GROWTH: Record<string, Tone> = {
+  adquisicion: { l: 'Adquisición', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' },
+  activacion: { l: 'Activación', bg: '#f6ffed', bd: '#b7eb8f', fg: '#389e0d' },
+  retencion: { l: 'Retención', bg: '#f9f0ff', bd: '#d3adf7', fg: '#531dab' },
+  monetizacion: { l: 'Monetización', bg: '#fffbe6', bd: '#ffe58f', fg: '#ad6800' },
+  churn: { l: 'Prevenir churn', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' },
+};
+export const GROWTH_KEYS = ['adquisicion', 'activacion', 'retencion', 'monetizacion', 'churn'] as const;
