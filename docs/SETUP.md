@@ -78,6 +78,22 @@ Resend es el proveedor elegido: plan gratis de 3.000 emails/mes (100/día), SDK 
 Emails que manda la app (plantillas en `src/lib/email/templates.ts`): cambio de estado de una idea, nuevo comentario, respuesta del Equipo, idea lanzada, invitación a la Comunidad, invitación al equipo, activación de cliente, bienvenida a Pro, cancelación, pago fallido, cambio de precio, resumen diario del buzón y avisos al Super Admin (nuevos clientes, pagos fallidos, churn, resumen semanal).
 Todos pasan por la tabla `email_outbox` y respetan las preferencias de cada usuario. Sin `RESEND_API_KEY`, se escriben en la consola del servidor.
 
+### Formulario de contacto (buzón de Hostinger)
+
+El formulario de la landing (`/#contacto`) y el botón *Contactanos* del plan Enterprise (landing y Mi perfil › Suscripción) mandan cada mensaje a `hola@boxinger.com`, con *Responder a* el email de quien escribió: contestás directo desde tu correo.
+Se envía por SMTP con la casilla de Hostinger. Cargá estas variables en Hostinger (Node.js app › Environment variables) y en `.env.local` si querés probar en local:
+
+| Variable | Valor |
+|---|---|
+| `SMTP_HOST` | `smtp.hostinger.com` |
+| `SMTP_PORT` | `465` |
+| `SMTP_USER` | `hola@boxinger.com` |
+| `SMTP_PASS` | la contraseña de la casilla (hPanel › Emails › Cuentas de correo) |
+| `CONTACT_TO` | opcional; a qué casilla llegan (por defecto `SMTP_USER`) |
+
+Cada mensaje se guarda antes en la tabla `contact_messages` (Supabase › Table Editor). Si el envío falla, queda como `failed` y el cron diario lo reintenta. Límite: 5 mensajes por hora por conexión y 3 por email; un campo oculto frena bots.
+Sin SMTP usa Resend si está configurado.
+
 ## 3. PayPal (USD)
 
 1. developer.paypal.com › Apps & Credentials › *Create App* (primero en **Sandbox**). Copiá Client ID y Secret.

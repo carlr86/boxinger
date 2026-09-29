@@ -1,5 +1,6 @@
 import { SITE_URL } from '@/lib/env';
 import { fmtPrice } from '@/lib/format';
+import { CONTACT_TOPICS, type ContactTopic } from '@/lib/constants';
 
 // Transactional emails, in Spanish. Each template gets the outbox payload
 // written by the Postgres functions (see supabase/migrations).
@@ -141,6 +142,16 @@ export function render(template: string, p: P): { subject: string; html: string 
           `<ul style="padding-left:18px;margin:0;line-height:1.8"><li>Cuentas nuevas: <b>${s(p.new_accounts)}</b> (total ${s(p.accounts)})</li><li>Buzones nuevos: <b>${s(p.new_boards)}</b></li><li>Ideas: ${s(p.ideas)} · Votos: ${s(p.votes)} · Comentarios: ${s(p.comments)}</li><li>Suscripciones Pro: <b>${s(p.pro)}</b></li><li>MRR: USD ${fmtPrice(Number(p.mrr_usd))} · ARS ${fmtPrice(Number(p.mrr_ars))}</li></ul>`,
           { label: 'Abrir el panel', url: `${SITE_URL}/app/admin` }, 'Notificación del panel de Admin de plataforma.'),
       };
+    case 'contact': {
+      const topic = CONTACT_TOPICS[s(p.topic) as ContactTopic] || 'Consulta';
+      const row = (k: string, v: unknown) => (v ? `<tr><td style="padding:4px 16px 4px 0;color:rgba(0,0,0,0.45);white-space:nowrap;vertical-align:top">${k}</td><td style="padding:4px 0">${esc(v)}</td></tr>` : '');
+      return {
+        subject: `[${topic}] ${s(p.name)}${p.company ? ' · ' + s(p.company) : ''}`,
+        html: layout(`Nueva consulta: ${esc(topic)}`,
+          `<table role="presentation" cellpadding="0" cellspacing="0" style="font-size:14px">${row('Nombre', p.name)}${row('Email', p.email)}${row('Empresa', p.company)}${row('Tamaño del equipo', p.team_size)}${row('Cuenta', p.account)}</table>${quote(p.message)}`,
+          undefined, `Mensaje #${s(p.id)} del formulario de contacto de boxinger.com. Respondé este email para contestarle a ${esc(p.email)}.`),
+      };
+    }
     default:
       return { subject: 'Boxinger', html: layout('Boxinger', esc(JSON.stringify(p))) };
   }

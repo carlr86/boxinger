@@ -7,7 +7,8 @@ import { Avatar, Note, PageHead, Seg, Tag } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { rpc } from '@/lib/rpc';
 import { dlong, money } from '@/lib/format';
-import { CONTACT_ENTERPRISE, ENTERPRISE_TAG } from '@/lib/constants';
+import { ENTERPRISE_TAG } from '@/lib/constants';
+import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
 
@@ -184,6 +185,7 @@ function Subscription() {
   const sp = useSearchParams();
   const { ctx, refresh } = useSession();
   const [pick, setPick] = useState(false);
+  const [contact, setContact] = useState(false);
   const [busy, setBusy] = useState(false);
   const acc = ctx!.account;
   const s = acc?.subscription;
@@ -273,9 +275,16 @@ function Subscription() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{ENTERPRISE_ITEMS.map((x) => <span key={x}>{x}</span>)}</div>
           {isEnt
             ? <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Tu plan lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.</span>
-            : <a href={CONTACT_ENTERPRISE} className="bx-btn" style={{ height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderColor: '#4338ca', color: '#4338ca' }}>Contactanos</a>}
+            : <button type="button" className="bx-btn" style={{ height: 36, borderColor: '#4338ca', color: '#4338ca' }} onClick={() => setContact(true)}>Contactanos</button>}
         </div>
       </div>
+
+      <Modal open={contact} onCancel={() => setContact(false)} footer={null} title="Consultar por Enterprise" width={560} destroyOnHidden>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
+          <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Contanos sobre tu equipo y te escribimos con una propuesta a medida.</span>
+          <ContactForm topic="enterprise" name={ctx!.me.name} email={ctx!.me.email} />
+        </div>
+      </Modal>
 
       <Modal open={pick} onCancel={() => setPick(false)} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>

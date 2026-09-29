@@ -46,7 +46,7 @@ Una misma persona puede ser Admin de su cuenta, Miembro de otro equipo e Invitad
 | Matriz, Roadmap, Status, Growth | No | Sí | Sí |
 | Invitados, ideas, votos, comentarios, Ranking, Backlog | Sí | Sí | Sí |
 
-**Enterprise** no se vende en la web: el landing y Mi perfil muestran "Contactanos" y lo asigna el Super Admin desde el panel. Incluye todo lo de Pro, miembros ilimitados y (próximamente) funciones con IA. Se factura fuera de la plataforma, por eso no suma al MRR; el dashboard lo cuenta aparte. Al asignarlo, si había una suscripción Pro en PayPal o Mercado Pago, se cancela.
+**Enterprise** no se vende en la web: el landing y Mi perfil muestran "Contactanos", que abre el formulario de contacto (`/api/contact` → tabla `contact_messages` → email a hola@boxinger.com), y lo asigna el Super Admin desde el panel. Incluye todo lo de Pro, miembros ilimitados y (próximamente) funciones con IA. Se factura fuera de la plataforma, por eso no suma al MRR; el dashboard lo cuenta aparte. Al asignarlo, si había una suscripción Pro en PayPal o Mercado Pago, se cancela.
 
 Al volver a Free: el primer buzón del primer equipo sigue activo; el resto queda en **solo lectura** ("Requiere Pro") y los miembros quedan pausados. Nada se borra.
 

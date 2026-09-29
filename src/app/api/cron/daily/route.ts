@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dispatchOutbox } from '@/lib/email/outbox';
 import { syncAmount } from '@/lib/billing/sync';
+import { retryContacts } from '@/lib/email/contact';
 
 // Daily job, triggered by .github/workflows/daily-cron.yml with Authorization: Bearer $CRON_SECRET.
 export async function GET(req: NextRequest) {
@@ -64,7 +65,10 @@ export async function GET(req: NextRequest) {
     await admin.rpc('notify_super_admins', { p_pref: 'weekly', p_template: 'admin_weekly', p_payload: w, p_dedupe: 'weekly:' + day });
   }
 
-  // 7. Send everything queued.
+  // 7. Contact-form messages the mailbox could not take.
+  log.contact_retried = await retryContacts().catch((e) => { console.error('contact retry', e); return 0; });
+
+  // 8. Send everything queued.
   let sent = 0;
   for (let i = 0; i < 10; i++) { const r = await dispatchOutbox(50); sent += r.sent; if (r.sent + r.failed < 50) break; }
   log.emails = sent;

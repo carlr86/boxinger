@@ -55,7 +55,8 @@ export const planTone = (p?: string | null): Tone => {
   const k = (p || '').toLowerCase();
   return k === 'enterprise' ? ENTERPRISE_TAG : k === 'pro' ? PRO_TAG : FREE_TAG;
 };
-export const CONTACT_ENTERPRISE = 'mailto:hola@boxinger.com?subject=' + encodeURIComponent('Boxinger Enterprise');
+export const CONTACT_TOPICS = { general: 'Consulta general', enterprise: 'Plan Enterprise', soporte: 'Soporte' } as const;
+export type ContactTopic = keyof typeof CONTACT_TOPICS;
 export const WARN: Tone = { l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' };
 export const INFO: Tone = { l: '', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' };
 export const NEUTRAL: Tone = { l: '', bg: '#fafafa', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.65)' };

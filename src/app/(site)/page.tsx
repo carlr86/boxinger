@@ -2,7 +2,7 @@ import Link from 'next/link';
 import s from './landing.module.css';
 import { getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
-import { CONTACT_ENTERPRISE } from '@/lib/constants';
+import ContactForm from '@/components/ContactForm';
 
 export const revalidate = 3600;
 
@@ -58,7 +58,7 @@ export default async function Landing() {
     {
       name: 'Enterprise', price: 'A medida', per: '', bd: '#c7d2fe', badge: 'Exclusivo',
       items: ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Funciones con IA (próximamente)', 'Alta y acompañamiento dedicados'],
-      cta: 'Contactanos', ctaBg: '#fff', ctaFg: '#4338ca', ctaBd: '#4338ca', href: CONTACT_ENTERPRISE,
+      cta: 'Contactanos', ctaBg: '#fff', ctaFg: '#4338ca', ctaBd: '#4338ca', href: '#contacto-enterprise',
     },
   ];
 
@@ -74,6 +74,7 @@ export default async function Landing() {
             <a href="#como" className={s.navLink}>Cómo funciona</a>
             <a href="#funciones" className={s.navLink}>Funciones</a>
             <a href="#planes" className={s.navLink}>Planes</a>
+            <a href="#contacto" className={s.navLink}>Contacto</a>
           </nav>
           <div className={s.headerCtas}>
             <Link href="/app/ingresar" className={s.btnSm}>Ingresar</Link>
@@ -188,6 +189,23 @@ export default async function Landing() {
         </div>
       </section>
 
+      <section id="contacto" className={s.contact}>
+        <div className={s.contactIn}>
+          <div className={s.contactText}>
+            <span id="contacto-enterprise" className={s.anchor} />
+            <h2 className={s.h2}>Hablemos</h2>
+            <p className={s.sub}>¿Tenés una duda, necesitás ayuda o querés conocer el plan Enterprise para tu empresa? Escribinos y te respondemos por email.</p>
+            <div className={s.contactAlt}>
+              <span>También podés escribirnos a</span>
+              <a href="mailto:hola@boxinger.com">hola@boxinger.com</a>
+            </div>
+          </div>
+          <div className={s.contactCard}>
+            <ContactForm hashTopic />
+          </div>
+        </div>
+      </section>
+
       <section className={s.band}>
         <div className={s.bandIn}>
           <h2 className={s.bandH}>Abrí tu primer buzón hoy.</h2>
@@ -204,7 +222,7 @@ export default async function Landing() {
           <div className={s.footerLinks}>
             <Link href="/terminos" className={s.footerLink}>Términos</Link>
             <Link href="/privacidad" className={s.footerLink}>Privacidad</Link>
-            <a href="mailto:hola@boxinger.com" className={s.footerLink}>Contacto</a>
+            <a href="#contacto" className={s.footerLink}>Contacto</a>
           </div>
         </div>
       </footer>

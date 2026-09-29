@@ -78,6 +78,13 @@
 .check{flex:none;margin-top:2px}
 .planCta{height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500}
 
+.contact{background:#fff;border-top:1px solid #f0f0f0;scroll-margin-top:64px}
+.contactIn{max-width:1120px;margin:0 auto;padding:88px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:56px;align-items:start}
+.contactText{position:relative;display:flex;flex-direction:column;gap:14px;max-width:460px}
+.anchor{position:absolute;top:-88px}
+.contactAlt{display:flex;flex-direction:column;gap:2px;font-size:14px;color:rgba(0,0,0,0.45);margin-top:8px}
+.contactAlt a{color:#059669;font-size:15px}
+.contactCard{background:#fff;border:1px solid #e6ebe9;border-radius:12px;padding:28px;box-shadow:0 24px 48px -32px rgba(31,42,39,0.25);position:relative}
 .band{background:#f5f7f6;border-top:1px solid #eef1f0}
 .bandIn{max-width:1120px;margin:0 auto;padding:72px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
 .bandH{margin:0;font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-0.01em;flex:1;min-width:280px;text-wrap:balance}
@@ -95,6 +102,8 @@
   .heroIn{padding:48px 16px 56px;gap:40px}
   .section{padding:64px 16px}
   .bandIn{padding:56px 16px}
+  .contactIn{padding:64px 16px;gap:32px}
+  .contactCard{padding:20px}
   .mockTabs span:nth-child(n+3){display:none}
 }
 @media (max-width:420px){
