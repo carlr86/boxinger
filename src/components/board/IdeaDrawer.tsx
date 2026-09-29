@@ -176,11 +176,11 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
               {api.pro && i.status === 'aprobada' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Roadmap <ProPill /></span>
-                  <Choice
-                    options={[['', 'Backlog'] as [string, string]].concat(RM_COLS.map((c) => [c.k, rmNames[c.k] || c.l]))}
-                    value={i.rm_col || ''}
-                    onChange={(k) => act(rpc('move_roadmap', { p_id: i.id, p_col: k || null, p_before: null }), k ? 'Movida a ' + (rmNames[k] || RM_COLS.find((c) => c.k === k)!.l) : 'Volvió al Backlog')}
-                  />
+                  <select className="bx-select" style={{ alignSelf: 'flex-start', minWidth: 200 }} value={i.rm_col || ''} disabled={!api.canWrite}
+                    onChange={(e) => { const k = e.target.value; act(rpc('move_roadmap', { p_id: i.id, p_col: k || null, p_before: null }), k ? 'Movida a ' + (rmNames[k] || RM_COLS.find((c) => c.k === k)!.l) : 'Volvió al Backlog'); }}>
+                    <option value="">Backlog</option>
+                    {RM_COLS.map((c) => <option key={c.k} value={c.k}>{rmNames[c.k] || c.l}</option>)}
+                  </select>
                 </div>
               )}
               {api.pro && i.status === 'aprobada' && i.rm_col && (
