@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { rpc } from '@/lib/rpc';
+import { signInWithGoogle } from '@/lib/oauth';
 import { passwordError } from '@/lib/auth-errors';
 import { Field, Note } from '@/components/ui';
 import { useSession } from '@/components/Providers';
@@ -19,7 +20,8 @@ export function Activate({ token, email }: { token: string; email: string }) {
 
   async function google() {
     const next = '/app/invitacion/' + token;
-    await supabaseBrowser().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/app/auth/callback?next=${encodeURIComponent(next)}`, queryParams: { login_hint: email } } });
+    const err = await signInWithGoogle(`${location.origin}/app/auth/callback?next=${encodeURIComponent(next)}`, email);
+    if (err) setError(err);
   }
   async function submit(e: React.FormEvent) {
     e.preventDefault();

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { authError, passwordError } from '@/lib/auth-errors';
+import { signInWithGoogle } from '@/lib/oauth';
 import { isEmail } from '@/lib/format';
 import { Field, Note } from '@/components/ui';
 import { useSession } from '@/components/Providers';
@@ -33,8 +34,8 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
 
   async function google() {
     setError('');
-    const { error } = await supabaseBrowser().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: cb(next) } });
-    if (error) setError(authError(error.message));
+    const err = await signInWithGoogle(cb(next));
+    if (err) setError(authError(err));
   }
 
   async function submit(e: React.FormEvent) {
