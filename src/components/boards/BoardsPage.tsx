@@ -123,7 +123,7 @@ export function BoardsPage() {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader slogan="From idea to Product" />
       <main className="bx-main">
         <PageHead title="Mis Buzones de ideas"
           sub={<>Elegí un buzón para entrar. {ctx.account ? (isPro ? 'Plan Pro · equipos y buzones ilimitados.' : 'Plan Free · 1 equipo · 1 buzón.') : ''}</>}

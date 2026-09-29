@@ -23,8 +23,9 @@ const Check = () => (
 export type HeaderBoard = { id: string; name: string; color: string; isTeam: boolean };
 export type HeaderTab = { key: string; label: string };
 
-export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext }: {
+export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, slogan }: {
   board?: HeaderBoard;
+  slogan?: string;
   tabs?: HeaderTab[];
   view?: string;
   onTab?: (k: string) => void;
@@ -52,6 +53,12 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext }: {
     <header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', minHeight: 64, position: 'sticky', top: 0, zIndex: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 64, minWidth: 0 }}>
         <a onClick={goHome} title={hasBoards ? 'Mis Buzones' : 'Inicio'} style={{ color: 'inherit' }}><Logo /></a>
+        {slogan && !board && (
+          <span className="bx-hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ width: 1, height: 20, background: '#e8e8e8' }} />
+            <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', whiteSpace: 'nowrap' }}>{slogan}</span>
+          </span>
+        )}
         {board && (
           <>
             <span style={{ width: 1, height: 20, background: '#f0f0f0' }} />
