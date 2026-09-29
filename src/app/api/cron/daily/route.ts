@@ -3,9 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dispatchOutbox } from '@/lib/email/outbox';
 import { syncAmount } from '@/lib/billing/sync';
 
-export const maxDuration = 300;
-
-// Daily job (vercel.json › crons). Vercel sends Authorization: Bearer $CRON_SECRET.
+// Daily job, triggered by .github/workflows/daily-cron.yml with Authorization: Bearer $CRON_SECRET.
 export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const admin = supabaseAdmin();

@@ -2,7 +2,7 @@
 
 Buzón de ideas para equipos de producto: la comunidad propone y vota, el equipo revisa, y las ideas aprobadas pasan al Backlog, la Matriz de esfuerzo e impacto, el Roadmap y Status.
 
-- **Web**: Next.js 16 (App Router) + Ant Design 6, en Vercel.
+- **Web**: Next.js 16 (App Router) + Ant Design 6, publicado en Hostinger (Node.js Web Apps) desde GitHub.
 - **Datos y login**: Supabase (Postgres con RLS, Auth con email/contraseña y Google, Storage).
 - **Emails**: Resend.
 - **Pagos**: PayPal (USD) y Mercado Pago (ARS).
@@ -16,7 +16,7 @@ src/app/api/             billing (checkout, webhooks), outbox de emails, cron di
 src/components/          UI: header, buzón (board/), mis buzones (boards/), admin/
 src/lib/                 clientes de Supabase, emails, billing, formato
 supabase/migrations/     esquema, permisos, funciones y datos iniciales
-docs/SETUP.md            cómo configurar Supabase, Google, Resend, PayPal, Mercado Pago y Vercel
+docs/SETUP.md            cómo configurar Supabase, Google, Resend, PayPal, Mercado Pago y Hostinger
 docs/BACKEND.md          roles, modelo de datos, API y decisiones
 design/                  prototipos de Claude Design y PRD
 legacy/                  MVP anterior (Insight Backlog, Python)

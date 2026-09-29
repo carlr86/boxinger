@@ -3,12 +3,12 @@
 ## Arquitectura
 
 ```
-Navegador ──► Next.js (Vercel)
+Navegador ──► Next.js (Hostinger, Node.js)
                ├─ páginas /  (landing, estática, ISR 1 h)
                ├─ /app/*     (React + Ant Design; lee y escribe con supabase-js)
                ├─ /api/billing/*  checkout, webhooks y retorno de PayPal y Mercado Pago
                ├─ /api/outbox     envía los emails en cola (Resend)
-               └─ /api/cron/daily job diario (Vercel Cron)
+               └─ /api/cron/daily job diario (GitHub Actions)
                         │
                         ▼
                Supabase: Auth (email + Google) · Postgres con RLS · Storage (bucket media)

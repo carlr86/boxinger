@@ -1,7 +1,17 @@
 // Centralized env access. Server-only secrets are read lazily so a missing
 // provider key only breaks the feature that needs it.
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
+/** Public base URL. Tolerates a missing scheme ("boxinger.com") and falls back if it is not a valid URL. */
+function siteUrl(): string {
+  let v = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/+$/, '');
+  if (v && !/^https?:\/\//i.test(v)) v = (/^(localhost|127\.)/.test(v) ? 'http://' : 'https://') + v;
+  try {
+    return v ? new URL(v).origin : 'http://localhost:3000';
+  } catch {
+    return 'https://boxinger.com';
+  }
+}
+export const SITE_URL = siteUrl();
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 

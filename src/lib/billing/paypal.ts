@@ -1,5 +1,5 @@
 import 'server-only';
-import { requireEnv } from '@/lib/env';
+import { SITE_URL, requireEnv } from '@/lib/env';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // PayPal Subscriptions API (USD). Docs: developer.paypal.com/docs/api/subscriptions/v1/
@@ -40,7 +40,7 @@ async function productId(): Promise<string> {
   const key = 'paypal_product_id:' + (process.env.PAYPAL_ENV || 'sandbox');
   const saved = await setting(key);
   if (saved) return saved;
-  const p = await pp('POST', '/v1/catalogs/products', { name: 'Boxinger Pro', description: 'Plan Pro de Boxinger', type: 'SERVICE', category: 'SOFTWARE', home_url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.boxinger.com' });
+  const p = await pp('POST', '/v1/catalogs/products', { name: 'Boxinger Pro', description: 'Plan Pro de Boxinger', type: 'SERVICE', category: 'SOFTWARE', home_url: SITE_URL });
   await supabaseAdmin().from('app_settings').upsert({ key, value: p.id });
   return p.id;
 }

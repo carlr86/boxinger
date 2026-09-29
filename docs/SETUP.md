@@ -1,6 +1,6 @@
 # Puesta en marcha
 
-Pasos para dejar Boxinger funcionando con Supabase, Resend, PayPal, Mercado Pago y Vercel.
+Pasos para dejar Boxinger funcionando con Supabase, Resend, PayPal, Mercado Pago y Hostinger.
 Hacé primero todo en modo prueba (sandbox) y después repetí los pasos de pagos con credenciales productivas.
 
 ## 1. Supabase
@@ -31,7 +31,7 @@ El panel queda en `/app/admin`.
 **Authentication › URL Configuration**
 
 - Site URL: `https://www.boxinger.com`
-- Redirect URLs: `https://www.boxinger.com/app/**`, `http://localhost:3000/app/**` y las URLs de preview de Vercel (`https://*-<tu-equipo>.vercel.app/app/**`).
+- Redirect URLs: `https://www.boxinger.com/app/**`, `http://localhost:3000/app/**` y, si usás otro dominio de prueba, también ese.
 
 **Authentication › Providers › Email**: activado, con *Confirm email* activado (hasta verificar, el usuario puede ver buzones pero no participar). Largo mínimo de contraseña: 8.
 
@@ -97,12 +97,42 @@ Cómo funciona: *Pasar a Pro* crea la suscripción en PayPal y redirige a aproba
 
 Cómo funciona: *Pasar a Pro › Mercado Pago* crea un `preapproval` en pesos con el precio ARS vigente y redirige a `init_point`. El comprador tiene que pagar con la cuenta de Mercado Pago del email de su cuenta de Boxinger. Al volver (`/api/billing/mercadopago/return`) y con el webhook, la cuenta pasa a Pro. Los cambios de precio y precios especiales actualizan `auto_recurring.transaction_amount` del preapproval.
 
-## 5. Vercel y GitHub
+## 5. Hostinger (hosting) y GitHub
 
-1. Subí el repo a GitHub e importalo en vercel.com (framework Next.js, sin cambios de build).
-2. Cargá las variables de `.env.example` en *Settings › Environment Variables* (Production y Preview). `NEXT_PUBLIC_SITE_URL=https://www.boxinger.com` en Production.
-3. `CRON_SECRET`: un valor aleatorio largo (`openssl rand -hex 32`). `vercel.json` programa `/api/cron/daily` todos los días a las 11:00 UTC (8:00 en Argentina). Ese proceso aplica precios programados, vence precios especiales, pasa a Free las suscripciones canceladas al fin del período, manda el resumen diario, las alertas de churn, el resumen semanal (lunes) y reintenta emails.
-4. Dominio: agregá `www.boxinger.com` y `boxinger.com` (redirigido a www) en *Settings › Domains*.
+Boxinger necesita un servidor Node.js (login, webhooks de pago y rutas `/api`), así que no sirve un hosting solo de archivos estáticos. En Hostinger funciona con **Business Web Hosting** o **Cloud** (Node.js Web Apps). En un VPS también funciona, pero la instalación es manual.
+
+**Crear la app**
+
+1. hPanel › **Websites** › **Add Website** › **Node.js Apps** › **Import Git Repository**.
+2. Autorizá GitHub y elegí `carlr86/boxinger`, rama `main`.
+3. Configuración de build:
+
+   | Campo | Valor |
+   | --- | --- |
+   | Framework preset | Next.js |
+   | Node.js version | 22 |
+   | Package manager | npm |
+   | Build command | `npm run build` |
+   | Start / entry | `npm start` (lo sugiere el preset) |
+
+4. **Environment variables**: cargá todas las de `.env.example` con los valores reales. `NEXT_PUBLIC_SITE_URL` va con tu dominio (por ejemplo `https://www.boxinger.com`). **No** cargues `SUPABASE_DB_URL`: solo se usa en tu computadora para aplicar migraciones.
+   Las variables `NEXT_PUBLIC_*` se incrustan al compilar: si las cambiás, volvé a publicar (Redeploy).
+5. Deploy. Cada `git push` a `main` vuelve a publicar solo.
+
+**Dominio**: en la app de Hostinger, conectá tu dominio (si está en Hostinger se configura solo; si no, apuntá el DNS como indica hPanel). Activá el SSL (Let's Encrypt, gratis) y redirigí `boxinger.com` → `www.boxinger.com`, o al revés, pero usá la misma URL en `NEXT_PUBLIC_SITE_URL`, en Supabase y en los webhooks.
+
+**Proceso diario (GitHub Actions)**: `.github/workflows/daily-cron.yml` llama a `/api/cron/daily` todos los días a las 11:00 UTC (8:00 en Argentina). En GitHub › repo › **Settings › Secrets and variables › Actions › New repository secret** cargá:
+
+| Secret | Valor |
+| --- | --- |
+| `SITE_URL` | `https://www.boxinger.com` (tu dominio, sin `/` al final) |
+| `CRON_SECRET` | el mismo valor que pusiste en Hostinger (generalo con `openssl rand -hex 32`) |
+
+Para probarlo sin esperar: pestaña **Actions › Daily job › Run workflow**.
+
+Ese proceso aplica los precios programados, vence los precios especiales, pasa a Free las suscripciones canceladas al fin del período, manda el resumen diario, las alertas de churn y el resumen semanal (los lunes), y reintenta los emails pendientes.
+
+**Después de publicar, actualizá las URLs** en Supabase (Auth › URL Configuration: Site URL y Redirect URLs con tu dominio), en Google Cloud (si usás login con Google, no hace falta tocar nada: la URL de callback es la de Supabase), y en los webhooks de PayPal y Mercado Pago.
 
 ## 6. Desarrollo local
 
