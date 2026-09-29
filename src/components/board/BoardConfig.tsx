@@ -49,7 +49,7 @@ function General({ api }: { api: BoardApi }) {
     setBusy(true);
     const path = `logos/${b.id}/logo-${Date.now()}.${file.type === 'image/png' ? 'png' : 'jpg'}`;
     const sb = supabaseBrowser();
-    const { error } = await sb.storage.from('media').upload(path, file, { upsert: true, contentType: file.type });
+    const { error } = await sb.storage.from('media').upload(path, file, { contentType: file.type });
     if (error) { setBusy(false); return toast.err(new Error('No pudimos subir la imagen: ' + error.message)); }
     const url = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
     await api.run(rpc('update_board', { p_board: b.id, p_logo_url: url }), 'Logo actualizado');

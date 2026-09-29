@@ -50,7 +50,7 @@ function Datos() {
     setBusy(true);
     const sb = supabaseBrowser();
     const path = `avatars/${me.id}/avatar-${Date.now()}.${file.type === 'image/png' ? 'png' : 'jpg'}`;
-    const { error } = await sb.storage.from('media').upload(path, file, { upsert: true, contentType: file.type });
+    const { error } = await sb.storage.from('media').upload(path, file, { contentType: file.type });
     if (error) { setBusy(false); return toast.err(new Error('No pudimos subir la imagen: ' + error.message)); }
     const url = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
     try { await rpc('update_profile', { p_name: me.name, p_avatar_url: url }); await refresh(); toast.ok('Foto actualizada'); } catch (e) { toast.err(e); }

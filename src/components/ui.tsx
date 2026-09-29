@@ -117,7 +117,11 @@ export function Avatar({ name, id, url, size = 32, square, color, style }: {
   name: string; id?: string; url?: string | null; size?: number; square?: boolean; color?: string; style?: React.CSSProperties;
 }) {
   const radius = square ? (size >= 36 ? 8 : size >= 22 ? 5 : 4) : '50%';
-  if (url) return <img src={url} alt="" width={size} height={size} style={{ flex: 'none', width: size, height: size, borderRadius: radius, objectFit: 'cover', ...style }} />;
+  // Google profile photos rate-limit hotlinking with a Referer; fall back to initials if it still fails.
+  const [broken, setBroken] = React.useState(false);
+  React.useEffect(() => setBroken(false), [url]);
+  if (url && !broken)
+    return <img src={url} alt="" width={size} height={size} referrerPolicy="no-referrer" onError={() => setBroken(true)} style={{ flex: 'none', width: size, height: size, borderRadius: radius, objectFit: 'cover', ...style }} />;
   return (
     <span style={{ flex: 'none', width: size, height: size, borderRadius: radius, background: color || avatarColor(id || name), color: '#fff', display: 'grid', placeItems: 'center',
       fontSize: Math.max(10, Math.round(size * (square ? 0.36 : 0.4))), fontWeight: square ? 700 : 600, ...style }}>
