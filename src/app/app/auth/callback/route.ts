@@ -11,6 +11,9 @@ export async function GET(request: NextRequest) {
     const sb = await createClient();
     const { error } = await sb.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(new URL(next, url.origin));
+    // Code already used (reload, double redirect) but the session is there: carry on.
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) return NextResponse.redirect(new URL(next, url.origin));
     // The email was verified by Supabase, but this browser has no PKCE verifier (another device).
     return NextResponse.redirect(new URL('/app/ingresar?aviso=verificado&next=' + encodeURIComponent(next), url.origin));
   }

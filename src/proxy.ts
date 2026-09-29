@@ -6,6 +6,19 @@ const PROTECTED = ['/app/buzones', '/app/perfil', '/app/admin', '/app/onboarding
 // Refreshes the Supabase session cookie on every /app request and sends signed-out
 // users away from private screens. Authorization itself lives in Postgres.
 export async function proxy(request: NextRequest) {
+  // Supabase falls back to the Site URL (the landing) when the OAuth redirect isn't in its
+  // allow-list. Finish the sign-in anyway: exchange the code and go to the user's home.
+  if (request.nextUrl.pathname === '/') {
+    const sp = request.nextUrl.searchParams;
+    if (sp.has('code') || sp.has('error_description')) {
+      const url = request.nextUrl.clone();
+      url.pathname = sp.has('code') ? '/app/auth/callback' : '/app/ingresar';
+      url.search = sp.has('code') ? '?code=' + encodeURIComponent(sp.get('code')!) + '&next=%2Fapp' : '?aviso=error';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
@@ -29,4 +42,4 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-export const config = { matcher: ['/app/:path*'] };
+export const config = { matcher: ['/', '/app/:path*'] };
