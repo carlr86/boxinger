@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { Bar, Dots, PageHead, ProLock, Seg, Stat, Tag } from '@/components/ui';
-import { DEV, NO_PRIO, PRIO, RATE_C, RATE_L } from '@/lib/constants';
+import { DEV, GROWTH, NO_PRIO, PRIO, RATE_C, RATE_L } from '@/lib/constants';
 import { ddmmyyyy, plural } from '@/lib/format';
 import { rateOf, scoreOf, type BoardApi } from './shared';
 import { useGridCols } from './IdeaGrid';
@@ -102,6 +102,12 @@ export function Matrix({ api }: { api: BoardApi }) {
                   <span>Esfuerzo</span><Dots v={x.eff} k="effort" />
                   <span>Impacto</span><Dots v={x.imp} k="impact" />
                   <span>Votos</span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{x.i.votes}</span>
+                  <span style={{ alignSelf: 'start', lineHeight: '20px' }}>Growth</span>
+                  <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {x.i.growth?.length
+                      ? x.i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{GROWTH[k].l}</Tag>)
+                      : <Tag tone={NO_PRIO}>Sin definir</Tag>}
+                  </span>
                 </div>
               </div>
             );
