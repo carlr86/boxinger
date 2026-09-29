@@ -7,7 +7,7 @@ import { useSession, useToast } from '@/components/Providers';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar } from '@/components/ui';
 import { Logo } from '@/components/SimpleHeader';
-import { FREE_TAG, PRO_TAG, SHADOW_POP } from '@/lib/constants';
+import { planTone, SHADOW_POP } from '@/lib/constants';
 import type { BoardCard } from '@/lib/types';
 
 const Chevron = () => (
@@ -93,7 +93,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
                   <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 14, fontWeight: 600 }}>{me.name}</span>
                     <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.email}</span>
-                    {(() => { const t = isPro ? PRO_TAG : FREE_TAG; return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + t.bd, background: t.bg, color: t.fg }}>Plan {t.l}</span>; })()}
+                    {(() => { const t = planTone(ctx?.account?.plan); return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + t.bd, background: t.bg, color: t.fg }}>Plan {t.l}</span>; })()}
                   </div>
                 </div>
                 {hasBoards && <Link className="bx-item" style={menuLink} href="/app/buzones">Mis Buzones</Link>}

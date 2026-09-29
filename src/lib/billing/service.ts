@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendNow } from '@/lib/email/outbox';
 
 export type SubRow = {
-  account_id: string; plan: 'free' | 'pro'; status: string; provider: string | null; provider_subscription_id: string | null;
+  account_id: string; plan: 'free' | 'pro' | 'enterprise'; status: string; provider: string | null; provider_subscription_id: string | null;
   currency: 'USD' | 'ARS'; list_amount: number | null; charged_amount: number | null; pro_since: string | null;
   current_period_end: string | null; cancel_at_period_end: boolean;
   deal_type: 'pct' | 'fixed' | null; deal_value: number | null; deal_until: string | null;

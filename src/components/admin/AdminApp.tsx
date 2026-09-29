@@ -7,7 +7,7 @@ import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Seg, Tag } from '@/components/ui';
 import { useGridCols } from '@/components/board/IdeaGrid';
-import { BAD, FREE_TAG, OK, PRO_TAG, type Tone } from '@/lib/constants';
+import { BAD, OK, PRO_TAG, planTone, type Tone } from '@/lib/constants';
 import { ddmmyyyy, money, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
@@ -21,7 +21,8 @@ const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Cliente
 const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes', boards: 'Buzones', suscripciones: 'Suscripciones', usuarios: 'Usuarios', perfil: 'Mi perfil' };
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', manual: 'Manual' };
 const sec = 'rgba(0,0,0,0.45)';
-const planTag = (p: string) => <Tag tone={p === 'Pro' ? PRO_TAG : FREE_TAG}>{p}</Tag>;
+const planTag = (p: string) => <Tag tone={planTone(p)}>{p}</Tag>;
+const planRank = (p: string) => ({ Free: 0, Pro: 1, Enterprise: 2 } as Record<string, number>)[p] ?? 0;
 const statusTag = (ok: boolean, okL = 'Activa', badL = 'Suspendida') => <Tag tone={ok ? OK : BAD}>{ok ? okL : badL}</Tag>;
 
 export function AdminApp() {
@@ -57,11 +58,11 @@ export function AdminApp() {
 
   const match = (...xs: (string | null | undefined)[]) => !q.trim() || xs.join(' ').toLowerCase().includes(q.trim().toLowerCase());
   const act = async (p: Promise<unknown>, ok: string) => { try { await p; toast.ok(ok); reloadAll(); } catch (e) { toast.err(e); } };
-  const setPlan = async (c: Client, plan: 'free' | 'pro') => {
+  const setPlan = async (c: Client, plan: 'free' | 'pro' | 'enterprise') => {
     const r = await adminUpdateSubscription({ account: c.account_id, plan, dealType: null, value: null, until: null, note: '', notify: false });
     if (!r.ok) return toast.err(new Error(r.error));
     if (r.data.warning) toast.info(r.data.warning);
-    toast.ok('Plan actualizado manualmente'); reloadAll();
+    toast.ok(plan === 'enterprise' ? 'Cuenta pasada a Enterprise' : 'Plan actualizado manualmente'); reloadAll();
   };
   const suspendItem = (c: Client): MenuItems[number] => ({
     key: 'st', danger: c.status === 'active', label: c.status === 'active' ? 'Suspender cuenta' : 'Reactivar cuenta',
@@ -72,13 +73,13 @@ export function AdminApp() {
     if (!c.activated) return <Tag tone={c.invite === 'sent' ? ({ l: '', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' } as Tone) : ({ l: '', bg: '#fafafa', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.65)' } as Tone)}>{c.invite === 'sent' ? 'Acceso enviado' : 'Sin acceso'}</Tag>;
     return <Tag tone={OK}>Activa</Tag>;
   };
-  const priceCell = (c: Client) => c.plan !== 'Pro' ? '—' : <span style={{ color: c.deal_type ? '#d46b08' : undefined }}>{money(c.currency, Number(c.amount))}{c.deal_type ? (c.deal_type === 'fixed' ? ' · exclusivo' : ' · −' + c.deal_value + '%') : ''}</span>;
+  const priceCell = (c: Client) => c.plan === 'Enterprise' ? <span style={{ color: '#4338ca' }}>A medida</span> : c.plan !== 'Pro' ? '—' : <span style={{ color: c.deal_type ? '#d46b08' : undefined }}>{money(c.currency, Number(c.amount))}{c.deal_type ? (c.deal_type === 'fixed' ? ' · exclusivo' : ' · −' + c.deal_value + '%') : ''}</span>;
 
   const clientCols: Col<Client>[] = [
     { key: 'name', title: 'Nombre', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
     { key: 'email', title: 'Email', width: '1.6fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
     { key: 'alta', title: 'Alta', width: '110px', sort: (c) => +new Date(c.created_at), render: (c) => ddmmyyyy(c.created_at) },
-    { key: 'plan', title: 'Plan', width: '80px', sort: (c) => (c.plan === 'Pro' ? 1 : 0), render: (c) => planTag(c.plan) },
+    { key: 'plan', title: 'Plan', width: '80px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
     { key: 'boards', title: 'Buzones', width: '100px', sort: (c) => c.boards, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.boards}</a> },
     { key: 'login', title: 'Acceso', width: '120px', render: (c) => <span style={{ color: sec }}>{c.login}</span> },
     { key: 'act', title: 'Última actividad', width: '150px', sort: (c) => +new Date(c.last_activity_at), render: (c) => <span style={{ color: sec }}>{c.activated ? rel(c.last_activity_at) : 'Sin actividad'}</span> },
@@ -88,7 +89,7 @@ export function AdminApp() {
     { key: 'd', label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
     ...(!c.activated ? [{ key: 'acc', label: c.invite === 'sent' ? 'Reenviar acceso' : 'Enviar acceso', onClick: async () => { const r = await adminSendActivation(c.account_id, true); if (r.ok) { toast.ok((c.invite === 'sent' ? 'Acceso reenviado a ' : 'Acceso enviado a ') + c.email); reloadAll(); } else toast.err(new Error(r.error)); } }] : []),
     { key: 'mail', label: <a href={'mailto:' + c.email}>Contactar</a> },
-    { key: 'plan', label: c.plan === 'Pro' ? 'Cambiar a Free' : 'Cambiar a Pro', onClick: () => setPlan(c, c.plan === 'Pro' ? 'free' : 'pro') },
+    ...(['free', 'pro', 'enterprise'] as const).filter((k) => k !== c.plan.toLowerCase()).map((k) => ({ key: 'plan-' + k, label: 'Cambiar a ' + { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }[k], onClick: () => setPlan(c, k) })),
     { type: 'divider' },
     suspendItem(c),
   ];
@@ -96,7 +97,7 @@ export function AdminApp() {
   const boardCols: Col<AdminBoard>[] = [
     { key: 'name', title: 'Nombre', width: '1.1fr', sort: (b) => b.name, render: (b) => <a onClick={() => setBoardId(b.board_id)}>{b.name}</a> },
     { key: 'owner', title: 'Dueño', width: '1.1fr', sort: (b) => b.owner_name, render: (b) => b.owner_name },
-    { key: 'plan', title: 'Plan', width: '80px', sort: (b) => (b.plan === 'Pro' ? 1 : 0), render: (b) => planTag(b.plan) },
+    { key: 'plan', title: 'Plan', width: '80px', sort: (b) => planRank(b.plan), render: (b) => planTag(b.plan) },
     { key: 'url', title: 'URL', width: '1.4fr', render: (b) => <span style={{ color: sec, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12 }}>/app/b/{b.slug}</span> },
     { key: 'ideas', title: 'Ideas', width: '80px', sort: (b) => b.ideas, render: (b) => b.ideas },
     { key: 'guests', title: 'Miembros', width: '100px', sort: (b) => b.guests, render: (b) => (b.visibility === 'private' ? <span style={{ color: sec }}>Privado</span> : b.guests) },
@@ -115,17 +116,17 @@ export function AdminApp() {
   const subCols: Col<Client>[] = [
     { key: 'name', title: 'Cuenta', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
     { key: 'email', title: 'Email', width: '1.4fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
-    { key: 'plan', title: 'Plan', width: '80px', sort: (c) => (c.plan === 'Pro' ? 1 : 0), render: (c) => planTag(c.plan) },
+    { key: 'plan', title: 'Plan', width: '80px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
     { key: 'precio', title: 'Precio', width: '170px', sort: (c) => (c.plan === 'Pro' ? Number(c.amount) * (c.currency === 'ARS' ? 0.001 : 1) : 0), render: priceCell },
-    { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' ? PROVIDER_L[c.provider || ''] || '—' : '—'}</span> },
-    { key: 'inicio', title: 'Inicio', width: '110px', sort: (c) => +new Date(c.plan === 'Pro' ? c.pro_since || c.created_at : c.created_at), render: (c) => ddmmyyyy(c.plan === 'Pro' ? c.pro_since || c.created_at : c.created_at) },
+    { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' ? PROVIDER_L[c.provider || ''] || '—' : c.plan === 'Enterprise' ? 'A medida' : '—'}</span> },
+    { key: 'inicio', title: 'Inicio', width: '110px', sort: (c) => +new Date(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at), render: (c) => ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at) },
     { key: 'st', title: 'Estado', width: '120px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && c.plan === 'Pro' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Se cancela</Tag> : statusTag(c.status === 'active') },
   ];
   const subMenu = (c: Client): MenuItems => [
     { key: 'd', label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
     { key: 'e', label: 'Editar suscripción', onClick: () => setEditSub(c) },
     { key: 'mail', label: <a href={'mailto:' + c.email}>Contactar</a> },
-    { key: 'plan', label: c.plan === 'Pro' ? 'Cambiar a Free' : 'Cambiar a Pro', onClick: () => setPlan(c, c.plan === 'Pro' ? 'free' : 'pro') },
+    ...(['free', 'pro', 'enterprise'] as const).filter((k) => k !== c.plan.toLowerCase()).map((k) => ({ key: 'plan-' + k, label: 'Cambiar a ' + { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }[k], onClick: () => setPlan(c, k) })),
     { type: 'divider' },
     suspendItem(c),
   ];

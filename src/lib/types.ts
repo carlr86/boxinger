@@ -85,12 +85,12 @@ export interface BoardCard {
 export interface Person { id?: string; user_id?: string; name: string; email: string; avatar_url?: string | null; role?: string }
 export interface TeamCtx {
   id: string; name: string; color: string; account_id: string; created_at: string;
-  own: boolean; is_admin: boolean; pro: boolean; locked: boolean;
+  own: boolean; is_admin: boolean; pro: boolean; plan: 'free' | 'pro' | 'enterprise'; locked: boolean;
   members_can_create_boards: boolean; can_create_boards: boolean;
   owner: Person; members: Person[]; pending: { id: string; email: string }[]; boards: BoardCard[];
 }
 export interface Subscription {
-  account_id: string; plan: 'free' | 'pro'; status: string; provider: 'paypal' | 'mercadopago' | 'manual' | null;
+  account_id: string; plan: 'free' | 'pro' | 'enterprise'; status: string; provider: 'paypal' | 'mercadopago' | 'manual' | null;
   provider_subscription_id: string | null; currency: 'USD' | 'ARS'; list_amount: number | null; charged_amount: number | null;
   pro_since: string | null; free_since: string; current_period_end: string | null; cancel_at_period_end: boolean;
   deal_type: 'pct' | 'fixed' | null; deal_value: number | null; deal_until: string | null; effective_amount: number;
@@ -100,7 +100,7 @@ export interface MyContext {
     id: string; name: string; email: string; avatar_url: string | null; is_super_admin: boolean; status: string;
     notif: Record<string, boolean>; admin_notif: Record<string, boolean>; created_at: string; providers: string[];
   };
-  account: { id: string; name: string; status: string; created_at: string; pro: boolean; subscription: Subscription } | null;
+  account: { id: string; name: string; status: string; created_at: string; pro: boolean; plan: 'free' | 'pro' | 'enterprise'; member_limit: number | null; subscription: Subscription } | null;
   teams: TeamCtx[];
   guest_boards: BoardCard[];
   prices: { USD: number; ARS: number };

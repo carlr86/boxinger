@@ -2,6 +2,7 @@ import Link from 'next/link';
 import s from './landing.module.css';
 import { getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
+import { CONTACT_ENTERPRISE } from '@/lib/constants';
 
 export const revalidate = 3600;
 
@@ -53,6 +54,11 @@ export default async function Landing() {
       name: 'Pro', price: 'USD ' + fmtPrice(usd), per: '/ mes', bd: '#059669',
       items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Matriz, Roadmap y Status'],
       cta: 'Crear cuenta', ctaBg: '#059669', ctaFg: '#fff', ctaBd: '#059669',
+    },
+    {
+      name: 'Enterprise', price: 'A medida', per: '', bd: '#c7d2fe', badge: 'Exclusivo',
+      items: ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Funciones con IA (próximamente)', 'Alta y acompañamiento dedicados'],
+      cta: 'Contactanos', ctaBg: '#fff', ctaFg: '#4338ca', ctaBd: '#4338ca', href: CONTACT_ENTERPRISE,
     },
   ];
 
@@ -160,13 +166,13 @@ export default async function Landing() {
       <section id="planes" className={s.section}>
         <div className={s.sectionHead}>
           <h2 className={s.h2}>Planes</h2>
-          <p className={s.sub}>Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo.</p>
+          <p className={s.sub}>Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o hablemos de Enterprise si necesitás más.</p>
         </div>
         <div className={s.plans}>
           {plans.map((p) => (
             <div key={p.name} className={s.plan} style={{ border: '1px solid ' + p.bd }}>
               <div className={s.planHead}>
-                <span className={s.planName}>{p.name}</span>
+                <span className={s.planName} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{p.name}{'badge' in p && p.badge && <span className={s.enterpriseBadge}>{p.badge}</span>}</span>
                 <div className={s.priceRow}><span className={s.price}>{p.price}</span><span className={s.per}>{p.per}</span></div>
               </div>
               <div className={s.items}>
@@ -174,7 +180,9 @@ export default async function Landing() {
                   <div key={it} className={s.item}><Check /><span>{it}</span></div>
                 ))}
               </div>
-              <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{p.cta}</Link>
+              {'href' in p && p.href
+                ? <a href={p.href} className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{p.cta}</a>
+                : <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{p.cta}</Link>}
             </div>
           ))}
         </div>

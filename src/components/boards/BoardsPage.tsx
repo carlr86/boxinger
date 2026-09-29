@@ -132,7 +132,7 @@ export function BoardsPage() {
       <AppHeader slogan="From idea to Product" />
       <main className="bx-main">
         <PageHead title="Mis Buzones de ideas"
-          sub={<>Elegí un buzón para entrar. {ctx.account ? (isPro ? 'Plan Pro · equipos y buzones ilimitados.' : 'Plan Free · 1 equipo · 1 buzón.') : ''}</>}
+          sub={<>Elegí un buzón para entrar. {ctx.account ? (ctx.account.plan === 'enterprise' ? 'Plan Enterprise · equipos, buzones y miembros ilimitados.' : isPro ? 'Plan Pro · equipos y buzones ilimitados.' : 'Plan Free · 1 equipo · 1 buzón.') : ''}</>}
           right={ctx.account ? (
             <button type="button" className="bx-btn" onClick={() => (isPro ? setModal({ type: 'createTeam' }) : toast.info('Equipos ilimitados en el plan Pro'))} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               + Crear equipo{!isPro && <WarnPill>Pro</WarnPill>}
@@ -234,7 +234,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
 }) {
   const router = useRouter();
   const toast = useToast();
-  const { refresh } = useSession();
+  const { ctx, refresh } = useSession();
   const [input, setInput] = useState('');
   const [vis, setVis] = useState<'public' | 'private'>('public');
   const [membersIdeas, setMembersIdeas] = useState(true);
@@ -296,7 +296,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis, p_members_ideas: membersIdeas, p_guests_ideas: guestsIdeas }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
   } else if (t === 'createTeam') {
     title = 'Crear equipo';
-    text = `Cada equipo tiene sus propios buzones y hasta ${MAX_MEMBERS} miembros además de vos.`;
+    text = ctx?.account?.plan === 'enterprise' ? 'Cada equipo tiene sus propios buzones y miembros ilimitados.' : `Cada equipo tiene sus propios buzones y hasta ${MAX_MEMBERS} miembros además de vos.`;
     body = (
       <>
         <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del equipo" value={input} onChange={(e) => setInput(e.target.value)} />

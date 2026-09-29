@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
   if (!acc) return NextResponse.json({ error: 'Primero creá tu equipo y tu buzón.' }, { status: 400 });
   if (acc.status !== 'active') return NextResponse.json({ error: 'La cuenta está suspendida.' }, { status: 403 });
   const { data: sub } = await admin.from('subscriptions').select('*').eq('account_id', acc.id).single<SubRow>();
+  if (sub?.plan === 'enterprise') return NextResponse.json({ error: 'Tu cuenta tiene el plan Enterprise.' }, { status: 409 });
   if (sub && sub.plan === 'pro' && ['active', 'past_due'].includes(sub.status) && sub.provider !== 'manual')
     return NextResponse.json({ error: 'Ya tenés el plan Pro activo.' }, { status: 409 });
 

@@ -81,6 +81,11 @@ export function render(template: string, p: P): { subject: string; html: string 
           { label: 'Ver mi suscripción', url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     case 'subscription_changed': {
+      if (s(p.plan) === 'enterprise')
+        return {
+          subject: 'Tu cuenta ahora es Enterprise',
+          html: layout('Bienvenido a Boxinger Enterprise', 'Tu cuenta pasó al plan <b>Enterprise</b>: todo lo de Pro, con miembros ilimitados en tus equipos y acceso anticipado a las nuevas funciones con IA.', { label: 'Ir a mis buzones', url: `${SITE_URL}/app/buzones` }),
+        };
       const pro = s(p.plan) === 'pro';
       const deal = pro && p.deal_type ? ` con precio especial${p.deal_until ? ' hasta el ' + date(p.deal_until) : ''}` : '';
       return {

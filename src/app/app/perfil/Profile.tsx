@@ -7,6 +7,7 @@ import { Avatar, Note, PageHead, Seg, Tag } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { rpc } from '@/lib/rpc';
 import { dlong, money } from '@/lib/format';
+import { CONTACT_ENTERPRISE, ENTERPRISE_TAG } from '@/lib/constants';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
 
@@ -173,6 +174,7 @@ function Notifs() {
 }
 
 const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
+const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Funciones con IA (próximamente)', 'Alta y facturación a medida'];
 const PRO_ITEMS = ['Todo lo de Free', 'Equipos ilimitados', 'Buzones ilimitados por equipo', 'Hasta 4 miembros por equipo', 'Acceso por buzón para cada miembro', 'Buzones privados', 'Matriz de esfuerzo e impacto', 'Roadmap de las ideas', 'Status de las ideas'];
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', manual: 'Asignado por Boxinger' };
 
@@ -185,7 +187,9 @@ function Subscription() {
   const [busy, setBusy] = useState(false);
   const acc = ctx!.account;
   const s = acc?.subscription;
-  const isPro = !!acc?.pro;
+  const plan = acc?.plan || 'free';
+  const isEnt = plan === 'enterprise';
+  const isPro = plan === 'pro';
   const prices = ctx!.prices;
   const checkout = sp.get('checkout');
 
@@ -214,15 +218,15 @@ function Subscription() {
     } catch (e) { toast.err(e); } finally { setBusy(false); }
   }
 
-  const priceL = !isPro || !s ? 'Sin costo' : money(s.currency, Number(s.effective_amount)) + ' / mes';
-  const since = isPro && s?.pro_since ? s.pro_since : s?.free_since || ctx!.me.created_at;
+  const priceL = isEnt ? 'A medida' : !isPro || !s ? 'Sin costo' : money(s.currency, Number(s.effective_amount)) + ' / mes';
+  const since = (isPro || isEnt) && s?.pro_since ? s.pro_since : s?.free_since || ctx!.me.created_at;
   const box = (on: boolean): React.CSSProperties => ({ background: '#fff', borderRadius: 8, border: on ? '2px solid #059669' : '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 });
   const mine = <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #a9cbc2', background: '#d1fae5', color: '#059669' }}>Tu plan</span>;
 
   return (
     <>
       <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '20px 24px', display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
-        <KV l="Plan actual" v={<span style={{ fontSize: 20, fontWeight: 600 }}>{isPro ? 'Pro' : 'Free'}</span>} />
+        <KV l="Plan actual" v={<span style={{ fontSize: 20, fontWeight: 600 }}>{isEnt ? 'Enterprise' : isPro ? 'Pro' : 'Free'}</span>} />
         <KV l="Desde" v={dlong(since)} />
         <KV l="Estado" v={
           s?.status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag>
@@ -236,9 +240,9 @@ function Subscription() {
         <Note tone="success">Tenés un precio especial{s.deal_until ? ' hasta el ' + dlong(s.deal_until) : ''}. Después vuelve al precio de lista.</Note>
       )}
       {s?.status === 'past_due' && <Note tone="warn">No pudimos cobrar tu último pago. Revisá tu medio de pago en {PROVIDER_L[s.provider || ''] || 'tu proveedor'} para no perder Pro.</Note>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', gap: 16, maxWidth: 760 }}>
-        <div style={box(!isPro)}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 18, fontWeight: 600 }}>Free</span>{!isPro && mine}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,260px),1fr))', gap: 16, maxWidth: 1080 }}>
+        <div style={box(plan === 'free')}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 18, fontWeight: 600 }}>Free</span>{plan === 'free' && mine}</div>
           <div><span style={{ fontSize: 28, fontWeight: 600 }}>USD 0</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}> / mes</span></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{FREE_ITEMS.map((x) => <span key={x}>{x}</span>)}</div>
         </div>
@@ -249,7 +253,7 @@ function Subscription() {
             <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginTop: 2 }}>En Argentina: {money('ARS', Number(prices.ARS))} / mes con Mercado Pago</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{PRO_ITEMS.map((x) => <span key={x}>{x}</span>)}</div>
-          {!isPro && (acc
+          {plan === 'free' && (acc
             ? <button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => setPick(true)}>Pasar a Pro</button>
             : <><button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>Crear mi buzón</button>
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Para pasar a Pro primero creá tu equipo y tu buzón.</span></>)}
@@ -259,6 +263,17 @@ function Subscription() {
             </Popconfirm>
           )}
           {isPro && s?.provider === 'manual' && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Tu plan Pro lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.</span>}
+        </div>
+        <div style={{ ...box(isEnt), border: isEnt ? '2px solid #4338ca' : '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 18, fontWeight: 600 }}>Enterprise</span>
+            {isEnt ? <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca' }}>Tu plan</span> : <Tag tone={ENTERPRISE_TAG}>Exclusivo</Tag>}
+          </div>
+          <div><span style={{ fontSize: 28, fontWeight: 600 }}>A medida</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{ENTERPRISE_ITEMS.map((x) => <span key={x}>{x}</span>)}</div>
+          {isEnt
+            ? <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Tu plan lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.</span>
+            : <a href={CONTACT_ENTERPRISE} className="bx-btn" style={{ height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', borderColor: '#4338ca', color: '#4338ca' }}>Contactanos</a>}
         </div>
       </div>
 

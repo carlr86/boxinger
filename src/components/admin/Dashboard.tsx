@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { rpc } from '@/lib/rpc';
 import { Seg, Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
-import { FREE_TAG, PRO_TAG } from '@/lib/constants';
+import { planTone } from '@/lib/constants';
 import { ddmmyyyy, fmtPrice, money, plural, rel } from '@/lib/format';
 import type { Overview } from './types';
 
@@ -55,7 +55,7 @@ export function Dashboard({ period, openClient, openBoard }: { period: '7' | '30
               <div key={b.board_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid #f0f0f0', fontSize: 14 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                   <a onClick={() => openBoard(b.board_id)} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</a>
-                  <Tag tone={b.plan === 'Pro' ? PRO_TAG : FREE_TAG}>{b.plan}</Tag>
+                  <Tag tone={planTone(b.plan)}>{b.plan}</Tag>
                 </span>
                 <span style={{ color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>{b.ideas} ideas · {rel(b.last_activity_at)}</span>
               </div>
@@ -69,11 +69,12 @@ export function Dashboard({ period, openClient, openBoard }: { period: '7' | '30
         <span style={{ fontSize: 18, fontWeight: 600 }}>Ventas</span>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Suscripciones Pro activas y su última actividad, para detectar churn temprano.</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 16 }}>
         {[
           { l: 'MRR', v: 'USD ' + fmtPrice(mrrUsd), n: (mrrArs ? 'ARS ' + fmtPrice(mrrArs) + ' · ' : '') + 'ARR proyectado USD ' + fmtPrice(Math.round(mrrUsd * 12)) },
           { l: 'Suscripciones Pro activas', v: String(pro.length), n: 'Lista ' + money('USD', o.prices.USD) + ' / ' + money('ARS', o.prices.ARS) },
           { l: 'Conversión Free → Pro', v: Math.round((pro.length / Math.max(1, o.accounts)) * 100) + '%', n: pro.length + ' de ' + o.accounts + ' cuentas' },
+          { l: 'Cuentas Enterprise', v: String(o.enterprise || 0), n: 'Facturadas fuera de la plataforma' },
           { l: 'En riesgo de churn', v: String(nAlto + nMed), n: nAlto + ' alto · ' + nMed + ' medio', fg: nAlto + nMed ? '#cf1322' : undefined },
         ].map((s) => (
           <div key={s.l} style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 4 }}>

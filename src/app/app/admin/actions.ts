@@ -17,7 +17,7 @@ async function requireSuper() {
 type Res<T> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (e: unknown): Res<never> => ({ ok: false, error: (e as Error).message || 'Algo salió mal.' });
 
-export async function adminCreateClient(f: { name: string; email: string; team: string; board: string; plan: 'free' | 'pro'; send: boolean }): Promise<Res<{ account_id: string; slug: string; token: string; board: string }>> {
+export async function adminCreateClient(f: { name: string; email: string; team: string; board: string; plan: 'free' | 'pro' | 'enterprise'; send: boolean }): Promise<Res<{ account_id: string; slug: string; token: string; board: string }>> {
   try {
     const { uid } = await requireSuper();
     const email = f.email.trim().toLowerCase();
@@ -55,15 +55,16 @@ export async function adminSendActivation(accountId: string, send: boolean): Pro
 }
 
 /** Plan and price changes. Updates the provider (PayPal / Mercado Pago) so the next charge matches. */
-export async function adminUpdateSubscription(f: { account: string; plan: 'free' | 'pro'; dealType: 'pct' | 'fixed' | null; value: number | null; until: string | null; note: string; notify: boolean }): Promise<Res<{ warning?: string }>> {
+export async function adminUpdateSubscription(f: { account: string; plan: 'free' | 'pro' | 'enterprise'; dealType: 'pct' | 'fixed' | null; value: number | null; until: string | null; note: string; notify: boolean }): Promise<Res<{ warning?: string }>> {
   try {
     const { sb } = await requireSuper();
     const admin = supabaseAdmin();
     const { data: before } = await admin.from('subscriptions').select('*').eq('account_id', f.account).single();
     let warning: string | undefined;
-    if (f.plan === 'free' && before?.plan === 'pro' && before.provider_subscription_id && ['paypal', 'mercadopago'].includes(before.provider)) {
+    // Leaving a paid Pro (to Free or Enterprise): stop PayPal / Mercado Pago from charging again.
+    if (f.plan !== 'pro' && before?.plan === 'pro' && before.provider_subscription_id && ['paypal', 'mercadopago'].includes(before.provider)) {
       try { await cancelProviderSubscription(before.provider, before.provider_subscription_id); }
-      catch { warning = 'La cuenta pasó a Free, pero no pudimos cancelar la suscripción en el proveedor. Cancelala a mano.'; }
+      catch { warning = 'Cambiamos el plan, pero no pudimos cancelar la suscripción en el proveedor. Cancelala a mano.'; }
     }
     const { error } = await sb.rpc('admin_update_subscription', {
       p_account: f.account, p_plan: f.plan, p_deal_type: f.plan === 'pro' ? f.dealType : null, p_deal_value: f.value,

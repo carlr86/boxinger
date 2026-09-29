@@ -38,13 +38,15 @@ Una misma persona puede ser Admin de su cuenta, Miembro de otro equipo e Invitad
 
 ## Planes
 
-| | Free | Pro |
-| --- | --- | --- |
-| Equipos / buzones | 1 / 1 | Ilimitados |
-| Miembros por equipo | 0 (solo el Admin) | 4 + el Admin |
-| Buzones privados | No | Sí |
-| Matriz, Roadmap, Status | No | Sí |
-| Invitados, ideas, votos, comentarios, Ranking, Backlog | Sí | Sí |
+| | Free | Pro | Enterprise |
+| --- | --- | --- | --- |
+| Equipos / buzones | 1 / 1 | Ilimitados | Ilimitados |
+| Miembros por equipo | 0 (solo el Admin) | 4 + el Admin | Ilimitados |
+| Buzones privados | No | Sí | Sí |
+| Matriz, Roadmap, Status, Growth | No | Sí | Sí |
+| Invitados, ideas, votos, comentarios, Ranking, Backlog | Sí | Sí | Sí |
+
+**Enterprise** no se vende en la web: el landing y Mi perfil muestran "Contactanos" y lo asigna el Super Admin desde el panel. Incluye todo lo de Pro, miembros ilimitados y (próximamente) funciones con IA. Se factura fuera de la plataforma, por eso no suma al MRR; el dashboard lo cuenta aparte. Al asignarlo, si había una suscripción Pro en PayPal o Mercado Pago, se cancela.
 
 Al volver a Free: el primer buzón del primer equipo sigue activo; el resto queda en **solo lectura** ("Requiere Pro") y los miembros quedan pausados. Nada se borra.
 

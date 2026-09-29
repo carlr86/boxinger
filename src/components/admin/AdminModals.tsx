@@ -5,7 +5,7 @@ import { rpc } from '@/lib/rpc';
 import { Avatar, Choice, Field, Note, Rows, Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { useGridCols } from '@/components/board/IdeaGrid';
-import { BAD, FREE_TAG, OK, PRO_TAG } from '@/lib/constants';
+import { BAD, OK, planTone } from '@/lib/constants';
 import { SITE_URL, boardUrl, displayUrl } from '@/lib/env';
 import { ddmmyyyy, dlong, fmtPrice, isEmail, money, plural, rel } from '@/lib/format';
 import { adminCreateClient, adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
@@ -20,7 +20,7 @@ const activationLink = (t: string) => `${SITE_URL}/app/activar/${t}`;
 // ───────────────────────── Crear cliente ─────────────────────────
 export function NewClientModal({ open, onClose, onDone, prices }: { open: boolean; onClose: () => void; onDone: () => void; prices: { USD: number } }) {
   const toast = useToast();
-  const blank = { name: '', email: '', team: '', board: '', plan: 'free' as 'free' | 'pro', send: true };
+  const blank = { name: '', email: '', team: '', board: '', plan: 'free' as 'free' | 'pro' | 'enterprise', send: true };
   const [f, setF] = useState(blank);
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -51,12 +51,13 @@ export function NewClientModal({ open, onClose, onDone, prices }: { open: boolea
             <Field label="Primer buzón" hint="Si lo dejás vacío, usa el nombre del equipo."><input className="bx-input" maxLength={60} placeholder={f.team.trim() || 'Nombre del buzón'} value={f.board} onChange={(x) => setF({ ...f, board: x.target.value })} /></Field>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Plan
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · equipos y buzones ilimitados']] as const).map(([k, l, d]) => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 }}>
+              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'A medida · miembros ilimitados · IA']] as const).map(([k, l, d]) => (
                 <div key={k} style={card(f.plan === k)} onClick={() => setF({ ...f, plan: k })}><span style={{ fontWeight: 600 }}>{l}</span><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{d}</span></div>
               ))}
             </div>
             {f.plan === 'pro' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Pro asignado a mano (sin cobro automático). El cliente puede suscribirse después desde su perfil.</span>}
+            {f.plan === 'enterprise' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Enterprise se factura fuera de la plataforma, según lo acordado con el cliente.</span>}
           </div>
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, cursor: 'pointer' }}>
             <input type="checkbox" checked={f.send} onChange={(x) => setF({ ...f, send: x.target.checked })} style={{ width: 16, height: 16, marginTop: 2, accentColor: '#059669' }} />
@@ -73,7 +74,7 @@ export function NewClientModal({ open, onClose, onDone, prices }: { open: boolea
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
           <Note tone="success">{done.sent ? `Enviamos el acceso a ${f.email.trim()}. Cuando active la cuenta va a poder entrar a su buzón.` : `${f.name.trim()} quedó creado sin acceso. Podés enviarlo ahora o más tarde desde el menú de la tabla.`}</Note>
-          <Rows rows={[{ l: 'Cliente', v: f.name.trim() }, { l: 'Email', v: f.email.trim() }, { l: 'Equipo', v: f.team.trim() }, { l: 'Buzón', v: done.board }, { l: 'Plan', v: f.plan === 'pro' ? 'Pro · ' + money('USD', prices.USD) + ' / mes' : 'Free · sin costo' }]} />
+          <Rows rows={[{ l: 'Cliente', v: f.name.trim() }, { l: 'Email', v: f.email.trim() }, { l: 'Equipo', v: f.team.trim() }, { l: 'Buzón', v: done.board }, { l: 'Plan', v: f.plan === 'enterprise' ? 'Enterprise · a medida' : f.plan === 'pro' ? 'Pro · ' + money('USD', prices.USD) + ' / mes' : 'Free · sin costo' }]} />
           <CopyLink label="Link de activación" url={activationLink(done.token)} hint="Válido por 7 días. Al activarlo, el cliente crea su contraseña o entra con Google." />
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             {!done.sent && <button type="button" className="bx-btn" onClick={async () => { const r = await adminSendActivation(done.account_id, true); if (r.ok) { toast.ok('Acceso enviado a ' + f.email.trim()); setDone({ ...done, sent: true }); onDone(); } else toast.err(new Error(r.error)); }}>Enviar acceso por email</button>}
@@ -101,7 +102,7 @@ function CopyLink({ label, url, hint }: { label: string; url: string; hint?: str
 // ───────────────────────── Editar suscripción ─────────────────────────
 export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: Client | null; onClose: () => void; onDone: () => void }) {
   const toast = useToast();
-  const [plan, setPlan] = useState<'free' | 'pro'>('free');
+  const [plan, setPlan] = useState<'free' | 'pro' | 'enterprise'>('free');
   const [mode, setMode] = useState<'list' | 'pct' | 'fixed'>('list');
   const [value, setValue] = useState('');
   const [term, setTerm] = useState<'months' | 'date' | 'none'>('months');
@@ -114,7 +115,7 @@ export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: 
   useEffect(() => {
     if (!c) return;
     const act = !!c.deal_type;
-    setPlan(c.plan === 'Pro' ? 'pro' : 'free'); setMode(act ? c.deal_type! : 'list'); setValue(act ? String(c.deal_value) : '');
+    setPlan(c.plan.toLowerCase() as 'free' | 'pro' | 'enterprise'); setMode(act ? c.deal_type! : 'list'); setValue(act ? String(c.deal_value) : '');
     setTerm(act ? (c.deal_until ? 'date' : 'none') : 'months'); setMonths('3'); setUntil(act && c.deal_until ? iso(new Date(c.deal_until)) : '');
     setNote(c.deal_note || ''); setNotify(true); setTried(false);
   }, [c]);
@@ -126,7 +127,7 @@ export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: 
   const untilTs = !hasValue || term === 'none' ? null : term === 'months' ? (m >= 1 ? (() => { const d = new Date(); d.setMonth(d.getMonth() + m); return d.getTime(); })() : NaN) : until ? new Date(until + 'T23:59').getTime() : NaN;
   const termErr = !hasValue ? '' : term === 'months' ? (!(Number.isInteger(m) && m >= 1 && m <= 36) ? 'Entre 1 y 36 meses' : '') : term === 'date' ? (!until ? 'Elegí una fecha' : (untilTs as number) < tomorrow().getTime() ? 'La fecha tiene que ser posterior a hoy' : '') : '';
   const eff = !isPro ? 0 : !hasValue || valueErr ? list : mode === 'fixed' ? v : Math.round(list * (1 - v / 100) * 100) / 100;
-  const sum = !isPro ? 'Plan Free, sin costo.' : !hasValue ? 'Precio de lista. Sigue los cambios de precio programados.' : valueErr || termErr ? 'Completá los datos para ver el resumen.'
+  const sum = plan === 'enterprise' ? 'Todo lo de Pro, miembros ilimitados y funciones con IA. Se factura fuera de la plataforma.' : !isPro ? 'Plan Free, sin costo.' : !hasValue ? 'Precio de lista. Sigue los cambios de precio programados.' : valueErr || termErr ? 'Completá los datos para ver el resumen.'
     : (mode === 'pct' ? v + '% de descuento sobre la lista' : 'Precio exclusivo') + (untilTs ? ` hasta el ${ddmmyyyy(untilTs)}. Después vuelve al precio de lista (${money(cur, list)}).` : ', sin vencimiento.');
 
   async function save() {
@@ -145,9 +146,10 @@ export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: 
     <Modal open onCancel={onClose} footer={null} width={520} destroyOnHidden
       title={<div style={{ display: 'flex', flexDirection: 'column' }}><span>Editar suscripción</span><span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(0,0,0,0.45)' }}>{c.name} · {c.email}</span></div>}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
-        {c.provider && c.provider !== 'manual' && c.plan === 'Pro' && <Note>Suscripción cobrada por {PROVIDER_L[c.provider]} en {cur}. Los cambios de precio se aplican también en {PROVIDER_L[c.provider]} desde el próximo cobro.</Note>}
+        {c.provider && c.provider !== 'manual' && c.plan === 'Pro' && plan !== 'pro' && <Note tone="warn">Al guardar se cancela la suscripción en {PROVIDER_L[c.provider]} para que no se le vuelva a cobrar.</Note>}
+        {c.provider && c.provider !== 'manual' && c.plan === 'Pro' && plan === 'pro' && <Note>Suscripción cobrada por {PROVIDER_L[c.provider]} en {cur}. Los cambios de precio se aplican también en {PROVIDER_L[c.provider]} desde el próximo cobro.</Note>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Plan
-          <Choice options={[['free', 'Free'], ['pro', 'Pro']]} value={plan} onChange={setPlan} />
+          <Choice options={[['free', 'Free'], ['pro', 'Pro'], ['enterprise', 'Enterprise']]} value={plan} onChange={setPlan} />
         </div>
         {isPro && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Precio
@@ -174,7 +176,7 @@ export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: 
         )}
         <div style={{ background: '#fafafa', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Resumen</span>
-          <span style={{ fontSize: 20, fontWeight: 600 }}>{isPro ? money(cur, eff) + ' / mes' : money(cur, 0)}</span>
+          <span style={{ fontSize: 20, fontWeight: 600 }}>{plan === 'enterprise' ? 'A medida' : isPro ? money(cur, eff) + ' / mes' : money(cur, 0)}</span>
           <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>{sum}</span>
         </div>
         <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 14, cursor: 'pointer' }}>
@@ -274,7 +276,7 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Avatar name={c.name} id={c.owner_id} size={44} />
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}><span style={{ fontSize: 16, fontWeight: 600 }}>{c.name}</span><span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{c.email}</span></div>
-            <Tag tone={c.plan === 'Pro' ? PRO_TAG : FREE_TAG}>{c.plan}</Tag>
+            <Tag tone={planTone(c.plan)}>{c.plan}</Tag>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 }}>
             {[['Buzones', c.board_list.length], ['Ideas', c.ideas], ['Miembros', c.guests]].map(([l, v]) => (
@@ -297,9 +299,9 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Suscripción</span>
             <Rows rows={[
-              { l: 'Plan', v: c.plan, fg: c.plan === 'Pro' ? '#059669' : undefined },
-              { l: 'Inicio', v: ddmmyyyy(c.plan === 'Pro' ? c.pro_since || c.created_at : c.free_since || c.created_at) },
-              { l: 'Precio', v: c.plan === 'Pro' ? money(c.currency, Number(c.amount)) + ' / mes' + (c.deal_type ? (c.deal_type === 'fixed' ? ' · Precio exclusivo' : ' · −' + c.deal_value + '%') + (c.deal_until ? ' hasta ' + ddmmyyyy(c.deal_until) : ' sin vencimiento') : '') : 'Sin costo', fg: c.deal_type ? '#d46b08' : undefined },
+              { l: 'Plan', v: c.plan, fg: planTone(c.plan).fg },
+              { l: 'Inicio', v: ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.free_since || c.created_at) },
+              { l: 'Precio', v: c.plan === 'Enterprise' ? 'A medida · facturado fuera de la plataforma' : c.plan === 'Pro' ? money(c.currency, Number(c.amount)) + ' / mes' + (c.deal_type ? (c.deal_type === 'fixed' ? ' · Precio exclusivo' : ' · −' + c.deal_value + '%') + (c.deal_until ? ' hasta ' + ddmmyyyy(c.deal_until) : ' sin vencimiento') : '') : 'Sin costo', fg: c.deal_type ? '#d46b08' : undefined },
               ...(c.plan === 'Pro' ? [{ l: 'Medio de pago', v: PROVIDER_L[c.provider || ''] || '—' }, { l: c.cancel_at_period_end ? 'Pro hasta' : 'Próximo cobro', v: c.current_period_end ? dlong(c.current_period_end) : '—' }] : []),
               { l: 'Facturado a la fecha', v: [c.billed ? 'USD ' + fmtPrice(Number(c.billed)) : '', c.billed_ars ? 'ARS ' + fmtPrice(Number(c.billed_ars)) : ''].filter(Boolean).join(' · ') || '—' },
               { l: 'Riesgo de churn', v: risk, fg: risk === 'Alto' ? '#cf1322' : risk === 'Medio' ? '#d48806' : undefined },
@@ -355,7 +357,7 @@ export function AdminBoardDrawer({ boardId, onClose, onChanged, openClient }: { 
         <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <Tag tone={a.plan === 'Pro' ? PRO_TAG : FREE_TAG}>{a.plan}</Tag>
+              <Tag tone={planTone(a.plan)}>{a.plan}</Tag>
               <Tag tone={b.status === 'active' ? OK : BAD}>{b.status === 'active' ? 'Activo' : 'Suspendido'}</Tag>
               <Tag>{b.visibility === 'private' ? 'Privado' : 'Público'}</Tag>
             </div>

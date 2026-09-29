@@ -49,6 +49,13 @@ export const OK: Tone = { l: 'Activa', bg: '#f6ffed', bd: '#b7eb8f', fg: '#389e0
 export const BAD: Tone = { l: 'Suspendida', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' };
 export const PRO_TAG: Tone = { l: 'Pro', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' };
 export const FREE_TAG: Tone = { l: 'Free', bg: '#f0f3f8', bd: '#c3cedf', fg: '#4a5d7e' };
+export const ENTERPRISE_TAG: Tone = { l: 'Enterprise', bg: '#eef2ff', bd: '#c7d2fe', fg: '#4338ca' };
+/** Tag tone for a plan name ('free' | 'pro' | 'enterprise', any case). */
+export const planTone = (p?: string | null): Tone => {
+  const k = (p || '').toLowerCase();
+  return k === 'enterprise' ? ENTERPRISE_TAG : k === 'pro' ? PRO_TAG : FREE_TAG;
+};
+export const CONTACT_ENTERPRISE = 'mailto:hola@boxinger.com?subject=' + encodeURIComponent('Boxinger Enterprise');
 export const WARN: Tone = { l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' };
 export const INFO: Tone = { l: '', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' };
 export const NEUTRAL: Tone = { l: '', bg: '#fafafa', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.65)' };

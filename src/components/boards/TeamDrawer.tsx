@@ -8,11 +8,13 @@ import { useSession, useToast } from '@/components/Providers';
 import { useGridCols } from '@/components/board/IdeaGrid';
 import { plural } from '@/lib/format';
 import { MAX_MEMBERS } from '@/lib/constants';
+
+const UNLIMITED = Number.POSITIVE_INFINITY;
 import type { TeamCtx } from '@/lib/types';
 import { MemberRow } from './BoardsPage';
 
 type Team = {
-  id: string; name: string; color: string; pro: boolean; max_members: number; members_can_create_boards?: boolean;
+  id: string; name: string; color: string; pro: boolean; max_members: number | null; plan?: string; members_can_create_boards?: boolean;
   owner: { id: string; name: string; email: string; avatar_url: string | null };
   members: { user_id: string; name: string; email: string; avatar_url: string | null; role: string; all_boards: boolean }[];
   pending: { id: string; email: string; created_at: string; board_id: string | null }[];
@@ -39,12 +41,14 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
 
   const teamCtx = ctx?.teams.find((x) => x.id === teamId);
   const used = t ? t.members.length + t.pending.length : 0;
-  const free = MAX_MEMBERS - used;
+  const limit = t ? (t.max_members == null ? UNLIMITED : t.max_members) : MAX_MEMBERS;
+  const free = limit - used;
+  const unlimited = limit === UNLIMITED;
 
   async function invite() {
     if (!t) return;
     if (!emails.length) return toast.info('Agregá al menos un email');
-    if (emails.length > free) return toast.info(`Tu equipo puede tener hasta ${MAX_MEMBERS} miembros además de vos`);
+    if (emails.length > free) return toast.info(`Tu equipo puede tener hasta ${limit} miembros además de vos`);
     setBusy(true);
     try {
       await rpc('invite_team_members', { p_team: t.id, p_emails: emails, p_board: scope || null });
@@ -76,14 +80,14 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
             <Avatar name={t.name} color={t.color} size={44} square />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>{t.name}</h2>
-              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(t.boards.length, 'buzón', 'buzones')} · {t.pro ? `${t.members.length + 1} de ${MAX_MEMBERS + 1} personas` : 'solo vos'}</span>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(t.boards.length, 'buzón', 'buzones')} · {t.pro ? (unlimited ? `${t.members.length + 1} personas · miembros ilimitados` : `${t.members.length + 1} de ${limit + 1} personas`) : 'solo vos'}</span>
             </div>
           </div>
           {!t.pro && (
             <Note>En Free el equipo es solo vos. Con Pro podés sumar hasta {MAX_MEMBERS} miembros. <a onClick={() => { onClose(); router.push('/app/perfil?tab=sub'); }}>Ver planes</a></Note>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Miembros · {t.pro ? `${t.members.length + 1} de ${MAX_MEMBERS + 1}` : '1 de 1'}</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Miembros · {t.pro ? (unlimited ? `${t.members.length + 1}` : `${t.members.length + 1} de ${limit + 1}`) : '1 de 1'}</span>
             <MemberRow name={t.owner.name} email={t.owner.email} id={t.owner.id} status="Admin" />
             {t.members.map((m) => (
               <MemberRow key={m.user_id} name={m.name} email={m.email} id={m.user_id} status={t.pro ? (m.all_boards ? 'Miembro' : 'Miembro · por buzón') : 'Pausado · requiere Pro'} warn={!t.pro}
@@ -110,7 +114,7 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>Invitar miembros</span>
-                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{free === 1 ? 'Queda 1 lugar' : `Quedan ${free} lugares`}</span>
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{unlimited ? 'Sin límite de miembros (Enterprise)' : free === 1 ? 'Queda 1 lugar' : `Quedan ${free} lugares`}</span>
               </div>
               <EmailChips value={emails} onChange={setEmails} placeholder="email@empresa.com y Enter" onInvalid={(e) => toast.info('Email inválido: ' + e)} />
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -122,7 +126,7 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
               </div>
             </div>
           )}
-          {t.pro && free <= 0 && <Note>El equipo está completo: vos y {MAX_MEMBERS} miembros. Quitá a alguien para invitar a otra persona.</Note>}
+          {t.pro && free <= 0 && <Note>El equipo está completo: vos y {limit} miembros. Quitá a alguien para invitar a otra persona.</Note>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>Acceso a buzones</span>
