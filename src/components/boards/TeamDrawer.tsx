@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Drawer, Popconfirm } from 'antd';
+import { Drawer, Modal, Popconfirm } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Avatar, EmailChips, Note } from '@/components/ui';
 import { useSession, useToast } from '@/components/Providers';
@@ -28,6 +28,9 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
   const [emails, setEmails] = useState<string[]>([]);
   const [scope, setScope] = useState('');
   const [busy, setBusy] = useState(false);
+  const [del, setDel] = useState(false);
+  const [confirm, setConfirm] = useState('');
+  const [delTried, setDelTried] = useState(false);
 
   const load = useCallback(async () => {
     try { setT(await rpc<Team>('get_team', { p_team: teamId })); } catch (e) { toast.err(e); onClose(); }
@@ -145,7 +148,45 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
             })}
             {t.boards.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>El equipo todavía no tiene buzones.</span>}
           </div>
+          {teamCtx?.own && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Eliminar equipo</span>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>
+                Se eliminan el equipo y sus {plural(t.boards.length, 'buzón', 'buzones')} con todas sus ideas, votos y comentarios. Los miembros y los invitados pierden el acceso. Tu cuenta y tu plan no cambian.
+              </span>
+              <button type="button" className="bx-btn-danger" style={{ alignSelf: 'flex-start' }} onClick={() => { setDel(true); setConfirm(''); setDelTried(false); }}>Eliminar equipo</button>
+            </div>
+          )}
         </div>
+      )}
+      {t && (
+        <Modal open={del} onCancel={() => setDel(false)} title="Eliminar equipo" width={440} destroyOnHidden footer={null}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
+            <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>
+              Se eliminan {plural(t.boards.length, 'buzón', 'buzones')}
+              {(() => { const n = (teamCtx?.boards || []).reduce((a, b) => a + b.ideas, 0); return n ? ` y ${plural(n, 'idea', 'ideas')}` : ''; })()} con sus votos y comentarios. Esta acción no se puede deshacer. Escribí &quot;{t.name}&quot; para confirmar.
+            </span>
+            <input className={'bx-input' + (delTried && confirm.trim() !== t.name ? ' err' : '')} autoFocus maxLength={60} placeholder={t.name} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            {delTried && confirm.trim() !== t.name && <span style={{ fontSize: 13, color: '#ff4d4f' }}>El nombre no coincide</span>}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button type="button" className="bx-btn" onClick={() => setDel(false)}>Cancelar</button>
+              <button type="button" className="bx-btn-primary" style={{ background: '#ff4d4f' }} disabled={busy}
+                onClick={async () => {
+                  setDelTried(true);
+                  if (confirm.trim() !== t.name) return;
+                  setBusy(true);
+                  try {
+                    await rpc('delete_team', { p_team: t.id, p_confirm: confirm.trim() });
+                    toast.ok('Equipo eliminado');
+                    const next = await refresh();
+                    setDel(false);
+                    onClose();
+                    if (next && next.teams.length === 0 && next.guest_boards.length === 0) router.push('/app/onboarding');
+                  } catch (e) { toast.err(e); } finally { setBusy(false); }
+                }}>Eliminar</button>
+            </div>
+          </div>
+        </Modal>
       )}
     </Drawer>
   );
