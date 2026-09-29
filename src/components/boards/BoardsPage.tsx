@@ -13,6 +13,7 @@ import { MAX_MEMBERS } from '@/lib/constants';
 import type { BoardCard, TeamCtx } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
 import { BoardDetail } from './BoardDetail';
+import { VisibilityModal } from '@/components/board/VisibilityModal';
 
 type ModalState =
   | { type: 'create'; teamId: string }
@@ -39,6 +40,7 @@ export function BoardsPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [detail, setDetail] = useState<BoardCard | null>(null);
+  const [visFor, setVisFor] = useState<BoardCard | null>(null);
 
   const isPro = !!ctx?.account?.pro;
   const ownTeams = ctx?.teams.filter((t) => t.own) || [];
@@ -79,6 +81,7 @@ export function BoardsPage() {
       ...(admin ? [{ key: 'rename', label: 'Cambiar nombre', onClick: () => setModal({ type: 'rename', board: b }) }] : []),
       { key: 'url', label: 'Compartir URL del buzón', onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
       ...(!guestOnly ? [{ key: 'guests', label: 'Compartir link a invitados', disabled: priv, title: priv ? 'Solo para buzones públicos' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
+      ...(admin ? [{ key: 'vis', label: 'Cambiar visibilidad', onClick: () => (b.locked ? toast.info('Este buzón requiere el plan Pro') : setVisFor(b)) }] : []),
       ...(admin ? [{ key: 'access', label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>Acceso de miembros <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: t! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
       { key: 'fav', label: b.fav ? 'Quitar de favoritos' : 'Agregar a favoritos', onClick: () => fav(b) },
       ...(admin ? [{ type: 'divider' as const }, { key: 'delete', label: 'Eliminar buzón', danger: true, onClick: () => setModal({ type: 'delete', board: b }) }] : []),
@@ -207,6 +210,8 @@ export function BoardsPage() {
 
       <BoardModals modal={modal} onClose={() => setModal(null)} ownTeams={ownTeams} isPro={isPro} onOpenTeam={(id) => { setModal(null); setTeamId(id); }} />
       {teamId && <TeamDrawer teamId={teamId} onClose={() => setTeamId(null)} onRename={(t) => setModal({ type: 'renameTeam', team: t })} />}
+      <VisibilityModal board={visFor ? { id: visFor.id, name: visFor.name, visibility: visFor.visibility, guests: visFor.guests } : null} pro={isPro}
+        onClose={() => setVisFor(null)} onDone={() => refresh()} onGoPro={() => router.push('/app/perfil?tab=sub')} />
       {detail && <BoardDetail board={detail} team={ctx.teams.find((t) => t.id === detail.team_id) || null} onClose={() => setDetail(null)} />}
     </>
   );

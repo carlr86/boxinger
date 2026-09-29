@@ -8,6 +8,7 @@ import { displayUrl, boardUrl } from '@/lib/env';
 import { rel, plural } from '@/lib/format';
 import type { BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
+import { VisibilityModal } from './VisibilityModal';
 
 type Tab = 'general' | 'cats' | 'com';
 const SUB: Record<Tab, string> = {
@@ -42,6 +43,7 @@ function General({ api }: { api: BoardApi }) {
   const [logo, setLogo] = useState(b.logo_url);
   const [busy, setBusy] = useState(false);
   const [paidNote, setPaidNote] = useState(false);
+  const [visOpen, setVisOpen] = useState(false);
 
   async function upload(file: File) {
     if (!/^image\/(png|jpeg)$/.test(file.type)) return toast.err(new Error('Elegí una imagen PNG o JPG'));
@@ -69,6 +71,13 @@ function General({ api }: { api: BoardApi }) {
         <textarea className="bx-input" value={desc} maxLength={200} rows={3} onChange={(e) => setDesc(e.target.value)} />
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textAlign: 'right' }}>{desc.length} / 200</span>
       </label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Visibilidad
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{b.visibility === 'private' ? 'Privado' : 'Público'}</span>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{b.visibility === 'private' ? 'Solo el Equipo con acceso lo ve.' : 'Cualquiera con el link ve las ideas.'}</span>
+          <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>Cambiar visibilidad</button>
+        </div>
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Logo
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <label style={{ width: 104, height: 104, border: '1px dashed #d9d9d9', borderRadius: 8, background: '#fafafa', display: 'grid', placeItems: 'center', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.65)', cursor: 'pointer', overflow: 'hidden' }}>
@@ -89,6 +98,8 @@ function General({ api }: { api: BoardApi }) {
         <button type="button" className="bx-btn" onClick={() => (api.pro ? (window.location.href = '/app/buzones?crear=1') : setPaidNote(true))}>Crear otro buzón</button>
       </div>
       {paidNote && <Note>Buzones ilimitados en el plan Pro. <a onClick={api.goPro}>Ver planes</a></Note>}
+      <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
+        onClose={() => setVisOpen(false)} onDone={() => api.reload()} onGoPro={api.goPro} />
     </div>
   );
 }
