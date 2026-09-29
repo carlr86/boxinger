@@ -45,17 +45,17 @@ Si alguien se registró con email y contraseña y después entra con Google con 
 
 **Authentication › Sessions**: *Time-box user sessions* en 30 días (PRD).
 
-**Authentication › Emails › SMTP Settings** (para que los emails de Supabase salgan por Resend):
+**Authentication › Emails › SMTP Settings** (obligatorio: el servidor de emails que trae Supabase solo manda a los miembros del proyecto y 2 por hora):
 
-| Campo | Valor |
-| --- | --- |
-| Host | `smtp.resend.com` |
-| Port | `465` |
-| Username | `resend` |
-| Password | tu `RESEND_API_KEY` |
-| Sender | `hola@boxinger.com` · Boxinger |
+| Campo | Casilla de Hostinger | o Resend |
+| --- | --- | --- |
+| Host | `smtp.hostinger.com` | `smtp.resend.com` |
+| Port | `465` | `465` |
+| Username | `hola@boxinger.com` | `resend` |
+| Password | contraseña de la casilla | tu `RESEND_API_KEY` |
+| Sender | `hola@boxinger.com` · Boxinger | `hola@boxinger.com` · Boxinger |
 
-**Authentication › Emails › Templates**: usá links con `token_hash` para que funcionen desde cualquier dispositivo. En cada plantilla reemplazá el link por:
+**Authentication › Emails › Templates**: las plantillas en español listas para pegar están en `docs/email-templates/`. Usan links con `token_hash` para que funcionen desde cualquier dispositivo. En cada plantilla reemplazá el link por:
 
 | Plantilla | Link |
 | --- | --- |
@@ -76,7 +76,7 @@ Resend es el proveedor elegido: plan gratis de 3.000 emails/mes (100/día), SDK 
 3. Usala también como contraseña SMTP en Supabase (paso anterior).
 
 Emails que manda la app (plantillas en `src/lib/email/templates.ts`): cambio de estado de una idea, nuevo comentario, respuesta del Equipo, idea lanzada, invitación a la Comunidad, invitación al equipo, activación de cliente, bienvenida a Pro, cancelación, pago fallido, cambio de precio, resumen diario del buzón y avisos al Super Admin (nuevos clientes, pagos fallidos, churn, resumen semanal).
-Todos pasan por la tabla `email_outbox` y respetan las preferencias de cada usuario. Sin `RESEND_API_KEY`, se escriben en la consola del servidor.
+Todos pasan por la tabla `email_outbox` y respetan las preferencias de cada usuario. Salen por Resend si hay `RESEND_API_KEY`; si no, por la casilla de Hostinger (`SMTP_*`, ver abajo). En producción sin ninguno de los dos quedan en cola hasta que configures uno; en local se escriben en la consola.
 
 ### Formulario de contacto (buzón de Hostinger)
 
