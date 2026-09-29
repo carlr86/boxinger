@@ -100,11 +100,12 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const catL = useMemo(() => { const m = new Map(cats.map((c) => [c.id, c.name])); return (id: string) => m.get(id) || 'Sin categoría'; }, [cats]);
 
   const api: BoardApi = {
-    data, isTeam, isAdmin: role === 'admin', pro: b.pro, canWrite, me: data.me, cats, catL,
+    data, isTeam, isAdmin: data.perms ? data.perms.can_manage : role === 'admin', canCreate: canWrite && (data.perms ? data.perms.can_create_ideas : true),
+    pro: b.pro, canWrite, me: data.me, cats, catL,
     reload, patchIdea, openIdea, goLogin, run,
     goPro: () => router.push('/app/perfil?tab=sub'),
     setView,
-    openNew: () => (data.me ? setForm({ open: true, idea: null }) : goLogin(true)),
+    openNew: () => (!data.me ? goLogin(true) : !(canWrite && (data.perms ? data.perms.can_create_ideas : true)) ? toast.info(isTeam ? 'En este buzón el Admin no habilitó la carga de ideas para los miembros.' : 'En este buzón solo el Equipo carga ideas. Podés votar y comentar.') : setForm({ open: true, idea: null })),
     openEdit: (i) => setForm({ open: true, idea: i }),
     askReject: (id) => setRejectFor(id),
     setStatus: async (id, st) => {
@@ -151,7 +152,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
         {shownView === 'config' && <BoardConfig api={api} />}
       </main>
 
-      {isMobile && data.me && canWrite && (shownView === 'buzon' || shownView === 'backlog') && !selId && (
+      {isMobile && data.me && api.canCreate && (shownView === 'buzon' || shownView === 'backlog') && !selId && (
         <button type="button" onClick={api.openNew} title="Nueva idea"
           style={{ position: 'fixed', right: 20, bottom: 24, width: 56, height: 56, borderRadius: '50%', border: 0, background: '#059669', color: '#fff', fontSize: 28, lineHeight: 1, cursor: 'pointer', boxShadow: '0 6px 16px rgba(5,150,105,0.35)', zIndex: 30 }}>+</button>
       )}

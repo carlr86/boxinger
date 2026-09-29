@@ -228,3 +228,26 @@ export function EmailChips({ value, onChange, placeholder = 'email@ejemplo.com y
     </div>
   );
 }
+
+/** On/off switch drawn like the prototype (44×22, primary green). */
+export function Toggle({ on, onChange, disabled }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} disabled={disabled} onClick={() => onChange(!on)}
+      style={{ flex: 'none', position: 'relative', width: 44, height: 22, borderRadius: 11, border: 0, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1, background: on ? '#059669' : 'rgba(0,0,0,0.25)', transition: 'background .2s' }}>
+      <span style={{ position: 'absolute', top: 2, left: on ? 24 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 4px rgba(0,35,11,0.2)', transition: 'left .2s' }} />
+    </button>
+  );
+}
+
+/** Label + description + switch, for permission settings. */
+export function ToggleRow({ label, desc, on, onChange, disabled }: { label: React.ReactNode; desc?: React.ReactNode; on: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 14 }}>{label}</span>
+        {desc && <span style={{ fontSize: 13, color: TEXT3 }}>{desc}</span>}
+      </div>
+      <Toggle on={on} onChange={onChange} disabled={disabled} />
+    </div>
+  );
+}

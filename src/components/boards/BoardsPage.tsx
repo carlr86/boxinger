@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Dropdown, Modal } from 'antd';
 import { AppHeader } from '@/components/AppHeader';
 import { useSession, useToast } from '@/components/Providers';
-import { Avatar, Choice, EmailChips, Note, PageHead, Seg, Tag, WarnPill } from '@/components/ui';
+import { Avatar, Choice, EmailChips, Note, PageHead, Seg, Tag, WarnPill, ToggleRow } from '@/components/ui';
 import { useGridCols } from '@/components/board/IdeaGrid';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { boardUrl, displayUrl } from '@/lib/env';
@@ -45,10 +45,12 @@ export function BoardsPage() {
   const isPro = !!ctx?.account?.pro;
   const ownTeams = ctx?.teams.filter((t) => t.own) || [];
   const allOwnBoards = ownTeams.flatMap((t) => t.boards);
+  // Teams where the user can create boards: their own, or teams whose owner lets members do it.
+  const creatableTeams = ctx?.teams.filter((t) => t.can_create_boards) || [];
 
   useEffect(() => {
-    if (sp.get('crear') === '1' && ctx?.account) {
-      openCreate(ownTeams[0]?.id);
+    if (sp.get('crear') === '1' && creatableTeams.length) {
+      openCreate(creatableTeams[0].id);
       router.replace('/app/buzones');
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -56,9 +58,10 @@ export function BoardsPage() {
   if (!ctx) return null;
 
   function openCreate(tid?: string) {
-    if (!ctx?.account) return router.push('/app/onboarding');
-    if (!isPro && allOwnBoards.length >= 1) return toast.info('En Free tenés 1 buzón. Pasá a Pro para crear más.');
-    setModal({ type: 'create', teamId: tid || ownTeams[0]?.id });
+    const target = creatableTeams.find((x) => x.id === tid) || creatableTeams[0];
+    if (!target) return router.push('/app/onboarding');
+    if (target.own && !isPro && allOwnBoards.length >= 1) return toast.info('En Free tenés 1 buzón. Pasá a Pro para crear más.');
+    setModal({ type: 'create', teamId: target.id });
   }
 
   const bq = q.trim().toLowerCase();
@@ -177,10 +180,10 @@ export function BoardsPage() {
                   {t.locked && <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Requiere Pro</Tag>}
                   <div style={{ flex: 1 }} />
                   {t.is_admin && (
-                    <>
-                      <button type="button" className="bx-btn" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTeamId(t.id)}><Users />Gestionar equipo</button>
-                      <button type="button" className="bx-btn-primary" onClick={() => (t.locked ? toast.info('Este equipo requiere el plan Pro') : openCreate(t.id))}>+ Crear Buzón</button>
-                    </>
+                    <button type="button" className="bx-btn" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTeamId(t.id)}><Users />Gestionar equipo</button>
+                  )}
+                  {t.can_create_boards && (
+                    <button type="button" className="bx-btn-primary" onClick={() => (t.locked ? toast.info('Este equipo requiere el plan Pro') : openCreate(t.id))}>+ Crear Buzón</button>
                   )}
                 </div>
                 {shown.length === 0 && (
@@ -208,7 +211,7 @@ export function BoardsPage() {
         </div>
       </main>
 
-      <BoardModals modal={modal} onClose={() => setModal(null)} ownTeams={ownTeams} isPro={isPro} onOpenTeam={(id) => { setModal(null); setTeamId(id); }} />
+      <BoardModals modal={modal} onClose={() => setModal(null)} ownTeams={creatableTeams} isPro={isPro} onOpenTeam={(id) => { setModal(null); setTeamId(id); }} />
       {teamId && <TeamDrawer teamId={teamId} onClose={() => setTeamId(null)} onRename={(t) => setModal({ type: 'renameTeam', team: t })} />}
       <VisibilityModal board={visFor ? { id: visFor.id, name: visFor.name, visibility: visFor.visibility, guests: visFor.guests } : null} pro={isPro}
         onClose={() => setVisFor(null)} onDone={() => refresh()} onGoPro={() => router.push('/app/perfil?tab=sub')} />
@@ -234,6 +237,9 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
   const { refresh } = useSession();
   const [input, setInput] = useState('');
   const [vis, setVis] = useState<'public' | 'private'>('public');
+  const [membersIdeas, setMembersIdeas] = useState(true);
+  const [guestsIdeas, setGuestsIdeas] = useState(true);
+  const [memberBoards, setMemberBoards] = useState(false);
   const [team, setTeam] = useState('');
   const [emails, setEmails] = useState<string[]>([]);
   const [tried, setTried] = useState(false);
@@ -242,6 +248,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
 
   useEffect(() => {
     setTried(false); setEmails([]); setVis('public'); setBusy(false); setAccess(null);
+    setMembersIdeas(true); setGuestsIdeas(true); setMemberBoards(false);
     if (!modal) return;
     setInput(modal.type === 'rename' ? modal.board.name : modal.type === 'renameTeam' ? modal.team.name : '');
     if (modal.type === 'create') setTeam(modal.teamId);
@@ -261,12 +268,23 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
 
   let title = '', text: React.ReactNode = '', body: React.ReactNode = null, okL = '', ok: (() => void) | null = null, danger = false, cancelL = 'Cancelar';
   if (t === 'create') {
+    const teamPro = !!ownTeams.find((x) => x.id === team)?.pro;
     title = 'Crear buzón';
     text = 'Se genera una URL pública única. Los buzones privados son solo para uso interno del Equipo. Todos los miembros del equipo tienen acceso.';
     body = (
       <>
         <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del buzón" value={input} onChange={(e) => setInput(e.target.value)} />
-        <Choice options={[['public', 'Público'], ['private', 'Privado']]} value={vis} onChange={(v) => (v === 'private' && !isPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
+        <Choice options={[['public', 'Público'], ['private', 'Privado']]} value={vis} onChange={(v) => (v === 'private' && !teamPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Quiénes pueden crear ideas</span>
+            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>El dueño del equipo y vos siempre pueden. Todos pueden votar y comentar.</span>
+          </div>
+          {teamPro && <ToggleRow label="Miembros del equipo" on={membersIdeas} onChange={setMembersIdeas} />}
+          {vis === 'public' ? <ToggleRow label="Invitados" desc="La Comunidad que se suma con el link o por invitación." on={guestsIdeas} onChange={setGuestsIdeas} />
+            : <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no admiten invitados.</span>}
+          {!teamPro && vis === 'public' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Con Pro también podés decidir si tus miembros cargan ideas.</span>}
+        </div>
         {ownTeams.length > 1 && (
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Equipo
             <select className="bx-select" value={team} onChange={(e) => setTeam(e.target.value)}>{ownTeams.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>
@@ -275,13 +293,20 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
       </>
     );
     okL = 'Crear buzón';
-    ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
+    ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis, p_members_ideas: membersIdeas, p_guests_ideas: guestsIdeas }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
   } else if (t === 'createTeam') {
     title = 'Crear equipo';
     text = `Cada equipo tiene sus propios buzones y hasta ${MAX_MEMBERS} miembros además de vos.`;
-    body = <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del equipo" value={input} onChange={(e) => setInput(e.target.value)} />;
+    body = (
+      <>
+        <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del equipo" value={input} onChange={(e) => setInput(e.target.value)} />
+        <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
+          <ToggleRow label="Los miembros pueden crear buzones" desc="Si lo activás, los miembros que invites pueden crear buzones en este equipo y cargar ideas en ellos." on={memberBoards} onChange={setMemberBoards} />
+        </div>
+      </>
+    );
     okL = 'Crear equipo';
-    ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<string>('create_team', { p_name: input }).then(async (id) => { toast.ok('Equipo creado'); await refresh(); onOpenTeam(id); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
+    ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<string>('create_team', { p_name: input, p_members_create_boards: memberBoards }).then(async (id) => { toast.ok('Equipo creado'); await refresh(); onOpenTeam(id); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
   } else if (t === 'rename' && modal?.type === 'rename') {
     title = 'Cambiar nombre';
     text = 'El nombre se ve en el header del buzón y en las invitaciones. La URL no cambia.';

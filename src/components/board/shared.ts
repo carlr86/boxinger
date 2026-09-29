@@ -7,6 +7,7 @@ export interface BoardApi {
   data: BoardData;
   isTeam: boolean;
   isAdmin: boolean;
+  canCreate: boolean;
   pro: boolean;
   canWrite: boolean;
   me: BoardData['me'];

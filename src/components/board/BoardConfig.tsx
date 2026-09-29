@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Modal, Popconfirm } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
-import { Avatar, EmailChips, Note, PageHead, Seg } from '@/components/ui';
+import { Avatar, EmailChips, Note, PageHead, Seg, ToggleRow } from '@/components/ui';
 import { displayUrl, boardUrl } from '@/lib/env';
 import { rel, plural } from '@/lib/format';
 import type { BoardApi } from './shared';
@@ -77,6 +77,22 @@ function General({ api }: { api: BoardApi }) {
           <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{b.visibility === 'private' ? 'Solo el Equipo con acceso lo ve.' : 'Cualquiera con el link ve las ideas.'}</span>
           <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>Cambiar visibilidad</button>
         </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          Quiénes pueden crear ideas
+          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no cambia.</span>
+        </div>
+        {api.pro && (
+          <ToggleRow label="Miembros del equipo" desc="Los miembros con acceso a este buzón." on={b.members_can_create_ideas}
+            onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: v, p_guests: null }), v ? 'Los miembros pueden crear ideas' : 'Los miembros ya no pueden crear ideas'); api.reload(); }} />
+        )}
+        {b.visibility === 'public' ? (
+          <ToggleRow label="Invitados" desc="La Comunidad que se sumó con el link o por invitación." on={b.guests_can_create_ideas}
+            onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: null, p_guests: v }), v ? 'Los invitados pueden crear ideas' : 'Los invitados ya no pueden crear ideas'); api.reload(); }} />
+        ) : (
+          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
+        )}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Logo
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

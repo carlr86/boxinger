@@ -55,8 +55,13 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       <PageHead
         title={backlog ? 'Backlog' : 'Buzón de Ideas'}
         sub={backlog ? 'Ideas aprobadas por el Equipo, candidatas para el roadmap.' : 'Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.'}
-        right={!backlog && !isMobile && api.me ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ Nueva idea</button> : undefined}
+        right={!backlog && !isMobile && api.me && api.canCreate ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ Nueva idea</button> : undefined}
       />
+      {!backlog && api.me && api.canWrite && !api.canCreate && (
+        <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
+          {api.isTeam ? 'En este buzón el Admin no habilitó la carga de ideas para los miembros. Podés votar, comentar y gestionar las ideas.' : 'En este buzón solo el Equipo carga ideas. Podés votar y comentar las ideas publicadas.'}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en título y descripción" style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />}
         <Seg options={[['all', 'Todas'], ['equipo', 'Equipo'], ['comunidad', 'Comunidad']]} value={fOri} onChange={setFOri} style={{ alignSelf: 'auto' }} />
@@ -83,7 +88,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       {list.length === 0 && (
         <Empty
           text={backlog ? 'Todavía no hay ideas aprobadas.' : filtersOn ? 'No hay ideas que coincidan con los filtros.' : 'Este buzón todavía no tiene ideas.'}
-          cta={!backlog && !filtersOn ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>Cargá la primera idea</button> : undefined}
+          cta={!backlog && !filtersOn && api.canCreate ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>Cargá la primera idea</button> : undefined}
         />
       )}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, gap: 16 }}>

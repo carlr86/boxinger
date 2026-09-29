@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Drawer, Modal, Popconfirm } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
-import { Avatar, EmailChips, Note } from '@/components/ui';
+import { Avatar, EmailChips, Note, ToggleRow } from '@/components/ui';
 import { useSession, useToast } from '@/components/Providers';
 import { useGridCols } from '@/components/board/IdeaGrid';
 import { plural } from '@/lib/format';
@@ -12,7 +12,7 @@ import type { TeamCtx } from '@/lib/types';
 import { MemberRow } from './BoardsPage';
 
 type Team = {
-  id: string; name: string; color: string; pro: boolean; max_members: number;
+  id: string; name: string; color: string; pro: boolean; max_members: number; members_can_create_boards?: boolean;
   owner: { id: string; name: string; email: string; avatar_url: string | null };
   members: { user_id: string; name: string; email: string; avatar_url: string | null; role: string; all_boards: boolean }[];
   pending: { id: string; email: string; created_at: string; board_id: string | null }[];
@@ -99,6 +99,13 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
                 action={<a className="bx-link-muted" style={{ fontSize: 13 }} onClick={async () => { try { await rpc('revoke_invitation', { p_id: p.id }); toast.ok('Invitación cancelada'); load(); refresh(); } catch (e) { toast.err(e); } }}>Cancelar</a>} />
             ))}
           </div>
+          {teamCtx?.own && (
+            <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
+              <ToggleRow label="Los miembros pueden crear buzones" desc={t.pro ? 'Los miembros de este equipo pueden crear buzones y cargar ideas en ellos.' : 'Disponible cuando el equipo tenga miembros (Pro).'}
+                on={!!t.members_can_create_boards} disabled={!t.pro}
+                onChange={async (v) => { try { await rpc('set_team_settings', { p_team: t.id, p_members_create_boards: v }); setT({ ...t, members_can_create_boards: v }); toast.ok(v ? 'Los miembros pueden crear buzones' : 'Solo vos podés crear buzones en este equipo'); refresh(); } catch (e) { toast.err(e); } }} />
+            </div>
+          )}
           {t.pro && free > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>

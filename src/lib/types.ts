@@ -62,6 +62,7 @@ export interface BoardInfo {
   roadmap_names: Record<string, string>; team_id: string; team_name: string;
   account_status: 'active' | 'suspended'; locked: boolean; pro: boolean; created_at: string;
   invite_code: string | null; guests: number; version: string;
+  created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean;
 }
 export interface BoardData {
   forbidden?: boolean;
@@ -71,6 +72,7 @@ export interface BoardData {
   me: { id: string; name: string; email: string; avatar_url: string | null; is_super_admin: boolean } | null;
   categories: Category[];
   ideas: Idea[];
+  perms?: { can_manage: boolean; can_create_ideas: boolean };
 }
 
 export interface BoardCard {
@@ -83,6 +85,7 @@ export interface Person { id?: string; user_id?: string; name: string; email: st
 export interface TeamCtx {
   id: string; name: string; color: string; account_id: string; created_at: string;
   own: boolean; is_admin: boolean; pro: boolean; locked: boolean;
+  members_can_create_boards: boolean; can_create_boards: boolean;
   owner: Person; members: Person[]; pending: { id: string; email: string }[]; boards: BoardCard[];
 }
 export interface Subscription {

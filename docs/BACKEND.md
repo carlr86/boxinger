@@ -28,6 +28,10 @@ La clave `service_role` se usa solo en el servidor: webhooks de pago, job diario
 | **Invitado** | `board_guests` activo en un buzón **público** | Proponer ideas (origen Comunidad), votar (no las propias), comentar, reaccionar. Ve sus buzones en *Mis Buzones › Invitado*. Puede crear su propia cuenta Admin (Free o Pro) desde "Crear mi buzón". |
 | Visitante | Sin sesión | Ver Buzón, Ranking y Backlog de buzones públicos. |
 
+**Permisos configurables**
+- Por buzón, *quiénes pueden crear ideas*: Miembros del equipo (Pro) e Invitados (solo públicos). El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no depende de esto. Funciones: `set_board_idea_permissions`, y los parámetros `p_members_ideas` / `p_guests_ideas` de `create_board`.
+- Por equipo, *los miembros pueden crear buzones* (desactivado por defecto; `set_team_settings`, `create_team(p_members_create_boards)`). El miembro que crea un buzón lo puede configurar (nombre, logo, categorías, visibilidad y quién crea ideas); eliminarlo y gestionar el acceso de otros miembros queda para el dueño.
+
 Una misma persona puede ser Admin de su cuenta, Miembro de otro equipo e Invitado en otros buzones. El rol se calcula por buzón en `public.board_context(board, user)`.
 
 **Cómo se entra como Invitado**: con el link del buzón (se une al registrarse/ingresar desde ahí o al participar por primera vez), o por invitación por email (`/app/invitacion/<token>`).
@@ -75,7 +79,7 @@ Al volver a Free: el primer buzón del primer equipo sigue activo; el resto qued
 - **Lectura**: `get_my_context`, `get_board(slug)`, `get_idea(id)`, `board_version(board)` (polling de 5 s), `get_team`, `get_board_community`, `get_invitation(token)`, `current_price(moneda)`.
 - **Ideas**: `create_idea`, `update_idea`, `set_idea_hidden`, `set_idea_status`, `vote`, `update_idea_plan` (impacto, esfuerzo, prioridad, desarrollo, checks), `move_roadmap`, `rename_roadmap_column`.
 - **Comentarios**: `add_comment`, `edit_comment`, `delete_comment`, `set_comment_hidden`, `reply_comment`, `edit_reply`, `delete_reply`, `react`.
-- **Buzones y equipos**: `onboard`, `create_team`, `rename_team`, `delete_team`, `create_board`, `update_board`, `set_board_visibility`, `delete_board`, `toggle_favorite`, categorías (`add_category`, `rename_category`, `delete_category`, `reset_categories`), `set_board_access`, `remove_team_member`.
+- **Buzones y equipos**: `onboard`, `create_team`, `rename_team`, `delete_team`, `create_board`, `update_board`, `set_board_visibility`, `set_board_idea_permissions`, `set_team_settings`, `delete_board`, `toggle_favorite`, categorías (`add_category`, `rename_category`, `delete_category`, `reset_categories`), `set_board_access`, `remove_team_member`.
 - **Invitaciones**: `invite_team_members`, `invite_guests`, `revoke_invitation`, `accept_invitation`, `join_board`, `set_guest_status`.
 - **Perfil**: `update_profile`, `update_notifications`.
 - **Super Admin**: `admin_overview`, `admin_board_signups`, `admin_clients`, `admin_client_detail`, `admin_boards`, `admin_board_detail`, `admin_users`, `admin_set_account_status`, `admin_set_board_status`, `admin_set_user_status`, `admin_update_subscription`, `admin_prices`, `admin_schedule_price`, `admin_cancel_price`, `admin_client_activation`, `admin_provision_client` (solo servidor).
