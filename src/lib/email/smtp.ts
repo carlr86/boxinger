@@ -16,6 +16,12 @@ function smtp(): Transporter {
       port,
       secure: port === 465,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      // One reused connection, and fail fast instead of hanging: the outbox retries later.
+      pool: true,
+      maxConnections: 1,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 30_000,
     });
   }
   return transport;
