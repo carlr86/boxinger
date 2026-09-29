@@ -1,3 +1,4 @@
+import { publicOrigin } from '@/lib/origin';
 import { NextResponse, type NextRequest } from 'next/server';
 import { handlePreapproval } from '@/lib/billing/mp-events';
 
@@ -5,5 +6,5 @@ import { handlePreapproval } from '@/lib/billing/mp-events';
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('preapproval_id');
   if (id) await handlePreapproval(id).catch((e) => console.error('mp return', e));
-  return NextResponse.redirect(new URL('/app/perfil?tab=sub&checkout=ok', req.nextUrl.origin));
+  return NextResponse.redirect(new URL('/app/perfil?tab=sub&checkout=ok', publicOrigin(req)));
 }

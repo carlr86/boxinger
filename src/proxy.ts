@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { publicOrigin } from '@/lib/origin';
 
 const PROTECTED = ['/app/buzones', '/app/perfil', '/app/admin', '/app/onboarding'];
 
@@ -11,10 +12,8 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === '/') {
     const sp = request.nextUrl.searchParams;
     if (sp.has('code') || sp.has('error_description')) {
-      const url = request.nextUrl.clone();
-      url.pathname = sp.has('code') ? '/app/auth/callback' : '/app/ingresar';
-      url.search = sp.has('code') ? '?code=' + encodeURIComponent(sp.get('code')!) + '&next=%2Fapp' : '?aviso=error';
-      return NextResponse.redirect(url);
+      const target = sp.has('code') ? '/app/auth/callback?code=' + encodeURIComponent(sp.get('code')!) + '&next=%2Fapp' : '/app/ingresar?aviso=error';
+      return NextResponse.redirect(new URL(target, publicOrigin(request)));
     }
     return NextResponse.next();
   }
@@ -34,10 +33,7 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   if (!user && PROTECTED.some((p) => path === p || path.startsWith(p + '/'))) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/app/ingresar';
-    url.search = '?next=' + encodeURIComponent(path + request.nextUrl.search);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(new URL('/app/ingresar?next=' + encodeURIComponent(path + request.nextUrl.search), publicOrigin(request)));
   }
   return response;
 }

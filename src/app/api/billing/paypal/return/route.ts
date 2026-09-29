@@ -1,3 +1,4 @@
+import { publicOrigin } from '@/lib/origin';
 import { NextResponse, type NextRequest } from 'next/server';
 import * as paypal from '@/lib/billing/paypal';
 import { activate, findAccount } from '@/lib/billing/service';
@@ -6,7 +7,7 @@ import { activate, findAccount } from '@/lib/billing/service';
 // this only makes the upgrade visible right away when PayPal already reports ACTIVE.
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('subscription_id');
-  const ok = new URL('/app/perfil?tab=sub&checkout=ok', req.nextUrl.origin);
+  const ok = new URL('/app/perfil?tab=sub&checkout=ok', publicOrigin(req));
   if (!id) return NextResponse.redirect(ok);
   try {
     const s = await paypal.getSubscription(id);
