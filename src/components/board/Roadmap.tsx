@@ -258,7 +258,7 @@ function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDr
           </span>
         )}
       </div>
-      {launched && i.launched_at && <span style={{ fontSize: 12, color: '#4338ca' }}>Lanzada el {ddmmyyyy(i.launched_at)}</span>}
+      {launched && i.launched_at && <span style={{ fontSize: 12, color: LAUNCH_COL.cfg }}>Lanzada el {ddmmyyyy(i.launched_at)}</span>}
       {compact ? (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <Tag tone={P}>{P.l}</Tag>
