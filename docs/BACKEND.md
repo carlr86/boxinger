@@ -29,6 +29,7 @@ La clave `service_role` se usa solo en el servidor: webhooks de pago, job diario
 | Visitante | Sin sesión | Ver Buzón, Ranking y Backlog de buzones públicos. Los buzones solo para invitados y privados no muestran nada, ni el nombre. |
 
 **Permisos configurables**
+- Votos: cualquiera con acceso vota cualquier idea abierta (Pendiente o En revisión) salvo las propias; el Equipo también vota las ideas de otros miembros. Comentar se puede en todas, incluidas las propias.
 - Visibilidad del buzón: `invite` (por defecto: Equipo + Invitados), `public` (cualquiera con el link) o `private` (solo Equipo, Pro). Funciones: `set_board_visibility`, `set_board_domains` (Pro, rechaza dominios de email personal), `board_invite_via`, `join_guest`. Ningún buzón se indexa en buscadores.
 - Por buzón, *quiénes pueden crear ideas*: Miembros del equipo (Pro) e Invitados (públicos y solo invitados). El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no depende de esto. Funciones: `set_board_idea_permissions`, y los parámetros `p_members_ideas` / `p_guests_ideas` de `create_board`.
 - Por equipo, *los miembros pueden crear buzones* (desactivado por defecto; `set_team_settings`, `create_team(p_members_create_boards)`). El miembro que crea un buzón lo puede configurar (nombre, logo, categorías, visibilidad y quién crea ideas); eliminarlo y gestionar el acceso de otros miembros queda para el dueño.

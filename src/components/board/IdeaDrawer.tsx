@@ -59,7 +59,6 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
   const msgs: Record<string, string> = {
     closed: 'La votación está cerrada. Los votos quedaron congelados.',
     own: 'No podés votar tus propias ideas.',
-    none: 'El Equipo no vota ideas cargadas por el Equipo.',
     login: 'Registrate para votar esta idea.',
   };
 

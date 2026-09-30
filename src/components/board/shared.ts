@@ -27,12 +27,11 @@ export interface BoardApi {
   run: <T>(p: Promise<T>, ok?: string) => Promise<T | undefined>;
 }
 
-export type VoteMode = 'closed' | 'login' | 'none' | 'own' | 'can';
+export type VoteMode = 'closed' | 'login' | 'own' | 'can';
 
-export function voteMode(api: Pick<BoardApi, 'me' | 'isTeam'>, i: Idea): VoteMode {
+export function voteMode(api: Pick<BoardApi, 'me'>, i: Idea): VoteMode {
   if (i.status !== 'pendiente' && i.status !== 'en_revision') return 'closed';
   if (!api.me) return 'login';
-  if (api.isTeam && i.origin === 'equipo') return 'none';
   if (i.author_id === api.me.id) return 'own';
   return 'can';
 }

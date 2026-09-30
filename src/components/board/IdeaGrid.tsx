@@ -188,7 +188,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
         <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
         <span title={exact(i.created_at)}>{rel(i.created_at)}</span>
-        {vm !== 'none' && !backlog && (vm === 'can' ? (
+        {!backlog && (vm === 'can' ? (
           <Dropdown open={pop} onOpenChange={setPop} trigger={['click']} placement="topRight"
             popupRender={() => (
               <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, padding: 4, minWidth: 200 }}>
