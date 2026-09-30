@@ -33,3 +33,12 @@ textarea.bx-input{height:auto;padding:6px 11px;resize:vertical;line-height:1.5}
 .bx-row-link{color:rgba(0,0,0,0.88)}
 .bx-row-link:hover{color:#059669}
 @media (max-width:767px){.bx-hide-mobile{display:none!important}}
+/* App header on phones: brand + actions on the first row, tabs on their own row that scrolls sideways
+   (instead of widening the page). */
+@media (max-width:767px){
+  .bx-appheader{padding:0 16px!important;column-gap:8px!important;row-gap:0!important}
+  .bx-ah-brand{flex:1 1 0;min-height:56px!important;gap:10px!important}
+  .bx-ah-actions{order:2;padding:8px 0!important;gap:8px!important}
+  .bx-ah-tabs{order:3;flex:1 1 100%!important;min-width:0!important;margin:0 -16px;padding:0 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent)}
+  .bx-ah-tabs::-webkit-scrollbar{display:none}
+}

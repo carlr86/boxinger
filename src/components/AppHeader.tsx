@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Dropdown } from 'antd';
@@ -47,12 +47,19 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
     router.refresh();
   }
 
+  // Phones: the tab strip scrolls sideways; keep the current tab in view.
+  const tabsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const nav = tabsRef.current, on = nav?.querySelector<HTMLElement>('.bx-tab.on');
+    if (nav && on && nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: on.offsetLeft - (nav.clientWidth - on.offsetWidth) / 2, behavior: 'smooth' });
+  }, [view]);
+
   const goHome = () => router.push(ctx ? (hasBoards ? '/app/buzones' : '/app') : '/');
 
   return (
-    <header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', minHeight: 64, position: 'sticky', top: 0, zIndex: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 64, minWidth: 0 }}>
-        <a onClick={goHome} title={hasBoards ? 'Mis Buzones' : 'Inicio'} style={{ color: 'inherit' }}><Logo /></a>
+    <header className="bx-appheader" style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', minHeight: 64, position: 'sticky', top: 0, zIndex: 20 }}>
+      <div className="bx-ah-brand" style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 64, minWidth: 0 }}>
+        <a onClick={goHome} title={hasBoards ? 'Mis Buzones' : 'Inicio'} style={{ color: 'inherit' }}><Logo compactOnMobile={!!board} /></a>
         {slogan && !board && (
           <span className="bx-hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ width: 1, height: 20, background: '#e8e8e8' }} />
@@ -69,13 +76,13 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
         )}
       </div>
       {tabs && tabs.length > 0 ? (
-        <nav style={{ display: 'flex', gap: 2, alignSelf: 'stretch', flex: '1 1 auto', minWidth: 'max-content' }}>
+        <nav ref={tabsRef} className="bx-ah-tabs" style={{ display: 'flex', gap: 2, alignSelf: 'stretch', flex: '1 1 auto', minWidth: 'max-content' }}>
           {tabs.map((t) => (
             <a key={t.key} onClick={() => onTab?.(t.key)} className={'bx-tab' + (view === t.key ? ' on' : '')}>{t.label}</a>
           ))}
         </nav>
       ) : <div style={{ flex: 1 }} />}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', marginLeft: 'auto' }}>
+      <div className="bx-ah-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', marginLeft: 'auto' }}>
         {onConfig && (
           <button type="button" onClick={onConfig} title="Configuración del buzón" className="bx-icon-btn"
             style={{ width: 32, height: 32, color: view === 'config' ? '#059669' : 'rgba(0,0,0,0.65)' }}>
@@ -169,7 +176,7 @@ function BoardSwitcher({ current }: { current: HeaderBoard }) {
           <div className="bx-item" onClick={() => go('/app/buzones')}>Ver todos mis buzones</div>
         </div>
       )}>
-      <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 8, height: 32, padding: '0 10px', borderRadius: 6, border: '1px solid ' + (open ? '#059669' : '#d9d9d9'), background: '#fff', cursor: 'pointer', fontSize: 14, color: 'rgba(0,0,0,0.88)', maxWidth: 240 }}>
+      <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 8, height: 32, padding: '0 10px', borderRadius: 6, border: '1px solid ' + (open ? '#059669' : '#d9d9d9'), background: '#fff', cursor: 'pointer', fontSize: 14, color: 'rgba(0,0,0,0.88)', maxWidth: 240, minWidth: 0 }}>
         <Avatar name={current.name} color={current.color} size={18} square style={{ fontSize: 10 }} />
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{current.name}</span>
         <Chevron />
