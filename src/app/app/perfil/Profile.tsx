@@ -186,6 +186,7 @@ function Subscription() {
   const { ctx, refresh } = useSession();
   const [pick, setPick] = useState(false);
   const [contact, setContact] = useState(false);
+  const [mpEmail, setMpEmail] = useState(ctx!.me.email);
   const [busy, setBusy] = useState(false);
   const acc = ctx!.account;
   const s = acc?.subscription;
@@ -203,7 +204,7 @@ function Subscription() {
   async function start(provider: 'paypal' | 'mercadopago') {
     setBusy(true);
     try {
-      const r = await fetch('/api/billing/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ provider }) });
+      const r = await fetch('/api/billing/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ provider, payer_email: provider === 'mercadopago' ? mpEmail.trim() : undefined }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'No pudimos iniciar el pago.');
       window.location.href = j.url;
@@ -291,6 +292,11 @@ function Subscription() {
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.</span>
           <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
           <PayOption title="Mercado Pago" sub="Tarjetas argentinas · se cobra en pesos" price={money('ARS', Number(prices.ARS)) + ' / mes'} disabled={busy} onClick={() => start('mercadopago')} />
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'rgba(0,0,0,0.65)', marginTop: -4 }}>
+            Email de tu cuenta de Mercado Pago
+            <input className="bx-input" type="email" value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} />
+            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Tiene que ser el mismo con el que vas a ingresar a Mercado Pago para pagar.</span>
+          </label>
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Te llevamos al sitio del medio de pago para confirmar. Al volver, Pro se activa automáticamente.</span>
         </div>
       </Modal>
