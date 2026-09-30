@@ -19,7 +19,7 @@ const DEMO = [
 ];
 
 const STEPS = [
-  { n: '01', t: 'Recibí ideas', d: 'Compartí el link de tu buzón. Tu comunidad y tu equipo cargan propuestas con título, descripción y categoría.' },
+  { n: '01', t: 'Recibí ideas', d: 'Invitá a tus clientes y a tu equipo. Cargan propuestas con título, descripción y categoría, y solo ven el buzón quienes invitás.' },
   { n: '02', t: 'La comunidad vota', d: 'Cada idea se vota como Importante, Interesante o No importante. El Ranking muestra las que más interesan.' },
   { n: '03', t: 'El equipo revisa', d: 'El equipo aprueba o rechaza cada idea con un motivo visible. Las aprobadas pasan al Backlog.' },
   { n: '04', t: 'Priorizá y lanzá', d: 'Calificá esfuerzo e impacto, ordená el Roadmap y seguí en Status cuántas ideas terminan lanzadas.' },
@@ -47,12 +47,12 @@ export default async function Landing() {
   const plans = [
     {
       name: 'Free', price: 'USD 0', per: 'para siempre', bd: '#f0f0f0',
-      items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog'],
+      items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog'],
       cta: 'Empezar gratis', ctaBg: '#fff', ctaFg: 'rgba(0,0,0,0.88)', ctaBd: '#d9d9d9',
     },
     {
       name: 'Pro', price: 'USD ' + fmtPrice(usd), per: '/ mes', bd: '#059669',
-      items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Matriz, Roadmap y Status'],
+      items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status'],
       cta: 'Crear cuenta', ctaBg: '#059669', ctaFg: '#fff', ctaBd: '#059669',
     },
     {

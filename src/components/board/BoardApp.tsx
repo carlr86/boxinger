@@ -65,12 +65,15 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   }, [b.id, reload]);
 
   // Arriving from the board link or an invitation while signed in: join as Invitado.
+  // On invite-only boards, invited people (by email or allowed domain) are Invitados already; store it so
+  // the board shows up in Mis Buzones.
   useEffect(() => {
-    if (!join || !data.me || role) return;
+    const invited = role === 'guest' && data.joined === false;
+    if (!data.me || !((join && !role) || invited)) return;
     rpc<string>('join_board', { p_slug: b.slug })
       .then(async () => { await Promise.all([reload(), refreshCtx()]); toast.ok('Ya sos parte de la Comunidad de ' + b.name); })
       .catch((e) => toast.err(e))
-      .finally(() => window.history.replaceState(null, '', window.location.pathname));
+      .finally(() => { if (join) window.history.replaceState(null, '', window.location.pathname); });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

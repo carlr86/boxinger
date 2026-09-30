@@ -57,19 +57,24 @@ export interface IdeaDetail extends Idea {
   history: { from: IdeaStatus; to: IdeaStatus; at: string; reason: string | null }[] | null;
 }
 
+export type Visibility = 'public' | 'invite' | 'private';
+
 export interface BoardInfo {
   id: string; name: string; slug: string; description: string; logo_url: string | null;
-  visibility: 'public' | 'private'; status: 'active' | 'suspended'; color: string;
+  visibility: Visibility; status: 'active' | 'suspended'; color: string;
   roadmap_names: Record<string, string>; team_id: string; team_name: string;
   account_status: 'active' | 'suspended'; locked: boolean; pro: boolean; created_at: string;
   invite_code: string | null; guests: number; version: string;
   created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean;
+  allowed_domains: string[] | null; // only for whoever can manage the board
 }
 export interface BoardData {
   forbidden?: boolean;
-  name?: string;
+  visibility?: Visibility; // with forbidden
+  signed_in?: boolean; // with forbidden
   board: BoardInfo;
   role: Role;
+  joined?: boolean; // has a board_guests row
   me: { id: string; name: string; email: string; avatar_url: string | null; is_super_admin: boolean } | null;
   categories: Category[];
   ideas: Idea[];
@@ -78,7 +83,7 @@ export interface BoardData {
 
 export interface BoardCard {
   id: string; name: string; slug: string; description: string; logo_url: string | null;
-  visibility: 'public' | 'private'; status: string; color: string; team_id: string; team_name: string;
+  visibility: Visibility; status: string; color: string; team_id: string; team_name: string;
   created_at: string; last_activity_at: string; ideas: number; guests: number; fav: boolean;
   locked: boolean; account_status: string; role: Role; joined_at?: string;
 }

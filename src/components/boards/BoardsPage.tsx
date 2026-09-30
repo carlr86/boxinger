@@ -9,8 +9,8 @@ import { useGridCols } from '@/components/board/IdeaGrid';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { boardUrl, displayUrl } from '@/lib/env';
 import { plural, rel } from '@/lib/format';
-import { MAX_MEMBERS } from '@/lib/constants';
-import type { BoardCard, TeamCtx } from '@/lib/types';
+import { MAX_MEMBERS, VISIBILITY, VISIBILITY_ORDER } from '@/lib/constants';
+import type { BoardCard, TeamCtx, Visibility } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
 import { BoardDetail } from './BoardDetail';
 import { VisibilityModal } from '@/components/board/VisibilityModal';
@@ -83,7 +83,7 @@ export function BoardsPage() {
       { key: 'detail', label: 'Ver detalle del buzón', onClick: () => setDetail(b) },
       ...(admin ? [{ key: 'rename', label: 'Cambiar nombre', onClick: () => setModal({ type: 'rename', board: b }) }] : []),
       { key: 'url', label: 'Compartir URL del buzón', onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
-      ...(!guestOnly ? [{ key: 'guests', label: 'Compartir link a invitados', disabled: priv, title: priv ? 'Solo para buzones públicos' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
+      ...(!guestOnly ? [{ key: 'guests', label: b.visibility === 'invite' ? 'Invitar personas' : 'Compartir link a invitados', disabled: priv, title: priv ? 'Los buzones privados no admiten invitados' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
       ...(admin ? [{ key: 'vis', label: 'Cambiar visibilidad', onClick: () => (b.locked ? toast.info('Este buzón requiere el plan Pro') : setVisFor(b)) }] : []),
       ...(admin ? [{ key: 'access', label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>Acceso de miembros <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: t! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
       { key: 'fav', label: b.fav ? 'Quitar de favoritos' : 'Agregar a favoritos', onClick: () => fav(b) },
@@ -105,7 +105,7 @@ export function BoardsPage() {
           </Dropdown>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <Tag>{priv ? 'Privado' : 'Público'}</Tag>
+          <Tag>{VISIBILITY[b.visibility].l}</Tag>
           {guestOnly && <Tag tone={{ l: '', bg: '#f9f0ff', bd: '#d3adf7', fg: '#531dab' }}>Invitado</Tag>}
           {guestOnly && <Tag>{b.team_name}</Tag>}
           {t && t.pro && memberN > 0 && admin && <Tag title="Miembros del equipo con acceso">Equipo: {memberN + 1} personas</Tag>}
@@ -240,7 +240,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
   const toast = useToast();
   const { ctx, refresh } = useSession();
   const [input, setInput] = useState('');
-  const [vis, setVis] = useState<'public' | 'private'>('public');
+  const [vis, setVis] = useState<Visibility>('invite');
   const [membersIdeas, setMembersIdeas] = useState(true);
   const [guestsIdeas, setGuestsIdeas] = useState(true);
   const [memberBoards, setMemberBoards] = useState(false);
@@ -251,7 +251,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
   const [access, setAccess] = useState<Record<string, boolean> | null>(null);
 
   useEffect(() => {
-    setTried(false); setEmails([]); setVis('public'); setBusy(false); setAccess(null);
+    setTried(false); setEmails([]); setVis('invite'); setBusy(false); setAccess(null);
     setMembersIdeas(true); setGuestsIdeas(true); setMemberBoards(false);
     if (!modal) return;
     setInput(modal.type === 'rename' ? modal.board.name : modal.type === 'renameTeam' ? modal.team.name : '');
@@ -274,20 +274,20 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
   if (t === 'create') {
     const teamPro = !!ownTeams.find((x) => x.id === team)?.pro;
     title = 'Crear buzón';
-    text = 'Se genera una URL pública única. Los buzones privados son solo para uso interno del Equipo. Todos los miembros del equipo tienen acceso.';
+    text = VISIBILITY[vis].d + ' Todos los miembros del equipo tienen acceso.';
     body = (
       <>
         <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del buzón" value={input} onChange={(e) => setInput(e.target.value)} />
-        <Choice options={[['public', 'Público'], ['private', 'Privado']]} value={vis} onChange={(v) => (v === 'private' && !teamPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
+        <Choice options={VISIBILITY_ORDER.map((k) => [k, VISIBILITY[k].l] as [Visibility, string])} value={vis} onChange={(v) => (v === 'private' && !teamPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Quiénes pueden crear ideas</span>
             <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>El dueño del equipo y vos siempre pueden. Todos pueden votar y comentar.</span>
           </div>
           {teamPro && <ToggleRow label="Miembros del equipo" on={membersIdeas} onChange={setMembersIdeas} />}
-          {vis === 'public' ? <ToggleRow label="Invitados" desc="La Comunidad que se suma con el link o por invitación." on={guestsIdeas} onChange={setGuestsIdeas} />
+          {vis !== 'private' ? <ToggleRow label="Invitados" desc={vis === 'invite' ? 'Las personas que invites a este buzón.' : 'La Comunidad que se suma con el link o por invitación.'} on={guestsIdeas} onChange={setGuestsIdeas} />
             : <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no admiten invitados.</span>}
-          {!teamPro && vis === 'public' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Con Pro también podés decidir si tus miembros cargan ideas.</span>}
+          {!teamPro && vis !== 'private' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Con Pro también podés decidir si tus miembros cargan ideas.</span>}
         </div>
         {ownTeams.length > 1 && (
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Equipo
@@ -337,8 +337,11 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     ok = () => { setTried(true); if (match) exec(() => rpc('delete_board', { p_board: b.id, p_confirm: input.trim() }), 'Buzón eliminado'); };
   } else if (t === 'guests' && modal?.type === 'guests') {
     const b = modal.board;
-    title = 'Compartir link a invitados';
-    text = `Quien se registre desde este link queda como Comunidad de ${b.name}. También podés enviarlo por email.`;
+    const inv = b.visibility === 'invite';
+    title = inv ? 'Invitar personas' : 'Compartir link a invitados';
+    text = inv
+      ? `Invitá por email a quienes quieras sumar a ${b.name}. El link solo funciona para las personas invitadas.`
+      : `Quien se registre desde este link queda como Comunidad de ${b.name}. También podés enviarlo por email.`;
     body = (
       <>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #d9d9d9', borderRadius: 6, padding: '4px 4px 4px 11px', background: '#fafafa' }}>

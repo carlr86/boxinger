@@ -25,9 +25,9 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
     if (!(board.trim() || team.trim())) return;
     setBusy(true);
     try {
-      const r = await rpc<{ slug: string }>('onboard', { p_team_name: team.trim(), p_board_name: board.trim() || team.trim(), p_visibility: 'public', p_description: desc.trim() });
+      const r = await rpc<{ slug: string }>('onboard', { p_team_name: team.trim(), p_board_name: board.trim() || team.trim(), p_visibility: 'invite', p_description: desc.trim() });
       await refresh();
-      toast.ok('¡Listo! Tu buzón ya está publicado.');
+      toast.ok('¡Listo! Tu buzón está creado. Invitá a tu Comunidad desde Configuración.');
       router.replace('/app/b/' + r.slug);
     } catch (e) {
       toast.err(e);
@@ -52,7 +52,7 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
         </>
       ) : (
         <>
-          <Field label="Nombre del buzón" hint={`URL pública: ${host}/app/b/${slugify(board || team) || 'mi-buzon'}`}>
+          <Field label="Nombre del buzón" hint={`Link del buzón (solo para quienes invites): ${host}/app/b/${slugify(board || team) || 'mi-buzon'}`}>
             <input className="bx-input" autoFocus maxLength={60} value={board} placeholder={team} onChange={(e) => setBoard(e.target.value)} />
           </Field>
           <Field label="Descripción corta (opcional)" hint={`${desc.length} / 200`}>

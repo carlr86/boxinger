@@ -58,7 +58,7 @@ export function render(template: string, p: P): { subject: string; html: string 
       return {
         subject: `${s(p.inviter) || 'El Equipo'} te invitó a ${s(p.board_name)}`,
         html: layout(`Te invitaron a ${esc(p.board_name)}`,
-          `${esc(p.inviter) || 'El Equipo'} te invitó a la Comunidad del buzón de ideas <b>${esc(p.board_name)}</b>.` + (p.description ? quote(p.description) : '') + 'Vas a poder proponer ideas, votar y comentar.',
+          `${esc(p.inviter) || 'El Equipo'} te invitó a la Comunidad del buzón de ideas <b>${esc(p.board_name)}</b>.` + (p.description ? quote(p.description) : '') + 'Vas a poder votar y comentar las ideas.<br><br>Para entrar, creá tu cuenta o ingresá con <b>este mismo email</b>: el buzón solo se ve con la cuenta invitada.',
           { label: 'Aceptar invitación', url: `${SITE_URL}/app/invitacion/${s(p.token)}` }, 'Si no esperabas esta invitación, podés ignorar este email.'),
       };
     case 'invite_team':

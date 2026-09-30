@@ -25,11 +25,12 @@ La clave `service_role` se usa solo en el servidor: webhooks de pago, job diario
 | **Super Admin** | `profiles.is_super_admin` | Panel `/app/admin`: métricas, clientes, buzones, usuarios; suspender cuentas, buzones y usuarios; cambiar planes, precios especiales y precios de lista (USD y ARS); crear clientes con link de activación. Puede ver cualquier buzón. |
 | **Admin** | Dueño de la cuenta (`accounts.owner_id`); también `team_members.role = 'admin'` | Crear equipos y buzones, configurar buzones y categorías, administrar el plan y el pago, invitar miembros al equipo (a todos los buzones o a uno), dar y quitar acceso por buzón, invitar invitados, todo lo del Miembro. |
 | **Miembro** | `team_members.role = 'member'` con acceso al buzón. Solo con plan Pro (en Free queda pausado) | Cargar ideas (origen Equipo), cambiar estados (motivo obligatorio al rechazar), editar y ocultar ideas y comentarios, responder comentarios, calificar y mover en el Roadmap (Pro), invitar invitados y bloquearlos. |
-| **Invitado** | `board_guests` activo en un buzón **público** | Proponer ideas (origen Comunidad), votar (no las propias), comentar, reaccionar. Ve sus buzones en *Mis Buzones › Invitado*. Puede crear su propia cuenta Admin (Free o Pro) desde "Crear mi buzón". |
-| Visitante | Sin sesión | Ver Buzón, Ranking y Backlog de buzones públicos. |
+| **Invitado** | `board_guests` activo en un buzón **público** o **solo invitados**; en solo invitados también quien tiene una invitación pendiente a su email verificado o (Pro) un email verificado de `allowed_domains` | Proponer ideas (origen Comunidad), votar (no las propias), comentar, reaccionar. Ve sus buzones en *Mis Buzones › Invitado*. Puede crear su propia cuenta Admin (Free o Pro) desde "Crear mi buzón". |
+| Visitante | Sin sesión | Ver Buzón, Ranking y Backlog de buzones públicos. Los buzones solo para invitados y privados no muestran nada, ni el nombre. |
 
 **Permisos configurables**
-- Por buzón, *quiénes pueden crear ideas*: Miembros del equipo (Pro) e Invitados (solo públicos). El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no depende de esto. Funciones: `set_board_idea_permissions`, y los parámetros `p_members_ideas` / `p_guests_ideas` de `create_board`.
+- Visibilidad del buzón: `invite` (por defecto: Equipo + Invitados), `public` (cualquiera con el link) o `private` (solo Equipo, Pro). Funciones: `set_board_visibility`, `set_board_domains` (Pro, rechaza dominios de email personal), `board_invite_via`, `join_guest`. Ningún buzón se indexa en buscadores.
+- Por buzón, *quiénes pueden crear ideas*: Miembros del equipo (Pro) e Invitados (públicos y solo invitados). El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no depende de esto. Funciones: `set_board_idea_permissions`, y los parámetros `p_members_ideas` / `p_guests_ideas` de `create_board`.
 - Por equipo, *los miembros pueden crear buzones* (desactivado por defecto; `set_team_settings`, `create_team(p_members_create_boards)`). El miembro que crea un buzón lo puede configurar (nombre, logo, categorías, visibilidad y quién crea ideas); eliminarlo y gestionar el acceso de otros miembros queda para el dueño.
 
 Una misma persona puede ser Admin de su cuenta, Miembro de otro equipo e Invitado en otros buzones. El rol se calcula por buzón en `public.board_context(board, user)`.
@@ -42,6 +43,8 @@ Una misma persona puede ser Admin de su cuenta, Miembro de otro equipo e Invitad
 | --- | --- | --- | --- |
 | Equipos / buzones | 1 / 1 | Ilimitados | Ilimitados |
 | Miembros por equipo | 0 (solo el Admin) | 4 + el Admin | Ilimitados |
+| Buzones solo para invitados | Sí | Sí | Sí |
+| Acceso por dominio de email | No | Sí | Sí |
 | Buzones privados | No | Sí | Sí |
 | Matriz, Roadmap, Status, Growth | No | Sí | Sí |
 | Invitados, ideas, votos, comentarios, Ranking, Backlog | Sí | Sí | Sí |

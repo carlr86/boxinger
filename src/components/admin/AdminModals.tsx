@@ -6,6 +6,8 @@ import { Avatar, Choice, Field, Note, Rows, Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { useGridCols } from '@/components/board/IdeaGrid';
 import { BAD, OK, planTone } from '@/lib/constants';
+
+const VIS_L: Record<string, string> = { public: 'Público', invite: 'Solo invitados', private: 'Privado' };
 import { SITE_URL, boardUrl, displayUrl } from '@/lib/env';
 import { ddmmyyyy, dlong, fmtPrice, isEmail, money, plural, rel } from '@/lib/format';
 import { adminCreateClient, adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
@@ -313,7 +315,7 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
               <div key={b.id} style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <a onClick={() => openBoard(b.id)} style={{ fontWeight: 600 }}>{b.name}</a>
-                  <Tag>{b.visibility === 'private' ? 'Privado' : 'Público'}</Tag>
+                  <Tag>{VIS_L[b.visibility] || b.visibility}</Tag>
                   <Tag tone={b.status === 'active' ? OK : BAD}>{b.status === 'active' ? 'Activo' : 'Suspendido'}</Tag>
                 </div>
                 <span style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>/app/b/{b.slug}</span>
@@ -359,7 +361,7 @@ export function AdminBoardDrawer({ boardId, onClose, onChanged, openClient }: { 
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <Tag tone={planTone(a.plan)}>{a.plan}</Tag>
               <Tag tone={b.status === 'active' ? OK : BAD}>{b.status === 'active' ? 'Activo' : 'Suspendido'}</Tag>
-              <Tag>{b.visibility === 'private' ? 'Privado' : 'Público'}</Tag>
+              <Tag>{VIS_L[b.visibility] || b.visibility}</Tag>
             </div>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>{b.name}</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

@@ -5,15 +5,10 @@ import { rpc } from '@/lib/rpc';
 import { Note, ProPill } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { plural } from '@/lib/format';
+import { VISIBILITY, VISIBILITY_ORDER } from '@/lib/constants';
+import type { Visibility as Vis } from '@/lib/types';
 
-type Vis = 'public' | 'private';
-
-const OPTIONS: [Vis, string, string][] = [
-  ['public', 'Público', 'Cualquiera con el link ve las ideas. Quien se registra puede participar como Invitado.'],
-  ['private', 'Privado', 'Solo el Equipo con acceso lo ve. Sirve para ideas internas antes de abrirlas a la Comunidad.'],
-];
-
-/** Changes a board between public and private, explaining what happens to its Community. */
+/** Changes a board between invite-only, public and private, explaining what happens to its Community. */
 export function VisibilityModal({ board, pro, onClose, onDone, onGoPro }: {
   board: { id: string; name: string; visibility: Vis; guests: number } | null;
   pro: boolean;
@@ -22,7 +17,7 @@ export function VisibilityModal({ board, pro, onClose, onDone, onGoPro }: {
   onGoPro: () => void;
 }) {
   const toast = useToast();
-  const [value, setValue] = useState<Vis>('public');
+  const [value, setValue] = useState<Vis>('invite');
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (board) setValue(board.visibility); }, [board]);
   if (!board) return <Modal open={false} />;
@@ -35,7 +30,7 @@ export function VisibilityModal({ board, pro, onClose, onDone, onGoPro }: {
     setBusy(true);
     try {
       const r = await rpc<{ guests: number; revoked: number }>('set_board_visibility', { p_board: board!.id, p_visibility: value });
-      toast.ok(value === 'private' ? 'El buzón ahora es privado' : 'El buzón ahora es público');
+      toast.ok('Visibilidad: ' + VISIBILITY[value].l);
       if (value === 'private' && r.revoked) toast.info(plural(r.revoked, 'invitación pendiente cancelada', 'invitaciones pendientes canceladas'));
       onDone();
       onClose();
@@ -47,7 +42,8 @@ export function VisibilityModal({ board, pro, onClose, onDone, onGoPro }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Elegí quién puede ver {board.name}. La URL no cambia.</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {OPTIONS.map(([k, l, d]) => {
+          {VISIBILITY_ORDER.map((k) => {
+            const { l, d } = VISIBILITY[k];
             const on = value === k;
             return (
               <div key={k} onClick={() => setValue(k)}
@@ -64,13 +60,20 @@ export function VisibilityModal({ board, pro, onClose, onDone, onGoPro }: {
         {changed && !needsPro && value === 'private' && (
           <Note tone="warn">
             {board.guests > 0
-              ? `${plural(board.guests, 'persona de la Comunidad deja', 'personas de la Comunidad dejan')} de ver el buzón y sus ideas. No se borra nada: si lo volvés a hacer público, recuperan el acceso.`
-              : 'El buzón deja de verse con el link público.'}{' '}
+              ? `${plural(board.guests, 'persona de la Comunidad deja', 'personas de la Comunidad dejan')} de ver el buzón y sus ideas. No se borra nada: si lo volvés a abrir a invitados, recuperan el acceso.`
+              : 'Solo el Equipo va a poder verlo.'}{' '}
             Las invitaciones pendientes a la Comunidad se cancelan.
           </Note>
         )}
+        {changed && value === 'invite' && (
+          <Note>
+            {board.visibility === 'public'
+              ? 'Quien no esté invitado deja de ver el buzón, aunque tenga el link. Las personas que ya participaron siguen como invitadas.'
+              : `Vas a poder invitar personas por email${board.guests > 0 ? ` y ${plural(board.guests, 'invitado vuelve', 'invitados vuelven')} a tener acceso` : ''}.`}
+          </Note>
+        )}
         {changed && value === 'public' && (
-          <Note>Cualquiera con el link va a poder ver las ideas{board.guests > 0 ? ` y ${plural(board.guests, 'invitado vuelve', 'invitados vuelven')} a tener acceso` : ''}.</Note>
+          <Note tone="warn">Cualquiera con el link va a poder ver las ideas, aunque no esté invitado{board.guests > 0 && board.visibility === 'private' ? `, y ${plural(board.guests, 'invitado vuelve', 'invitados vuelven')} a tener acceso` : ''}.</Note>
         )}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button type="button" className="bx-btn" onClick={onClose}>Cancelar</button>

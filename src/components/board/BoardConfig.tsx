@@ -3,12 +3,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Modal, Popconfirm } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
-import { Avatar, EmailChips, Note, PageHead, Seg, ToggleRow } from '@/components/ui';
+import { Avatar, EmailChips, Note, PageHead, ProPill, Seg, ToggleRow } from '@/components/ui';
 import { displayUrl, boardUrl } from '@/lib/env';
 import { rel, plural } from '@/lib/format';
 import type { BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
+import { VISIBILITY } from '@/lib/constants';
 
 type Tab = 'general' | 'cats' | 'com';
 const SUB: Record<Tab, string> = {
@@ -73,8 +74,8 @@ function General({ api }: { api: BoardApi }) {
       </label>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Visibilidad
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{b.visibility === 'private' ? 'Privado' : 'Público'}</span>
-          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{b.visibility === 'private' ? 'Solo el Equipo con acceso lo ve.' : 'Cualquiera con el link ve las ideas.'}</span>
+          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{VISIBILITY[b.visibility].l}</span>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{VISIBILITY[b.visibility].short}</span>
           <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>Cambiar visibilidad</button>
         </div>
       </div>
@@ -87,8 +88,8 @@ function General({ api }: { api: BoardApi }) {
           <ToggleRow label="Miembros del equipo" desc="Los miembros con acceso a este buzón." on={b.members_can_create_ideas}
             onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: v, p_guests: null }), v ? 'Los miembros pueden crear ideas' : 'Los miembros ya no pueden crear ideas'); api.reload(); }} />
         )}
-        {b.visibility === 'public' ? (
-          <ToggleRow label="Invitados" desc="La Comunidad que se sumó con el link o por invitación." on={b.guests_can_create_ideas}
+        {b.visibility !== 'private' ? (
+          <ToggleRow label="Invitados" desc={b.visibility === 'invite' ? 'Las personas que invitaste a este buzón.' : 'La Comunidad que se sumó con el link o por invitación.'} on={b.guests_can_create_ideas}
             onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: null, p_guests: v }), v ? 'Los invitados pueden crear ideas' : 'Los invitados ya no pueden crear ideas'); api.reload(); }} />
         ) : (
           <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
@@ -222,6 +223,50 @@ function Categories({ api }: { api: BoardApi }) {
   );
 }
 
+/** Pro: anyone with a verified email from these domains can enter an invite-only board. */
+function AllowedDomains({ api }: { api: BoardApi }) {
+  const b = api.data.board;
+  const [list, setList] = useState<string[]>(b.allowed_domains || []);
+  const [input, setInput] = useState('');
+  useEffect(() => { setList(b.allowed_domains || []); }, [b.allowed_domains]);
+  async function save(next: string[], msg: string) {
+    const r = await api.run(rpc<string[]>('set_board_domains', { p_board: b.id, p_domains: next }), msg);
+    if (r) { setList(r); setInput(''); api.reload(); }
+  }
+  const add = () => { const d = input.trim().toLowerCase().replace(/^@/, ''); if (d) save([...list, d], 'Dominio agregado'); };
+
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600 }}>Acceso por dominio <ProPill /></div>
+      <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+        Cualquiera que ingrese con un email verificado de estos dominios entra como invitado, sin que tengas que invitarlo. Ideal para los empleados de un cliente: por ejemplo, <b>cliente.com</b>.
+      </span>
+      {!api.pro ? (
+        <Note>El acceso por dominio está disponible en Pro. <a onClick={api.goPro}>Ver planes</a></Note>
+      ) : (
+        <>
+          {list.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {list.map((d) => (
+                <span key={d} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '24px', padding: '0 4px 0 10px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>
+                  @{d}
+                  <button type="button" aria-label={'Quitar ' + d} onClick={() => save(list.filter((x) => x !== d), 'Dominio quitado')}
+                    style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', fontSize: 15, lineHeight: 1, padding: '0 4px' }}>×</button>
+                </span>
+              ))}
+            </div>
+          )}
+          <form style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onSubmit={(e) => { e.preventDefault(); add(); }}>
+            <input className="bx-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder="cliente.com" style={{ flex: 1, minWidth: 180, maxWidth: 320 }} />
+            <button type="submit" className="bx-btn" disabled={!input.trim()}>Agregar dominio</button>
+          </form>
+          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>No se aceptan dominios de email personal (gmail.com, hotmail.com…), porque dejarían entrar a cualquiera.</span>
+        </>
+      )}
+    </div>
+  );
+}
+
 type Guest = { user_id: string; name: string; email: string; avatar_url: string | null; joined_at: string; status: 'active' | 'blocked' };
 
 function Community({ api }: { api: BoardApi }) {
@@ -244,12 +289,16 @@ function Community({ api }: { api: BoardApi }) {
           <Note>Los buzones privados son solo para el Equipo y no admiten invitados de la Comunidad.</Note>
         ) : (
           <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Link público
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{b.visibility === 'invite' ? 'Link del buzón' : 'Link público'}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #d9d9d9', borderRadius: 6, padding: '4px 4px 4px 11px', background: '#fafafa' }}>
                 <span style={{ flex: 1, minWidth: 0, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayUrl(b.slug)}</span>
                 <a style={{ padding: '4px 10px' }} onClick={() => { navigator.clipboard?.writeText(link).catch(() => {}); toast.ok('Link del buzón copiado'); }}>Copiar</a>
               </div>
-              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Quien se registre desde este link queda como Comunidad de {b.name}.</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+                {b.visibility === 'invite'
+                  ? 'Solo funciona para quienes invitaste por email' + (b.allowed_domains?.length ? ' o tienen un email de los dominios permitidos' : '') + '. Si le llega a otra persona, no ve el buzón.'
+                  : `Quien se registre desde este link queda como Comunidad de ${b.name}.`}
+              </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Invitar por email
               <EmailChips value={emails} onChange={setEmails} />
@@ -278,9 +327,10 @@ function Community({ api }: { api: BoardApi }) {
           </>
         )}
       </div>
+      {b.visibility === 'invite' && b.allowed_domains && <AllowedDomains api={api} />}
       <div style={card}>
         <div style={{ fontSize: 16, fontWeight: 600 }}>Miembros de la Comunidad · {data?.guests.length ?? '…'}</div>
-        {data && data.guests.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Todavía no hay miembros de la Comunidad. Compartí el link del buzón para sumar personas.</span>}
+        {data && data.guests.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Todavía no hay miembros de la Comunidad. {b.visibility === 'invite' ? 'Invitá personas por email para sumarlas.' : 'Compartí el link del buzón para sumar personas.'}</span>}
         {data?.guests.map((m) => (
           <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: m.status === 'blocked' ? 0.5 : 1 }}>
             <Avatar name={m.name} id={m.user_id} url={m.avatar_url} />

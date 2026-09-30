@@ -8,7 +8,7 @@ import { useToast } from '@/components/Providers';
 import { useGridCols } from '@/components/board/IdeaGrid';
 import { boardUrl, displayUrl } from '@/lib/env';
 import { ddmmyyyy, rel } from '@/lib/format';
-import { IDEA_STATUS } from '@/lib/constants';
+import { IDEA_STATUS, VISIBILITY } from '@/lib/constants';
 import type { BoardCard, BoardData, TeamCtx } from '@/lib/types';
 import { MemberRow } from './BoardsPage';
 
@@ -42,7 +42,7 @@ export function BoardDetail({ board: b, team, onClose }: { board: BoardCard; tea
           <Avatar name={b.name} color={b.color} url={b.logo_url} size={44} square />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>{b.name}</h2>
-            <span><Tag>{priv ? 'Privado' : 'Público'}</Tag></span>
+            <span><Tag>{VISIBILITY[b.visibility].l}</Tag></span>
           </div>
         </div>
         {b.description && <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'rgba(0,0,0,0.65)' }}>{b.description}</p>}
@@ -69,7 +69,7 @@ export function BoardDetail({ board: b, team, onClose }: { board: BoardCard; tea
         <Rows rows={[
           { l: 'Creado', v: ddmmyyyy(b.created_at) },
           { l: 'Última actividad', v: rel(b.last_activity_at) },
-          { l: 'Visibilidad', v: priv ? 'Privado · solo Equipo' : 'Público · cualquiera con el link' },
+          { l: 'Visibilidad', v: VISIBILITY[b.visibility].l + ' · ' + VISIBILITY[b.visibility].short },
         ]} />
         {team && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

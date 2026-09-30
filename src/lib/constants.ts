@@ -79,3 +79,11 @@ export const GROWTH_KEYS = ['adquisicion', 'activacion', 'retencion', 'monetizac
 
 /** PayPal checkout on/off. Off while PayPal reviews the merchant account (limited since 2026-09-30). */
 export const PAYPAL_ENABLED = false;
+
+/** Board visibility, in the order it is offered. */
+export const VISIBILITY: Record<import('./types').Visibility, { l: string; d: string; short: string }> = {
+  invite: { l: 'Solo invitados', short: 'Solo el Equipo y sus invitados lo ven.', d: 'Lo ven el Equipo y las personas que invitás por email (o con un email del dominio que permitas). Si el link le llega a otra persona, no ve nada.' },
+  public: { l: 'Público', short: 'Cualquiera con el link ve las ideas.', d: 'Cualquiera con el link ve las ideas. Quien se registra puede participar como Invitado.' },
+  private: { l: 'Privado', short: 'Solo el Equipo con acceso lo ve.', d: 'Solo el Equipo con acceso lo ve. Sirve para ideas internas antes de abrirlas a la Comunidad.' },
+};
+export const VISIBILITY_ORDER = ['invite', 'public', 'private'] as const;
