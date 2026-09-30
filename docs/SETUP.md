@@ -108,10 +108,10 @@ Cómo funciona: *Pasar a Pro* crea la suscripción en PayPal y redirige a aproba
 ## 4. Mercado Pago (ARS, Argentina)
 
 1. mercadopago.com.ar/developers › *Tus integraciones › Crear aplicación* (producto: Suscripciones). Copiá el *Access Token* (primero el de prueba, `TEST-…`) → `MP_ACCESS_TOKEN`.
-2. En la aplicación › *Webhooks*: URL `https://www.boxinger.com/api/billing/mercadopago/webhook`, eventos **Planes y suscripciones** (`subscription_preapproval`, `subscription_authorized_payment`). Copiá la *Clave secreta* → `MP_WEBHOOK_SECRET`.
+2. En la aplicación › *Webhooks*: URL `https://boxinger.com/api/billing/mercadopago/webhook`, eventos **Planes y suscripciones** (`subscription_preapproval`, `subscription_authorized_payment`). Copiá la *Clave secreta* → `MP_WEBHOOK_SECRET`.
 3. Para probar, creá usuarios de prueba (vendedor y comprador) en *Cuentas de prueba*.
 
-Cómo funciona: *Pasar a Pro › Mercado Pago* crea un `preapproval` en pesos con el precio ARS vigente y redirige a `init_point`. El comprador tiene que pagar con la cuenta de Mercado Pago del email de su cuenta de Boxinger. Al volver (`/api/billing/mercadopago/return`) y con el webhook, la cuenta pasa a Pro. Los cambios de precio y precios especiales actualizan `auto_recurring.transaction_amount` del preapproval.
+Cómo funciona: *Pasar a Pro › Mercado Pago* crea un `preapproval` en pesos con el precio ARS vigente y redirige a `init_point`. El comprador tiene que pagar con la cuenta de Mercado Pago del email que indica en el modal (por defecto, el de su cuenta de Boxinger). Al volver (`/api/billing/mercadopago/return`) y con el webhook, la cuenta pasa a Pro. Los cambios de precio y precios especiales actualizan `auto_recurring.transaction_amount` del preapproval.
 
 ## 5. Hostinger (hosting) y GitHub
 
