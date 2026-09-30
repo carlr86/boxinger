@@ -13,6 +13,14 @@ export const IDEA_STATUS: Record<string, Tone> = {
   rechazada: { l: 'Rechazada', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' },
 };
 export const STATUS_KEYS = ['pendiente', 'en_revision', 'aprobada', 'rechazada'] as const;
+/** An approved idea the team already shipped: shown instead of "Aprobada". */
+export const LAUNCHED: Tone = { l: 'Lanzada', bg: '#eef2ff', bd: '#c7d2fe', fg: '#4338ca' };
+/** Status chip for an idea: "Lanzada" once shipped, else its review status. */
+export const statusTone = (i: { status: string; launched_at?: string | null }): Tone =>
+  i.status === 'aprobada' && i.launched_at ? LAUNCHED : IDEA_STATUS[i.status];
+/** Roadmap's last column: launched ideas. */
+export const LAUNCH_COL = { k: 'lanzadas', l: 'Lanzadas', bg: '#f5f7ff', cbg: '#eef2ff', cbd: '#c7d2fe', cfg: '#4338ca' } as const;
+export const LAUNCH_RECENT_DAYS = 90;
 
 export const ORIGIN: Record<string, Tone> = {
   equipo: { l: 'Equipo', bg: '#eff6ff', bd: '#93c5fd', fg: '#3b82f6' },

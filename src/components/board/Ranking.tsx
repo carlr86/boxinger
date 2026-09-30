@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { PageHead, Seg, Tag } from '@/components/ui';
-import { IDEA_STATUS } from '@/lib/constants';
+import { IDEA_STATUS, statusTone } from '@/lib/constants';
 import { plural } from '@/lib/format';
 import { AuthorLine, OriginTag } from './IdeaGrid';
 import type { BoardApi } from './shared';
@@ -39,7 +39,7 @@ export function Ranking({ api }: { api: BoardApi }) {
               <select className="bx-select" style={{ width: 180 }} value={i.status} onChange={(e) => api.setStatus(i.id, e.target.value)}>
                 {Object.entries(IDEA_STATUS).map(([k2, v]) => <option key={k2} value={k2}>{v.l}</option>)}
               </select>
-            ) : <Tag tone={IDEA_STATUS[i.status]}>{IDEA_STATUS[i.status].l}</Tag>}
+            ) : <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>}
           </div>
         ))}
         {rows.length === 0 && <div style={{ padding: 48, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>Todavía no hay ideas en juego en esta categoría.</div>}

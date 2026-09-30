@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Drawer, Popconfirm, Tooltip } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Avatar, Bar, Choice, Dots, Help, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE, VOTE_KEYS } from '@/lib/constants';
+import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail } from '@/lib/types';
@@ -101,7 +101,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <OriginTag origin={i.origin} />
             <Tag>{api.catL(i.category_id)}</Tag>
-            <Tag tone={IDEA_STATUS[i.status]}>{IDEA_STATUS[i.status].l}</Tag>
+            <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>
             {i.hidden && <Tag>Oculta para la Comunidad</Tag>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

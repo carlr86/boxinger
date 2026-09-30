@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { GROWTH, IDEA_STATUS, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS } from '@/lib/constants';
+import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
@@ -72,7 +72,9 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       // With Pro, ideas on the Roadmap leave the Backlog.
       l = l.filter((i) => i.status === 'aprobada' && !(api.pro && i.rm_col)).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
     } else {
-      l = l.filter((i) => (fSt === 'all' || i.status === fSt) && (!qq || (i.title + ' ' + i.description).toLowerCase().includes(qq)));
+      // 'aprobada' = approved and not shipped yet; 'lanzada' = shipped.
+      const stOf = (i: Idea) => (i.status === 'aprobada' && i.launched_at ? 'lanzada' : i.status);
+      l = l.filter((i) => (fSt === 'all' || stOf(i) === fSt) && (!qq || (i.title + ' ' + i.description).toLowerCase().includes(qq)));
       l.sort(sort === 'votes' ? (a, b) => b.votes - a.votes : sort === 'comments' ? (a, b) => b.comments - a.comments : (a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     }
     return l;
@@ -113,6 +115,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
               <select className="bx-select" value={fSt} onChange={(e) => setFSt(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
                 <option value="all">Estados</option>
                 {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
+                <option value="lanzada">{LAUNCHED.l}</option>
               </select>
             )}
           </div>
@@ -138,6 +141,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
             <select className="bx-select" value={fSt} onChange={(e) => setFSt(e.target.value)}>
               <option value="all">Todos los estados</option>
               {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
+                <option value="lanzada">{LAUNCHED.l}</option>
             </select>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
               <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Ordenar</span>
@@ -239,7 +243,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <OriginTag origin={i.origin} />
           <Tag>{api.catL(i.category_id)}</Tag>
-          <Tag tone={IDEA_STATUS[i.status]}>{IDEA_STATUS[i.status].l}</Tag>
+          <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>
           {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Oculta</span>}
           <span style={{ marginLeft: 4 }}><AuthorLine i={i} /></span>
         </div>
@@ -263,7 +267,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         <OriginTag origin={i.origin} />
         <Tag>{api.catL(i.category_id)}</Tag>
-        <Tag tone={IDEA_STATUS[i.status]}>{IDEA_STATUS[i.status].l}</Tag>
+        <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>
         {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Oculta</span>}
       </div>
       <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.title}</div>

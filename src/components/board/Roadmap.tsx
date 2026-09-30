@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { Dropdown } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Dots, Help, PageHead, ProLock, Seg, Tag } from '@/components/ui';
-import { DEV, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
-import { plural } from '@/lib/format';
+import { DEV, LAUNCH_COL, LAUNCH_RECENT_DAYS, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
+import { ddmmyyyy, plural } from '@/lib/format';
 import type { Idea } from '@/lib/types';
 import { rateOf, scoreOf, type BoardApi } from './shared';
 import { AuthorLine } from './IdeaGrid';
@@ -47,7 +47,34 @@ export function Roadmap({ api }: { api: BoardApi }) {
 
   const ideas = api.data.ideas;
   const inRm = ideas.filter((i) => i.status === 'aprobada' && i.rm_col && i.dev_status !== 'lanzada');
-  const backlog = ideas.filter((i) => i.status === 'aprobada' && !i.rm_col && !i.hidden).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
+  const [allLaunched, setAllLaunched] = useState(false);
+  const launched = ideas.filter((i) => i.status === 'aprobada' && i.launched_at && !i.hidden)
+    .sort((a, b) => +new Date(b.launched_at!) - +new Date(a.launched_at!));
+  const recentFrom = Date.now() - LAUNCH_RECENT_DAYS * 864e5;
+  const launchedShown = allLaunched ? launched : launched.filter((i) => +new Date(i.launched_at!) >= recentFrom);
+  const launchedMore = launched.length - launchedShown.length;
+  // Last column: shipped ideas (recent ones by default). Reached with "Marcar como lanzada", not by dragging.
+  const launchCol = (card: (i: Idea) => React.ReactNode) => (
+    <div style={{ flex: '1 0 260px', maxWidth: 360, minHeight: compact ? 200 : 320, background: LAUNCH_COL.bg, borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px 4px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 13, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid ' + LAUNCH_COL.cbd, background: LAUNCH_COL.cbg, color: LAUNCH_COL.cfg, fontWeight: 500 }}>{LAUNCH_COL.l}</span>
+          <Help label="Qué muestra">Las ideas que el equipo ya lanzó{allLaunched ? '' : `, de los últimos ${LAUNCH_RECENT_DAYS} días`}. Llegan acá al marcarlas como lanzadas.</Help>
+        </span>
+        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{launchedShown.length}</span>
+      </div>
+      {launchedShown.map(card)}
+      {launchedShown.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{launched.length ? `Nada lanzado en los últimos ${LAUNCH_RECENT_DAYS} días.` : 'Todavía no hay ideas lanzadas.'}</div>}
+      {(launchedMore > 0 || allLaunched) && launched.length > 0 && (
+        <a onClick={() => setAllLaunched(!allLaunched)} style={{ fontSize: 13, color: LAUNCH_COL.cfg, padding: '2px 4px', alignSelf: 'flex-start' }}>
+          {allLaunched ? `Ver solo los últimos ${LAUNCH_RECENT_DAYS} días` : `Ver todas (${launched.length})`}
+        </a>
+      )}
+    </div>
+  );
+  const launchDate = (i: Idea) => <span style={{ fontSize: 12, color: LAUNCH_COL.cfg }}>Lanzada el {ddmmyyyy(i.launched_at!)}</span>;
+
+  const backlog = ideas.filter((i) => i.status === 'aprobada' && !i.rm_col && !i.hidden && !i.launched_at).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
 
   async function move(id: number, col: string | null, before: number | null, ok?: string) {
     // optimistic: update the column locally, then reload
@@ -93,6 +120,15 @@ export function Roadmap({ api }: { api: BoardApi }) {
               </div>
             );
           })}
+          {launchCol((i) => (
+            <div key={i.id} className="bx-rm-card" onClick={() => api.openIdea(i.id)}
+              style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: compact ? '10px 12px' : '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: compact ? 6 : 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
+              <span style={{ fontSize: compact ? 14 : 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</span>
+              {!compact && <AuthorLine i={i} />}
+              {!compact && <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}><Tag>{api.catL(i.category_id)}</Tag>{launchDate(i)}</div>
+            </div>
+          ))}
         </div>
       </>
     );
@@ -145,7 +181,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
                     ...(idx < cards.length - 1 ? [{ key: 'down', label: 'Bajar', onClick: () => move(i.id, c.k, cards[idx + 2]?.id ?? null) }] : []),
                     { type: 'group' as const, key: 'to', label: 'Mover a', children: RM_COLS.filter((x) => x.k !== c.k).map((x) => ({ key: 'm' + x.k, label: colL(x.k), onClick: () => move(i.id, x.k, null, 'Movida a ' + colL(x.k)) })) },
                     { type: 'divider' as const },
-                    { key: 'launch', label: 'Marcar como lanzada', onClick: async () => { await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'lanzada' } }), 'Idea lanzada · la ves en Status'); flushEmails(); api.reload(); } },
+                    { key: 'launch', label: 'Marcar como lanzada', onClick: async () => { await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'lanzada' } }), 'Idea lanzada · pasó a la columna Lanzadas'); flushEmails(); api.reload(); } },
                     { type: 'divider' as const },
                     { key: 'back', label: 'Volver al Backlog', onClick: () => move(i.id, null, null, 'Volvió al Backlog') },
                   ]} />
@@ -177,6 +213,17 @@ export function Roadmap({ api }: { api: BoardApi }) {
             </div>
           );
         })}
+        {launchCol((i) => (
+          <RmCard key={i.id} api={api} i={i} compact={compact} launched dragging={false} overMe={false}
+            onDragStart={() => {}} onDragEnd={() => {}} onOver={() => {}} onDrop={() => {}}
+            menu={[
+              { key: 'open', label: 'Ver detalle', onClick: () => api.openIdea(i.id) },
+              { key: 'undo', label: 'Deshacer lanzamiento', onClick: async () => {
+                await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'en_curso' } }));
+                await move(i.id, 'ahora', null, 'Volvió a Ahora, en curso');
+              } },
+            ]} />
+        ))}
       </div>
     </>
   );
@@ -184,8 +231,8 @@ export function Roadmap({ api }: { api: BoardApi }) {
 
 type MenuItem = { key?: string; label?: string; onClick?: () => void; type?: 'group' | 'divider'; children?: MenuItem[] };
 
-function RmCard({ api, i, compact, dragging, overMe, onDragStart, onDragEnd, onOver, onDrop, menu }: {
-  api: BoardApi; i: Idea; compact: boolean; dragging: boolean; overMe: boolean; menu: MenuItem[];
+function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDragEnd, onOver, onDrop, menu }: {
+  api: BoardApi; i: Idea; compact: boolean; launched?: boolean; dragging: boolean; overMe: boolean; menu: MenuItem[];
   onDragStart: () => void; onDragEnd: () => void; onOver: () => void; onDrop: () => void;
 }) {
   const sc = scoreOf(i);
@@ -193,7 +240,7 @@ function RmCard({ api, i, compact, dragging, overMe, onDragStart, onDragEnd, onO
   const P = i.priority ? PRIO[i.priority] : NO_PRIO;
   const D = DEV[i.dev_status || 'por_empezar'];
   return (
-    <div draggable={api.canWrite}
+    <div draggable={api.canWrite && !launched}
       onDragStart={(e) => { try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i.id)); } catch {} onDragStart(); }}
       onDragEnd={onDragEnd}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); onOver(); }}
@@ -211,10 +258,11 @@ function RmCard({ api, i, compact, dragging, overMe, onDragStart, onDragEnd, onO
           </span>
         )}
       </div>
+      {launched && i.launched_at && <span style={{ fontSize: 12, color: '#4338ca' }}>Lanzada el {ddmmyyyy(i.launched_at)}</span>}
       {compact ? (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <Tag tone={P}>{P.l}</Tag>
-          <Tag tone={D}>{D.l}</Tag>
+          {!launched && <Tag tone={D}>{D.l}</Tag>}
           {sc != null && <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>Valor {String(sc).replace('.', ',')}</span>}
         </div>
       ) : <>
