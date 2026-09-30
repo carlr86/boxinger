@@ -83,8 +83,10 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   }, []);
 
   const push = (url: string) => window.history.pushState(null, '', url);
+  // The Community only gets the Roadmap (read only) when the board shares it; other team views stay closed.
+  const canSee = (v: View) => isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap);
   const setView = (v: View) => {
-    if (TEAM_VIEWS.includes(v) && !isTeam) return;
+    if (!canSee(v)) return;
     setViewState(v); setSelId(null);
     push(v === 'buzon' ? base : base + '/' + v);
     window.scrollTo({ top: 0 });
@@ -133,8 +135,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const tabs = [{ key: 'buzon', label: 'Buzón' }, { key: 'ranking', label: 'Ranking' }, { key: 'backlog', label: 'Backlog' }]
     .concat(isTeam ? [{ key: 'matriz', label: 'Matriz' }, { key: 'roadmap', label: 'Roadmap' }, { key: 'status', label: 'Status' }]
       : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: 'Roadmap' }] : []);
-  // The Community only gets the Roadmap (read only) when the board shares it.
-  const shownView = TEAM_VIEWS.includes(view) && !isTeam && !(view === 'roadmap' && b.guests_can_view_roadmap) ? 'buzon' : view;
+  const shownView = canSee(view) ? view : 'buzon';
 
   return (
     <>
