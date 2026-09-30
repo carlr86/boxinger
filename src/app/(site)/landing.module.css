@@ -91,7 +91,7 @@
 
 .footer{border-top:1px solid #f0f0f0}
 .footerIn{max-width:1120px;margin:0 auto;padding:28px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(0,0,0,0.45)}
-.footerLinks{display:flex;gap:20px}
+.footerLinks{display:flex;gap:8px 20px;flex-wrap:wrap}
 .footerLink{color:rgba(0,0,0,0.45)}
 
 /* Phones: the prototype's nav doesn't fit next to the CTAs. */

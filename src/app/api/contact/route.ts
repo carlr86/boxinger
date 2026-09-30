@@ -1,9 +1,8 @@
-import { createHash } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { deliverContact, type ContactRow } from '@/lib/email/contact';
+import { deliverContact, ipHash, tooManyMessages, type ContactRow } from '@/lib/email/contact';
 
 const Body = z.object({
   topic: z.enum(['general', 'enterprise', 'soporte']),
@@ -26,16 +25,8 @@ export async function POST(req: NextRequest) {
   if (b.website) return NextResponse.json({ ok: true }); // bot: pretend it worked
 
   const admin = supabaseAdmin();
-  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
-  const ipHash = createHash('sha256').update(ip + ':' + (process.env.CRON_SECRET || 'boxinger')).digest('hex').slice(0, 32);
-
-  // At most 5 messages per hour from the same connection, and 3 per hour from the same email.
-  const hourAgo = new Date(Date.now() - 3600_000).toISOString();
-  const [byIp, byEmail] = await Promise.all([
-    admin.from('contact_messages').select('id', { count: 'exact', head: true }).eq('ip_hash', ipHash).gte('created_at', hourAgo),
-    admin.from('contact_messages').select('id', { count: 'exact', head: true }).eq('email', b.email).gte('created_at', hourAgo),
-  ]);
-  if ((byIp.count || 0) >= 5 || (byEmail.count || 0) >= 3) return err('Recibimos varios mensajes seguidos. Probá de nuevo en un rato.', 429);
+  const ip = ipHash(req.headers);
+  if (await tooManyMessages(ip, b.email)) return err('Recibimos varios mensajes seguidos. Probá de nuevo en un rato.', 429);
 
   // Signed-in senders: attach their user and account for context.
   let userId: string | null = null, account: string | null = null;
@@ -51,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   const { data: row, error } = await admin.from('contact_messages').insert({
     topic: b.topic, name: b.name, email: b.email, company: b.company || null, team_size: b.team_size || null,
-    message: b.message, user_id: userId, ip_hash: ipHash,
+    message: b.message, user_id: userId, ip_hash: ip,
   }).select('*').single();
   if (error || !row) {
     console.error('contact insert', error);

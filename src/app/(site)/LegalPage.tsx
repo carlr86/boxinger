@@ -16,6 +16,14 @@ export function LegalPage({ title, updated, children }: { title: string; updated
         <p style={{ margin: '0 0 32px', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>Última actualización: {updated}</p>
         {children}
       </main>
+      <footer style={{ borderTop: '1px solid #f0f0f0' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13 }}>
+          <Link href="/terminos" style={{ color: 'rgba(0,0,0,0.45)' }}>Términos</Link>
+          <Link href="/privacidad" style={{ color: 'rgba(0,0,0,0.45)' }}>Privacidad</Link>
+          <Link href="/arrepentimiento" style={{ color: 'rgba(0,0,0,0.45)' }}>Botón de arrepentimiento</Link>
+          <Link href="/#contacto" style={{ color: 'rgba(0,0,0,0.45)' }}>Contacto</Link>
+        </div>
+      </footer>
     </div>
   );
 }

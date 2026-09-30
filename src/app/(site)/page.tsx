@@ -223,6 +223,7 @@ export default async function Landing() {
             <Link href="/terminos" className={s.footerLink}>Términos</Link>
             <Link href="/privacidad" className={s.footerLink}>Privacidad</Link>
             <a href="#contacto" className={s.footerLink}>Contacto</a>
+            <Link href="/arrepentimiento" className={s.footerLink}>Botón de arrepentimiento</Link>
           </div>
         </div>
       </footer>

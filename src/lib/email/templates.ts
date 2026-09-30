@@ -27,6 +27,7 @@ ${cta ? `<p style="margin:24px 0 8px"><a href="${cta.url}" style="display:inline
 </table></td></tr></table></body></html>`;
 }
 
+export const withdrawalCode = (id: unknown) => 'ARR-' + s(id).padStart(6, '0');
 const quote = (t: unknown) => `<blockquote style="margin:12px 0;padding:10px 14px;background:#fafafa;border-left:3px solid #a9cbc2;border-radius:4px;color:rgba(0,0,0,0.75)">${esc(t)}</blockquote>`;
 
 export function render(template: string, p: P): { subject: string; html: string } {
@@ -143,6 +144,17 @@ export function render(template: string, p: P): { subject: string; html: string 
           { label: 'Abrir el panel', url: `${SITE_URL}/app/admin` }, 'Notificación del panel de Admin de plataforma.'),
       };
     case 'contact': {
+      if (s(p.topic) === 'arrepentimiento') {
+        const code = withdrawalCode(p.id);
+        return {
+          subject: `[Arrepentimiento] ${code} · ${s(p.name)}`,
+          html: layout(`Solicitud de arrepentimiento ${code}`,
+            `<p style="margin:0 0 12px"><b>${esc(p.name)}</b> (${esc(p.email)}) pidió revocar la contratación de Pro con el botón de arrepentimiento. Ya recibió el código <b>${code}</b> por email.</p>` +
+            `<p style="margin:0 0 12px">Revisá que esté dentro de los 10 días corridos desde el pago, cancelá la suscripción (Panel de Admin › la cuenta › plan Free) y hacé el reembolso total desde PayPal o Mercado Pago. Después respondé este email para confirmarle.</p>` +
+            (p.company ? `<p style="margin:0 0 12px">Email de la cuenta de Boxinger: <b>${esc(p.company)}</b></p>` : '') + quote(p.message),
+            undefined, `Solicitud #${s(p.id)} del botón de arrepentimiento de boxinger.com.`),
+        };
+      }
       const topic = CONTACT_TOPICS[s(p.topic) as ContactTopic] || 'Consulta';
       const row = (k: string, v: unknown) => (v ? `<tr><td style="padding:4px 16px 4px 0;color:rgba(0,0,0,0.45);white-space:nowrap;vertical-align:top">${k}</td><td style="padding:4px 0">${esc(v)}</td></tr>` : '');
       return {
@@ -150,6 +162,15 @@ export function render(template: string, p: P): { subject: string; html: string 
         html: layout(`Nueva consulta: ${esc(topic)}`,
           `<table role="presentation" cellpadding="0" cellspacing="0" style="font-size:14px">${row('Nombre', p.name)}${row('Email', p.email)}${row('Empresa', p.company)}${row('Tamaño del equipo', p.team_size)}${row('Cuenta', p.account)}</table>${quote(p.message)}`,
           undefined, `Mensaje #${s(p.id)} del formulario de contacto de boxinger.com. Respondé este email para contestarle a ${esc(p.email)}.`),
+      };
+    }
+    case 'arrepentimiento_ack': {
+      const code = withdrawalCode(p.id);
+      return {
+        subject: `Recibimos tu solicitud de arrepentimiento (${code})`,
+        html: layout('Recibimos tu solicitud de arrepentimiento',
+          `Hola ${esc(p.name)}, recibimos tu pedido para revocar la contratación del plan Pro de Boxinger.<br><br>Tu código de solicitud es <b>${code}</b>. Guardalo para cualquier consulta.<br><br>Vamos a cancelar la suscripción y hacer el reembolso total por el mismo medio de pago. Te escribimos cuando esté hecho.`,
+          undefined, 'Recibís este email porque usaste el botón de arrepentimiento de boxinger.com. Si no fuiste vos, respondé este email.'),
       };
     }
     default:
