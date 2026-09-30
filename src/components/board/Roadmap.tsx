@@ -42,6 +42,38 @@ export function Roadmap({ api }: { api: BoardApi }) {
     api.reload();
   }
 
+  if (!api.isTeam) {
+    return (
+      <>
+        <PageHead title="Roadmap" sub="Las ideas aprobadas que el equipo planea desarrollar, y en qué etapa está cada una." />
+        <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
+          {RM_COLS.map((c) => {
+            const cards = inRm.filter((i) => i.rm_col === c.k).sort((a, b) => (a.rm_order ?? 0) - (b.rm_order ?? 0));
+            return (
+              <div key={c.k} style={{ flex: '1 0 260px', maxWidth: 360, minHeight: 320, background: c.bg, borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px 4px' }}>
+                  <span style={{ fontSize: 13, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid ' + c.cbd, background: c.cbg, color: c.cfg, fontWeight: 500 }}>{colL(c.k)}</span>
+                  <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{cards.length}</span>
+                </div>
+                {cards.map((i) => {
+                  const D = DEV[i.dev_status || 'por_empezar'];
+                  return (
+                    <div key={i.id} style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <a onClick={() => api.openIdea(i.id)} className="bx-row-link" style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</a>
+                      <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Tag>{api.catL(i.category_id)}</Tag><Tag tone={D}>{D.l}</Tag></div>
+                    </div>
+                  );
+                })}
+                {cards.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Sin ideas por ahora.</div>}
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  }
+
   if (!api.pro) {
     return (
       <>

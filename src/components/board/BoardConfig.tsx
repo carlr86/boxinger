@@ -95,6 +95,24 @@ function General({ api }: { api: BoardApi }) {
           <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
         )}
       </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          Qué ven los invitados
+          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.</span>
+        </div>
+        {b.visibility === 'private' ? (
+          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
+        ) : (
+          <ToggleRow label={<span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Roadmap (solo lectura) <ProPill /></span>}
+            desc="Ven las columnas y en qué etapa está cada idea. No ven prioridad, impacto, esfuerzo ni puntaje, y no pueden mover nada."
+            on={b.roadmap_setting && api.pro}
+            onChange={async (v) => {
+              if (v && !api.pro) return api.goPro();
+              await api.run(rpc('set_board_roadmap_public', { p_board: b.id, p_on: v }), v ? 'Los invitados ya ven el Roadmap' : 'El Roadmap vuelve a ser solo del Equipo');
+              api.reload();
+            }} />
+        )}
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Logo
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <label style={{ width: 104, height: 104, border: '1px dashed #d9d9d9', borderRadius: 8, background: '#fafafa', display: 'grid', placeItems: 'center', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.65)', cursor: 'pointer', overflow: 'hidden' }}>

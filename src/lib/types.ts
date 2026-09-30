@@ -67,6 +67,8 @@ export interface BoardInfo {
   invite_code: string | null; guests: number; version: string;
   created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean;
   allowed_domains: string[] | null; // only for whoever can manage the board
+  guests_can_view_roadmap: boolean; // effective (setting on, Pro, not private)
+  roadmap_setting: boolean; // the raw board setting
 }
 export interface BoardData {
   forbidden?: boolean;

@@ -131,8 +131,10 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   };
 
   const tabs = [{ key: 'buzon', label: 'Buzón' }, { key: 'ranking', label: 'Ranking' }, { key: 'backlog', label: 'Backlog' }]
-    .concat(isTeam ? [{ key: 'matriz', label: 'Matriz' }, { key: 'roadmap', label: 'Roadmap' }, { key: 'status', label: 'Status' }] : []);
-  const shownView = TEAM_VIEWS.includes(view) && !isTeam ? 'buzon' : view;
+    .concat(isTeam ? [{ key: 'matriz', label: 'Matriz' }, { key: 'roadmap', label: 'Roadmap' }, { key: 'status', label: 'Status' }]
+      : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: 'Roadmap' }] : []);
+  // The Community only gets the Roadmap (read only) when the board shares it.
+  const shownView = TEAM_VIEWS.includes(view) && !isTeam && !(view === 'roadmap' && b.guests_can_view_roadmap) ? 'buzon' : view;
 
   return (
     <>
