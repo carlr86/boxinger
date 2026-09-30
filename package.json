@@ -19,6 +19,7 @@
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "antd": "^6.6.5",
+    "canvas-confetti": "^1.9.4",
     "dayjs": "^1.11.23",
     "next": "^16.3.6",
     "nodemailer": "^10.0.12",
@@ -29,6 +30,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^26.6.3",
     "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.3.0",

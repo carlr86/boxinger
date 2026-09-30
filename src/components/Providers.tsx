@@ -4,6 +4,7 @@ import { App, ConfigProvider } from 'antd';
 import esES from 'antd/locale/es_ES';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import type { MyContext } from '@/lib/types';
+import { WelcomeConfetti } from '@/components/WelcomeConfetti';
 
 const theme = {
   token: {
@@ -44,7 +45,7 @@ export function Providers({ initialCtx, children }: { initialCtx: MyContext | nu
   return (
     <ConfigProvider locale={esES} theme={theme}>
       <App message={{ maxCount: 2, top: 72 }}>
-        <SessionContext.Provider value={{ ctx, refresh, setCtx }}>{children}</SessionContext.Provider>
+        <SessionContext.Provider value={{ ctx, refresh, setCtx }}>{children}<WelcomeConfetti /></SessionContext.Provider>
       </App>
     </ConfigProvider>
   );
