@@ -62,6 +62,33 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           {api.isTeam ? 'En este buzón el Admin no habilitó la carga de ideas para los miembros. Podés votar, comentar y gestionar las ideas.' : 'En este buzón solo el Equipo carga ideas. Podés votar y comentar las ideas publicadas.'}
         </div>
       )}
+      {isMobile ? (
+        // Phones: one column, full-width controls, everything left-aligned.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en título y descripción" style={{ width: '100%', height: 36 }} />}
+          <Seg options={[['all', 'Todas'], ['equipo', 'Equipo'], ['comunidad', 'Comunidad']]} value={fOri} onChange={setFOri} style={{ alignSelf: 'flex-start' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: backlog ? '1fr' : '1fr 1fr', gap: 10 }}>
+            <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
+              <option value="all">Categorías</option>
+              {api.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            {!backlog && (
+              <select className="bx-select" value={fSt} onChange={(e) => setFSt(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
+                <option value="all">Estados</option>
+                {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
+              </select>
+            )}
+          </div>
+          {!backlog && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>
+              Ordenar
+              <select className="bx-select" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} style={{ height: 36 }}>
+                <option value="recent">Más recientes</option><option value="votes">Más votadas</option><option value="comments">Más comentadas</option>
+              </select>
+            </label>
+          )}
+        </div>
+      ) : (
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en título y descripción" style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />}
         <Seg options={[['all', 'Todas'], ['equipo', 'Equipo'], ['comunidad', 'Comunidad']]} value={fOri} onChange={setFOri} style={{ alignSelf: 'auto' }} />
@@ -84,6 +111,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           </>
         )}
       </div>
+      )}
 
       {list.length === 0 && (
         <Empty

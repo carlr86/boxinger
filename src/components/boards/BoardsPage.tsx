@@ -34,7 +34,7 @@ export function BoardsPage() {
   const sp = useSearchParams();
   const toast = useToast();
   const { ctx, refresh } = useSession();
-  const { cols } = useGridCols();
+  const { cols, isMobile } = useGridCols();
   const [q, setQ] = useState('');
   const [f, setF] = useState<'all' | 'fav'>('all');
   const [modal, setModal] = useState<ModalState>(null);
@@ -178,12 +178,16 @@ export function BoardsPage() {
                   </div>
                   <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t.pro ? plural(people.length, 'persona', 'personas') : 'Solo vos'}</span>
                   {t.locked && <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Requiere Pro</Tag>}
-                  <div style={{ flex: 1 }} />
-                  {t.is_admin && (
-                    <button type="button" className="bx-btn" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTeamId(t.id)}><Users />Gestionar equipo</button>
-                  )}
-                  {t.can_create_boards && (
-                    <button type="button" className="bx-btn-primary" onClick={() => (t.locked ? toast.info('Este equipo requiere el plan Pro') : openCreate(t.id))}>+ Crear Buzón</button>
+                  {(t.is_admin || t.can_create_boards) && (
+                    // Phones: the actions get their own row under the team, so a long member list never pushes them around.
+                    <div style={isMobile ? { flexBasis: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' } : { marginLeft: 'auto', display: 'flex', gap: 12 }}>
+                      {t.is_admin && (
+                        <button type="button" className="bx-btn" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTeamId(t.id)}><Users />Gestionar equipo</button>
+                      )}
+                      {t.can_create_boards && (
+                        <button type="button" className="bx-btn-primary" onClick={() => (t.locked ? toast.info('Este equipo requiere el plan Pro') : openCreate(t.id))}>+ Crear Buzón</button>
+                      )}
+                    </div>
                   )}
                 </div>
                 {shown.length === 0 && (
