@@ -17,6 +17,8 @@ html{scroll-behavior:smooth}
 .bx-icon-btn{flex:none;width:28px;height:28px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;cursor:pointer;display:grid;place-items:center;color:rgba(0,0,0,0.65)}
 .bx-icon-btn:hover{border-color:#059669;color:#059669}
 .bx-card{position:relative;background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:box-shadow .2s}
+.bx-rm-card{transition:border-color .2s}
+.bx-rm-card:hover{border-color:#bfbfbf!important}
 .bx-card:hover{box-shadow:0 6px 16px 0 rgba(0,0,0,0.08),0 3px 6px -4px rgba(0,0,0,0.12)}
 .bx-item{padding:8px 12px;border-radius:4px;font-size:14px;cursor:pointer}
 .bx-item:hover{background:#f5f5f5}

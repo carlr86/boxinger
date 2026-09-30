@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Drawer, Popconfirm, Tooltip } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
-import { Avatar, Bar, Choice, Dots, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
+import { Avatar, Bar, Choice, Dots, Help, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE, VOTE_KEYS } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
@@ -117,7 +117,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
           <div style={{ display: 'flex', gap: 32 }}>
             <Big l="Votos" v={i.votes} />
             <Big l="Comentarios" v={commentsCount} />
-            {team && <Big l="Puntaje" v={i.score ?? 0} color="#059669" />}
+            {team && <Big l="Puntaje" v={i.score ?? 0} color="#059669" help={<>Suma de los votos: <b>Importante</b> 2 puntos, <b>Interesante</b> 1 y <b>No importante</b> 0. Ordena el Ranking; si hay empate, gana la de más votos Importante. Solo lo ve el Equipo.</>} />}
           </div>
           {team && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#fafafa', borderRadius: 8, padding: '14px 16px' }}>
@@ -393,10 +393,10 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
   );
 }
 
-function Big({ l, v, color }: { l: string; v: number; color?: string }) {
+function Big({ l, v, color, help }: { l: string; v: number; color?: string; help?: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{l}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{l}{help && <Help>{help}</Help>}</span>
       <span style={{ fontSize: 24, fontWeight: 600, color }}>{v}</span>
     </div>
   );

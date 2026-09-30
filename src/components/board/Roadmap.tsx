@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dropdown } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
-import { Dots, PageHead, ProLock, Tag } from '@/components/ui';
+import { Dots, Help, PageHead, ProLock, Seg, Tag } from '@/components/ui';
 import { DEV, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
 import { plural } from '@/lib/format';
 import type { Idea } from '@/lib/types';
@@ -14,7 +14,28 @@ const More = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden>
 const Yes = () => (<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>);
 const No = () => (<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>);
 
+type Density = 'expanded' | 'compact';
+const DENSITY_KEY = 'bx-roadmap-density';
+
+/** Expanded (default) or compact cards; remembered per browser. */
+function useDensity(): [Density, (d: Density) => void] {
+  const [d, setD] = useState<Density>('expanded');
+  useEffect(() => { try { if (localStorage.getItem(DENSITY_KEY) === 'compact') setD('compact'); } catch {} }, []);
+  const set = (v: Density) => { setD(v); try { localStorage.setItem(DENSITY_KEY, v); } catch {} };
+  return [d, set];
+}
+
+const VALUE_HELP = (
+  <>
+    <b>Valor = Impacto × Puntaje de votos ÷ Esfuerzo</b>. Si la idea no tiene votos que sumen, el puntaje cuenta como 1.
+    Cuanto más alto, más valor por el esfuerzo. Ejemplo: impacto 4, esfuerzo 2 y 8 puntos de votos = 16. Necesita impacto y esfuerzo calificados.
+  </>
+);
+
 export function Roadmap({ api }: { api: BoardApi }) {
+  const [density, setDensity] = useDensity();
+  const compact = density === 'compact';
+  const densityToggle = <Seg options={[['expanded', 'Expandidas'], ['compact', 'Compactas']]} value={density} onChange={(v) => setDensity(v as Density)} style={{ alignSelf: 'auto' }} />;
   const [drag, setDrag] = useState<number | null>(null);
   const [over, setOver] = useState<{ col: string; before: number | null } | null>(null);
   const [pick, setPick] = useState<string | null>(null);
@@ -46,7 +67,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
   if (!api.isTeam) {
     return (
       <>
-        <PageHead title="Roadmap" sub="Las ideas aprobadas que el equipo planea desarrollar, y en qué etapa está cada una." />
+        <PageHead title="Roadmap" sub="Las ideas aprobadas que el equipo planea desarrollar, y en qué etapa está cada una." right={densityToggle} />
         <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
           {RM_COLS.map((c) => {
             const cards = inRm.filter((i) => i.rm_col === c.k).sort((a, b) => (a.rm_order ?? 0) - (b.rm_order ?? 0));
@@ -59,10 +80,11 @@ export function Roadmap({ api }: { api: BoardApi }) {
                 {cards.map((i) => {
                   const D = DEV[i.dev_status || 'por_empezar'];
                   return (
-                    <div key={i.id} style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                      <a onClick={() => api.openIdea(i.id)} className="bx-row-link" style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</a>
-                      <AuthorLine i={i} />
-                      <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>
+                    <div key={i.id} className="bx-rm-card" onClick={() => api.openIdea(i.id)}
+                      style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: compact ? '10px 12px' : '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: compact ? 6 : 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
+                      <span style={{ fontSize: compact ? 14 : 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</span>
+                      {!compact && <AuthorLine i={i} />}
+                      {!compact && <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>}
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Tag>{api.catL(i.category_id)}</Tag><Tag tone={D}>{D.l}</Tag></div>
                     </div>
                   );
@@ -90,7 +112,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
   return (
     <>
       <PageHead title="Roadmap" sub="Sumá ideas desde el Backlog y ordenalas por prioridad. Arrastrá las tarjetas para moverlas o reordenarlas."
-        right={<span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(backlog.length, 'idea en el Backlog', 'ideas en el Backlog')}</span>} />
+        right={<div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}><span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(backlog.length, 'idea en el Backlog', 'ideas en el Backlog')}</span>{densityToggle}</div>} />
       <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
         {RM_COLS.map((c) => {
           const cards = inRm.filter((i) => i.rm_col === c.k).sort((a, b) => (a.rm_order ?? 0) - (b.rm_order ?? 0));
@@ -113,7 +135,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{cards.length}</span>
               </div>
               {cards.map((i, idx) => (
-                <RmCard key={i.id} api={api} i={i} dragging={drag === i.id} overMe={!!drag && over?.before === i.id && drag !== i.id}
+                <RmCard key={i.id} api={api} i={i} compact={compact} dragging={drag === i.id} overMe={!!drag && over?.before === i.id && drag !== i.id}
                   onDragStart={() => setDrag(i.id)} onDragEnd={() => { setDrag(null); setOver(null); }}
                   onOver={() => { if (over?.before !== i.id) setOver({ col: c.k, before: i.id }); }}
                   onDrop={() => { if (drag && drag !== i.id) move(drag, c.k, i.id); else { setDrag(null); setOver(null); } }}
@@ -162,8 +184,8 @@ export function Roadmap({ api }: { api: BoardApi }) {
 
 type MenuItem = { key?: string; label?: string; onClick?: () => void; type?: 'group' | 'divider'; children?: MenuItem[] };
 
-function RmCard({ api, i, dragging, overMe, onDragStart, onDragEnd, onOver, onDrop, menu }: {
-  api: BoardApi; i: Idea; dragging: boolean; overMe: boolean; menu: MenuItem[];
+function RmCard({ api, i, compact, dragging, overMe, onDragStart, onDragEnd, onOver, onDrop, menu }: {
+  api: BoardApi; i: Idea; compact: boolean; dragging: boolean; overMe: boolean; menu: MenuItem[];
   onDragStart: () => void; onDragEnd: () => void; onOver: () => void; onDrop: () => void;
 }) {
   const sc = scoreOf(i);
@@ -176,15 +198,26 @@ function RmCard({ api, i, dragging, overMe, onDragStart, onDragEnd, onOver, onDr
       onDragEnd={onDragEnd}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); onOver(); }}
       onDrop={(e) => { e.preventDefault(); e.stopPropagation(); onDrop(); }}
-      style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 10, cursor: api.canWrite ? 'grab' : 'default', opacity: dragging ? 0.4 : 1, boxShadow: overMe ? '0 -3px 0 0 #7aa7f5' : '0 1px 2px rgba(0,0,0,0.04)' }}>
+      onClick={() => api.openIdea(i.id)}
+      className="bx-rm-card"
+      style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: compact ? '10px 12px' : '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: compact ? 6 : 10, cursor: 'pointer', opacity: dragging ? 0.4 : 1, boxShadow: overMe ? '0 -3px 0 0 #7aa7f5' : '0 1px 2px rgba(0,0,0,0.04)' }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-        <a onClick={() => api.openIdea(i.id)} className="bx-row-link" style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</a>
+        <span style={{ flex: 1, minWidth: 0, fontSize: compact ? 14 : 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</span>
         {api.canWrite && (
-          <Dropdown trigger={['click']} menu={{ items: menu as never }} placement="bottomRight">
-            <button type="button" title="Acciones" className="bx-icon-btn" style={{ width: 26, height: 26 }}><More /></button>
-          </Dropdown>
+          <span onClick={(e) => e.stopPropagation()}>
+            <Dropdown trigger={['click']} menu={{ items: menu as never }} placement="bottomRight">
+              <button type="button" title="Acciones" className="bx-icon-btn" style={{ width: 26, height: 26 }}><More /></button>
+            </Dropdown>
+          </span>
         )}
       </div>
+      {compact ? (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Tag tone={P}>{P.l}</Tag>
+          <Tag tone={D}>{D.l}</Tag>
+          {sc != null && <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>Valor {String(sc).replace('.', ',')}</span>}
+        </div>
+      ) : <>
       <AuthorLine i={i} />
       <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>
       <div style={{ display: 'grid', gridTemplateColumns: '76px 1fr', rowGap: 6, alignItems: 'center', fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
@@ -196,7 +229,7 @@ function RmCard({ api, i, dragging, overMe, onDragStart, onDragEnd, onOver, onDr
             <span>Esfuerzo</span><Dots v={eff} k="effort" />
           </>
         )}
-        <span>Puntaje</span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? 'Sin calificar' : String(sc).replace('.', ',')}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Valor <Help>{VALUE_HELP}</Help></span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? 'Sin calificar' : String(sc).replace('.', ',')}</span>
         <span>Desarrollo</span><span><Tag tone={D}>{D.l}</Tag></span>
         {([['chk_design', 'Diseño'], ['chk_prd', 'PRD / SPEC']] as const).map(([k, l]) => (
           <span key={k} style={{ display: 'contents' }}>
@@ -205,6 +238,7 @@ function RmCard({ api, i, dragging, overMe, onDragStart, onDragEnd, onOver, onDr
           </span>
         ))}
       </div>
+      </>}
     </div>
   );
 }

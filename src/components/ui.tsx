@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { Tooltip } from 'antd';
 import { ini, avatarColor } from '@/lib/format';
 import { RATE_C, type Tone, TEXT3, TEXT2, BORDER } from '@/lib/constants';
 
@@ -249,5 +250,15 @@ export function ToggleRow({ label, desc, on, onChange, disabled }: { label: Reac
       </div>
       <Toggle on={on} onChange={onChange} disabled={disabled} />
     </div>
+  );
+}
+
+/** Small "?" that explains a number or setting (hover on desktop, tap on phones). */
+export function Help({ children, label = 'Cómo se calcula' }: { children: React.ReactNode; label?: string }) {
+  return (
+    <Tooltip title={<div style={{ fontSize: 13, lineHeight: 1.5 }}>{children}</div>} trigger={['hover', 'click']} styles={{ root: { maxWidth: 300 } }}>
+      <span role="button" tabIndex={0} aria-label={label} onClick={(e) => e.stopPropagation()}
+        style={{ display: 'inline-grid', placeItems: 'center', width: 16, height: 16, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.25)', color: 'rgba(0,0,0,0.45)', fontSize: 11, fontWeight: 600, lineHeight: 1, cursor: 'help', flex: 'none', verticalAlign: 'middle' }}>?</span>
+    </Tooltip>
   );
 }
