@@ -8,6 +8,37 @@ import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
 
 const PAGE = 20;
+const LAYOUT_KEY = 'bx-ideas-layout';
+type Layout = 'cards' | 'list';
+
+/** Cards (default) or list, remembered per browser. */
+function useLayout(): [Layout, (l: Layout) => void] {
+  const [l, setL] = useState<Layout>('cards');
+  useEffect(() => { try { if (localStorage.getItem(LAYOUT_KEY) === 'list') setL('list'); } catch {} }, []);
+  const set = (v: Layout) => { setL(v); try { localStorage.setItem(LAYOUT_KEY, v); } catch {} };
+  return [l, set];
+}
+
+const GridIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" /><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" /><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" /><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.4" /></svg>);
+const ListIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>);
+
+function LayoutToggle({ value, onChange }: { value: Layout; onChange: (l: Layout) => void }) {
+  const btn = (k: Layout, icon: React.ReactNode, label: string) => (
+    <Tooltip title={label}>
+      <button type="button" aria-label={label} aria-pressed={value === k} onClick={() => onChange(k)}
+        style={{ width: 32, height: 30, border: 0, borderRadius: 4, display: 'grid', placeItems: 'center', cursor: 'pointer',
+          background: value === k ? '#fff' : 'transparent', color: value === k ? '#059669' : 'rgba(0,0,0,0.45)', boxShadow: value === k ? '0 1px 2px rgba(0,0,0,0.12)' : 'none' }}>
+        {icon}
+      </button>
+    </Tooltip>
+  );
+  return (
+    <div style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 6, background: 'rgba(0,0,0,0.05)' }}>
+      {btn('cards', <GridIcon />, 'Ver como tarjetas')}
+      {btn('list', <ListIcon />, 'Ver como lista')}
+    </div>
+  );
+}
 
 export function useGridCols() {
   const [w, setW] = useState(1200);
@@ -48,6 +79,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fSt, sort]);
 
   useEffect(() => setLimit(PAGE), [q, fCat, fOri, fSt, sort, backlog]);
+  const [layout, setLayout] = useLayout();
   const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fSt !== 'all';
 
   return (
@@ -55,7 +87,12 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       <PageHead
         title={backlog ? 'Backlog' : 'Buzón de Ideas'}
         sub={backlog ? 'Ideas aprobadas por el Equipo, candidatas para el roadmap.' : 'Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.'}
-        right={!backlog && !isMobile && api.me && api.canCreate ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ Nueva idea</button> : undefined}
+        right={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <LayoutToggle value={layout} onChange={setLayout} />
+            {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ Nueva idea</button>}
+          </div>
+        }
       />
       {!backlog && api.me && api.canWrite && !api.canCreate && (
         <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
@@ -119,9 +156,17 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           cta={!backlog && !filtersOn && api.canCreate ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>Cargá la primera idea</button> : undefined}
         />
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, gap: 16 }}>
-        {list.slice(0, limit).map((i) => <IdeaCard key={i.id} api={api} i={i} backlog={backlog} />)}
-      </div>
+      {layout === 'list' ? (
+        list.length > 0 && (
+          <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, overflow: 'hidden' }}>
+            {list.slice(0, limit).map((i, k) => <IdeaRow key={i.id} api={api} i={i} backlog={backlog} first={k === 0} />)}
+          </div>
+        )
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, gap: 16 }}>
+          {list.slice(0, limit).map((i) => <IdeaCard key={i.id} api={api} i={i} backlog={backlog} />)}
+        </div>
+      )}
       {list.length > limit && (
         <button type="button" className="bx-btn" style={{ alignSelf: 'center' }} onClick={() => setLimit(limit + PAGE)}>
           Ver más ideas ({list.length - limit})
@@ -145,23 +190,73 @@ export function AuthorLine({ i, size = 18 }: { i: Pick<Idea, 'author_id' | 'auth
   );
 }
 
-function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boolean }) {
+/** The "Votar" button with its vote menu (or the disabled state that explains why you can't vote). */
+function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
   const [pop, setPop] = useState(false);
   const vm = voteMode(api, i);
   const mine = vm === 'can' ? i.my_vote : null;
   const disabled = vm === 'closed' || vm === 'own';
-  const short = i.description.length > 140 ? i.description.slice(0, 140).trimEnd() : i.description;
-  const showRate = api.isTeam && api.pro && (i.status === 'aprobada' || i.status === 'rechazada');
   const label = vm === 'closed' ? 'Votación cerrada' : vm === 'own' ? 'Tu idea' : mine ? 'Votaste: ' + VOTE[mine] : 'Votar';
-
   const voteBtn = (
     <button type="button" disabled={disabled}
       onClick={(e) => { e.stopPropagation(); if (vm === 'login') api.goLogin(true); }}
-      style={{ marginLeft: 'auto', height: 28, padding: '0 12px', borderRadius: 6, fontSize: 13, cursor: disabled ? 'not-allowed' : 'pointer',
+      style={{ marginLeft: 'auto', height: 28, padding: '0 12px', borderRadius: 6, fontSize: 13, cursor: disabled ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
         border: '1px solid ' + (disabled ? '#d9d9d9' : '#059669'), background: disabled ? 'rgba(0,0,0,0.04)' : mine ? '#d1fae5' : '#fff', color: disabled ? 'rgba(0,0,0,0.25)' : '#059669' }}>
       {label}
     </button>
   );
+  if (vm !== 'can') return voteBtn;
+  return (
+    <Dropdown open={pop} onOpenChange={setPop} trigger={['click']} placement="topRight"
+      popupRender={() => (
+        <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, padding: 4, minWidth: 200 }}>
+          {VOTE_KEYS.map((k) => (
+            <div key={k} className="bx-item" onClick={() => { setPop(false); api.vote(i.id, k); }}
+              style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: mine === k ? '#d1fae5' : undefined, color: mine === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>
+              {VOTE[k]}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? 'Tu voto' : ''}</span>
+            </div>
+          ))}
+          {mine && (
+            <>
+              <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+              <div className="bx-item" style={{ color: 'rgba(0,0,0,0.45)' }} onClick={() => { setPop(false); api.vote(i.id, null); }}>Quitar mi voto</div>
+            </>
+          )}
+        </div>
+      )}>
+      <span onClick={(e) => e.stopPropagation()} style={{ marginLeft: 'auto' }}>{voteBtn}</span>
+    </Dropdown>
+  );
+}
+
+/** One idea per row: easier to scan when a board has many ideas. */
+function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?: boolean; first: boolean }) {
+  return (
+    <div className="bx-idea-row" onClick={() => api.openIdea(i.id)}
+      style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', padding: '14px 20px', borderTop: first ? undefined : '1px solid #f0f0f0', cursor: 'pointer', opacity: i.hidden ? 0.55 : 1 }}>
+      <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{i.title}</span>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <OriginTag origin={i.origin} />
+          <Tag>{api.catL(i.category_id)}</Tag>
+          <Tag tone={IDEA_STATUS[i.status]}>{IDEA_STATUS[i.status].l}</Tag>
+          {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Oculta</span>}
+          <span style={{ marginLeft: 4 }}><AuthorLine i={i} /></span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, color: 'rgba(0,0,0,0.45)', flex: 'none', marginLeft: 'auto' }}>
+        <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
+        <span title={exact(i.created_at)} style={{ whiteSpace: 'nowrap' }}>{backlog && i.approved_at ? 'Aprobada el ' + dshort(i.approved_at) : rel(i.created_at)}</span>
+        {!backlog && <span style={{ minWidth: 0 }}><VoteControl api={api} i={i} /></span>}
+      </div>
+    </div>
+  );
+}
+
+function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boolean }) {
+  const short = i.description.length > 140 ? i.description.slice(0, 140).trimEnd() : i.description;
+  const showRate = api.isTeam && api.pro && (i.status === 'aprobada' || i.status === 'rechazada');
 
   return (
     <div className="bx-card" onClick={() => api.openIdea(i.id)} style={{ opacity: i.hidden ? 0.55 : 1 }}>
@@ -199,27 +294,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
         <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
         <span title={exact(i.created_at)}>{rel(i.created_at)}</span>
-        {!backlog && (vm === 'can' ? (
-          <Dropdown open={pop} onOpenChange={setPop} trigger={['click']} placement="topRight"
-            popupRender={() => (
-              <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, padding: 4, minWidth: 200 }}>
-                {VOTE_KEYS.map((k) => (
-                  <div key={k} className="bx-item" onClick={() => { setPop(false); api.vote(i.id, k); }}
-                    style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: mine === k ? '#d1fae5' : undefined, color: mine === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>
-                    {VOTE[k]}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? 'Tu voto' : ''}</span>
-                  </div>
-                ))}
-                {mine && (
-                  <>
-                    <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
-                    <div className="bx-item" style={{ color: 'rgba(0,0,0,0.45)' }} onClick={() => { setPop(false); api.vote(i.id, null); }}>Quitar mi voto</div>
-                  </>
-                )}
-              </div>
-            )}>
-            <span onClick={(e) => e.stopPropagation()} style={{ marginLeft: 'auto' }}>{voteBtn}</span>
-          </Dropdown>
-        ) : voteBtn)}
+        {!backlog && <VoteControl api={api} i={i} />}
       </div>
     </div>
   );
