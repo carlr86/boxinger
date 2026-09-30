@@ -7,6 +7,7 @@ import { DEV, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
 import { plural } from '@/lib/format';
 import type { Idea } from '@/lib/types';
 import { rateOf, scoreOf, type BoardApi } from './shared';
+import { AuthorLine } from './IdeaGrid';
 
 const Pencil = () => (<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>);
 const More = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>);
@@ -60,6 +61,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
                   return (
                     <div key={i.id} style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '14px 14px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
                       <a onClick={() => api.openIdea(i.id)} className="bx-row-link" style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</a>
+                      <AuthorLine i={i} />
                       <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Tag>{api.catL(i.category_id)}</Tag><Tag tone={D}>{D.l}</Tag></div>
                     </div>
@@ -183,6 +185,7 @@ function RmCard({ api, i, dragging, overMe, onDragStart, onDragEnd, onOver, onDr
           </Dropdown>
         )}
       </div>
+      <AuthorLine i={i} />
       <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>
       <div style={{ display: 'grid', gridTemplateColumns: '76px 1fr', rowGap: 6, alignItems: 'center', fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
         <span>Categoría</span><span><Tag>{api.catL(i.category_id)}</Tag></span>

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
-import { Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
+import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { GROWTH, IDEA_STATUS, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import type { Idea } from '@/lib/types';
@@ -135,6 +135,16 @@ const VoteIcon = () => (<svg width="14" height="14" viewBox="0 0 16 16" fill="no
 const CommentIcon = () => (<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>);
 export { VoteIcon, CommentIcon };
 
+/** Who proposed the idea: small avatar + name (team members and Community alike). */
+export function AuthorLine({ i, size = 18 }: { i: Pick<Idea, 'author_id' | 'author_name' | 'author_avatar'>; size?: number }) {
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+      <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={size} color={i.author_id ? undefined : '#d9d9d9'} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.author_name}</span>
+    </span>
+  );
+}
+
 function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boolean }) {
   const [pop, setPop] = useState(false);
   const vm = voteMode(api, i);
@@ -162,6 +172,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
         {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Oculta</span>}
       </div>
       <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.title}</div>
+      <AuthorLine i={i} />
       <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 14, lineHeight: 1.57, flex: 1, overflowWrap: 'anywhere' }}>
         {short}{i.description.length > 140 && <><span>… </span><a style={{ color: '#059669' }}>Ver más</a></>}
       </div>

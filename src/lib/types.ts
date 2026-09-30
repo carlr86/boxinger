@@ -20,6 +20,7 @@ export interface Idea {
   created_at: string;
   author_id: string | null;
   author_name: string;
+  author_avatar?: string | null;
   votes: number;
   comments: number;
   my_vote: VoteValue | null;

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { PageHead, Seg, Tag } from '@/components/ui';
 import { IDEA_STATUS } from '@/lib/constants';
 import { plural } from '@/lib/format';
-import { OriginTag } from './IdeaGrid';
+import { AuthorLine, OriginTag } from './IdeaGrid';
 import type { BoardApi } from './shared';
 
 export function Ranking({ api }: { api: BoardApi }) {
@@ -24,9 +24,10 @@ export function Ranking({ api }: { api: BoardApi }) {
             <div style={{ width: 32, fontSize: 20, fontWeight: 600, color: k < 3 ? '#059669' : 'rgba(0,0,0,0.45)', fontVariantNumeric: 'tabular-nums' }}>{k + 1}</div>
             <div onClick={() => api.openIdea(i.id)} style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}>
               <span style={{ fontSize: 15, fontWeight: 600 }}>{i.title}</span>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                 <OriginTag origin={i.origin} />
                 <Tag>{api.catL(i.category_id)}</Tag>
+                <span style={{ marginLeft: 4 }}><AuthorLine i={i} /></span>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
