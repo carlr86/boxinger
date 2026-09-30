@@ -92,7 +92,7 @@ export async function updateAmount(id: string, amount: number) {
 
 export async function verifyWebhook(headers: Headers, event: unknown): Promise<boolean> {
   const id = process.env.PAYPAL_WEBHOOK_ID;
-  if (!id) return false;
+  if (!id || !headers.get('paypal-transmission-sig')) return false;
   const r = await pp('POST', '/v1/notifications/verify-webhook-signature', {
     auth_algo: headers.get('paypal-auth-algo'),
     cert_url: headers.get('paypal-cert-url'),
@@ -101,7 +101,7 @@ export async function verifyWebhook(headers: Headers, event: unknown): Promise<b
     transmission_time: headers.get('paypal-transmission-time'),
     webhook_id: id,
     webhook_event: event,
-  });
+  }).catch((e) => { console.error('paypal verify', e); return null; });
   return r?.verification_status === 'SUCCESS';
 }
 
