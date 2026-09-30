@@ -47,7 +47,6 @@ export const RM_COLS = [
   { k: 'ahora', l: 'Ahora', bg: '#f0f6ff', cbg: '#e6f4ff', cbd: '#91caff', cfg: '#0958d9' },
   { k: 'siguiente', l: 'Siguiente', bg: '#fffcf0', cbg: '#fffbe6', cbd: '#ffe58f', cfg: '#ad6800' },
   { k: 'despues', l: 'Más adelante', bg: '#fbf7ff', cbg: '#f9f0ff', cbd: '#d3adf7', cfg: '#531dab' },
-  { k: 'no', l: 'No se hará', bg: '#f7f7f7', cbg: '#fafafa', cbd: '#d9d9d9', cfg: 'rgba(0,0,0,0.65)' },
 ] as const;
 
 export const RATE_L = ['Sin calificar', 'Muy bajo', 'Bajo', 'Medio', 'Alto', 'Muy alto'];

@@ -138,7 +138,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
     return (
       <>
         <PageHead title="Roadmap" sub="Sumá ideas desde el Backlog y ordenalas por prioridad. Arrastrá las tarjetas para moverlas o reordenarlas." />
-        <ProLock title="Planificá con el Roadmap" text="Pasá ideas aprobadas del Backlog al Roadmap y organizalas en Ahora, Siguiente, Más adelante y No se hará." onGo={api.goPro} />
+        <ProLock title="Planificá con el Roadmap" text="Pasá ideas aprobadas del Backlog al Roadmap y organizalas en Ahora, Siguiente y Más adelante. Lo que ya salió queda en Lanzadas." onGo={api.goPro} />
       </>
     );
   }
