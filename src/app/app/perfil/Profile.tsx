@@ -6,7 +6,7 @@ import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Note, PageHead, Seg, Tag } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { rpc } from '@/lib/rpc';
-import { dlong, money } from '@/lib/format';
+import { dlong, isEmail, money } from '@/lib/format';
 import { ENTERPRISE_TAG, PAYPAL_ENABLED } from '@/lib/constants';
 import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
@@ -187,6 +187,8 @@ function Subscription() {
   const [pick, setPick] = useState(false);
   const [contact, setContact] = useState(false);
   const [mpEmail, setMpEmail] = useState(ctx!.me.email);
+  const [mpOpen, setMpOpen] = useState(false);
+  const closePick = () => { setPick(false); setMpOpen(false); };
   const [busy, setBusy] = useState(false);
   const acc = ctx!.account;
   const s = acc?.subscription;
@@ -287,18 +289,24 @@ function Subscription() {
         </div>
       </Modal>
 
-      <Modal open={pick} onCancel={() => setPick(false)} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
+      <Modal open={pick} onCancel={closePick} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.</span>
           {PAYPAL_ENABLED
             ? <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
             : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El pago con PayPal vuelve pronto. Si estás fuera de Argentina, escribinos a hola@boxinger.com.</span>}
-          <PayOption title="Mercado Pago" sub="Tarjetas argentinas · se cobra en pesos" price={money('ARS', Number(prices.ARS)) + ' / mes'} disabled={busy} onClick={() => start('mercadopago')} />
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'rgba(0,0,0,0.65)', marginTop: -4 }}>
-            Email de tu cuenta de Mercado Pago
-            <input className="bx-input" type="email" value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} />
-            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Tiene que ser el mismo con el que vas a ingresar a Mercado Pago para pagar.</span>
-          </label>
+          <PayOption title="Mercado Pago" sub="Tarjetas argentinas · se cobra en pesos" price={money('ARS', Number(prices.ARS)) + ' / mes'} disabled={busy} selected={mpOpen} onClick={() => setMpOpen((v) => !v)} />
+          {mpOpen && (
+            <form style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 2px 0' }}
+              onSubmit={(e) => { e.preventDefault(); if (isEmail(mpEmail.trim())) start('mercadopago'); }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
+                Email de tu cuenta de Mercado Pago
+                <input className="bx-input" type="email" autoFocus required value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} />
+                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Tiene que ser el mismo con el que vas a ingresar a Mercado Pago para pagar.</span>
+              </label>
+              <button type="submit" className="bx-btn-primary" style={{ height: 36 }} disabled={busy || !isEmail(mpEmail.trim())}>Continuar a Mercado Pago</button>
+            </form>
+          )}
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Te llevamos al sitio del medio de pago para confirmar. Al volver, Pro se activa automáticamente.</span>
         </div>
       </Modal>
@@ -306,10 +314,10 @@ function Subscription() {
   );
 }
 
-function PayOption({ title, sub, price, onClick, disabled }: { title: string; sub: string; price: string; onClick: () => void; disabled?: boolean }) {
+function PayOption({ title, sub, price, onClick, disabled, selected }: { title: string; sub: string; price: string; onClick: () => void; disabled?: boolean; selected?: boolean }) {
   return (
-    <button type="button" disabled={disabled} onClick={onClick} className="bx-btn"
-      style={{ height: 'auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', whiteSpace: 'normal' }}>
+    <button type="button" disabled={disabled} onClick={onClick} className="bx-btn" aria-expanded={selected}
+      style={{ height: 'auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', whiteSpace: 'normal', ...(selected ? { borderColor: '#059669', boxShadow: '0 0 0 2px rgba(5,150,105,0.1)' } : null) }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ fontSize: 15, fontWeight: 600 }}>{title}</span>
         <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{sub}</span>
