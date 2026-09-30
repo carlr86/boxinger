@@ -72,47 +72,6 @@ function General({ api }: { api: BoardApi }) {
         <textarea className="bx-input" value={desc} maxLength={200} rows={3} onChange={(e) => setDesc(e.target.value)} />
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textAlign: 'right' }}>{desc.length} / 200</span>
       </label>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Visibilidad
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{VISIBILITY[b.visibility].l}</span>
-          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{VISIBILITY[b.visibility].short}</span>
-          <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>Cambiar visibilidad</button>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          Quiénes pueden crear ideas
-          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no cambia.</span>
-        </div>
-        {api.pro && (
-          <ToggleRow label="Miembros del equipo" desc="Los miembros con acceso a este buzón." on={b.members_can_create_ideas}
-            onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: v, p_guests: null }), v ? 'Los miembros pueden crear ideas' : 'Los miembros ya no pueden crear ideas'); api.reload(); }} />
-        )}
-        {b.visibility !== 'private' ? (
-          <ToggleRow label="Invitados" desc={b.visibility === 'invite' ? 'Las personas que invitaste a este buzón.' : 'La Comunidad que se sumó con el link o por invitación.'} on={b.guests_can_create_ideas}
-            onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: null, p_guests: v }), v ? 'Los invitados pueden crear ideas' : 'Los invitados ya no pueden crear ideas'); api.reload(); }} />
-        ) : (
-          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
-        )}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          Qué ven los invitados
-          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.</span>
-        </div>
-        {b.visibility === 'private' ? (
-          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
-        ) : (
-          <ToggleRow label={<span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Roadmap (solo lectura) <ProPill /></span>}
-            desc="Ven las columnas y en qué etapa está cada idea. No ven prioridad, impacto, esfuerzo ni puntaje, y no pueden mover nada."
-            on={b.roadmap_setting && api.pro}
-            onChange={async (v) => {
-              if (v && !api.pro) return api.goPro();
-              await api.run(rpc('set_board_roadmap_public', { p_board: b.id, p_on: v }), v ? 'Los invitados ya ven el Roadmap' : 'El Roadmap vuelve a ser solo del Equipo');
-              api.reload();
-            }} />
-        )}
-      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Logo
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <label style={{ width: 104, height: 104, border: '1px dashed #d9d9d9', borderRadius: 8, background: '#fafafa', display: 'grid', placeItems: 'center', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.65)', cursor: 'pointer', overflow: 'hidden' }}>
@@ -132,9 +91,74 @@ function General({ api }: { api: BoardApi }) {
           }}>Guardar cambios</button>
         <button type="button" className="bx-btn" onClick={() => (api.pro ? (window.location.href = '/app/buzones?crear=1') : setPaidNote(true))}>Crear otro buzón</button>
       </div>
+
+      <Section title="Visibilidad" desc="Quién puede ver este buzón. La URL no cambia.">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{VISIBILITY[b.visibility].l}</span>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{VISIBILITY[b.visibility].short}</span>
+          <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>Cambiar visibilidad</button>
+        </div>
+      </Section>
+
+      <Section title="Quiénes pueden crear ideas" desc="El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no cambia.">
+        <Options>
+          {api.pro && (
+            <ToggleRow label="Miembros del equipo" desc="Los miembros con acceso a este buzón." on={b.members_can_create_ideas}
+              onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: v, p_guests: null }), v ? 'Los miembros pueden crear ideas' : 'Los miembros ya no pueden crear ideas'); api.reload(); }} />
+          )}
+          {b.visibility !== 'private' ? (
+            <ToggleRow label="Invitados" desc={b.visibility === 'invite' ? 'Las personas que invitaste a este buzón.' : 'La Comunidad que se sumó con el link o por invitación.'} on={b.guests_can_create_ideas}
+              onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: null, p_guests: v }), v ? 'Los invitados pueden crear ideas' : 'Los invitados ya no pueden crear ideas'); api.reload(); }} />
+          ) : (
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
+          )}
+        </Options>
+      </Section>
+
+      <Section title="Qué ven los invitados" desc="Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.">
+        <Options>
+          {b.visibility === 'private' ? (
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
+          ) : (
+            <ToggleRow label={<span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Roadmap (solo lectura) <ProPill /></span>}
+              desc="Ven las columnas y en qué etapa está cada idea. No ven prioridad, impacto, esfuerzo ni puntaje, y no pueden mover nada."
+              on={b.roadmap_setting && api.pro}
+              onChange={async (v) => {
+                if (v && !api.pro) return api.goPro();
+                await api.run(rpc('set_board_roadmap_public', { p_board: b.id, p_on: v }), v ? 'Los invitados ya ven el Roadmap' : 'El Roadmap vuelve a ser solo del Equipo');
+                api.reload();
+              }} />
+          )}
+        </Options>
+      </Section>
       {paidNote && <Note>Buzones ilimitados en el plan Pro. <a onClick={api.goPro}>Ver planes</a></Note>}
       <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
         onClose={() => setVisOpen(false)} onDone={() => api.reload()} onGoPro={api.goPro} />
+    </div>
+  );
+}
+
+/** A settings block separated from the previous one by a line, with its own title. */
+function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+  return (
+    <section style={{ borderTop: '1px solid #f0f0f0', paddingTop: 20, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 15, fontWeight: 600 }}>{title}</span>
+        {desc && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{desc}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Switches in a bordered list, one row each, so every label reads with its own switch. */
+function Options({ children }: { children: React.ReactNode }) {
+  const rows = (Array.isArray(children) ? children : [children]).filter(Boolean);
+  return (
+    <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, background: '#fcfcfc' }}>
+      {rows.map((r, k) => (
+        <div key={k} style={{ padding: '14px 16px', borderTop: k ? '1px solid #f0f0f0' : undefined }}>{r}</div>
+      ))}
     </div>
   );
 }
