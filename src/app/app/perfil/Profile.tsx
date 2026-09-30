@@ -7,7 +7,7 @@ import { Avatar, Note, PageHead, Seg, Tag } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { rpc } from '@/lib/rpc';
 import { dlong, money } from '@/lib/format';
-import { ENTERPRISE_TAG } from '@/lib/constants';
+import { ENTERPRISE_TAG, PAYPAL_ENABLED } from '@/lib/constants';
 import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
@@ -290,7 +290,9 @@ function Subscription() {
       <Modal open={pick} onCancel={() => setPick(false)} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.</span>
-          <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
+          {PAYPAL_ENABLED
+            ? <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
+            : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El pago con PayPal vuelve pronto. Si estás fuera de Argentina, escribinos a hola@boxinger.com.</span>}
           <PayOption title="Mercado Pago" sub="Tarjetas argentinas · se cobra en pesos" price={money('ARS', Number(prices.ARS)) + ' / mes'} disabled={busy} onClick={() => start('mercadopago')} />
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'rgba(0,0,0,0.65)', marginTop: -4 }}>
             Email de tu cuenta de Mercado Pago

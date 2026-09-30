@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { SITE_URL } from '@/lib/env';
 import { isEmail } from '@/lib/format';
+import { PAYPAL_ENABLED } from '@/lib/constants';
 import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
 import { currentPrice, effectiveAmount, type SubRow } from '@/lib/billing/service';
@@ -15,6 +16,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const provider = body.provider as 'paypal' | 'mercadopago';
   if (provider !== 'paypal' && provider !== 'mercadopago') return NextResponse.json({ error: 'Medio de pago inválido.' }, { status: 400 });
+  if (provider === 'paypal' && !PAYPAL_ENABLED) return NextResponse.json({ error: 'El pago con PayPal no está disponible por ahora. Probá con Mercado Pago.' }, { status: 400 });
 
   const admin = supabaseAdmin();
   const { data: acc } = await admin.from('accounts').select('id, status, profiles:owner_id (name, email)').eq('owner_id', user.id).maybeSingle();

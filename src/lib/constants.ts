@@ -76,3 +76,6 @@ export const GROWTH: Record<string, Tone> = {
   churn: { l: 'Prevenir churn', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' },
 };
 export const GROWTH_KEYS = ['adquisicion', 'activacion', 'retencion', 'monetizacion', 'churn'] as const;
+
+/** PayPal checkout on/off. Off while PayPal reviews the merchant account (limited since 2026-09-30). */
+export const PAYPAL_ENABLED = false;
