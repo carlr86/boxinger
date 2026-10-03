@@ -112,6 +112,7 @@ export interface MyContext {
   me: {
     id: string; name: string; email: string; avatar_url: string | null; is_super_admin: boolean; status: string;
     notif: Record<string, boolean>; admin_notif: Record<string, boolean>; created_at: string; providers: string[];
+    onboarding_skipped?: boolean;
   };
   account: { id: string; name: string; status: string; created_at: string; pro: boolean; plan: 'free' | 'pro' | 'enterprise'; member_limit: number | null; subscription: Subscription } | null;
   teams: TeamCtx[];

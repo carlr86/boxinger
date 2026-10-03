@@ -25,7 +25,7 @@ export function homePath(ctx: MyContext): string {
   if (ctx.teams.length > 0) return '/app/buzones';
   if (ctx.guest_boards.length === 1) return '/app/b/' + ctx.guest_boards[0].slug;
   if (ctx.guest_boards.length > 1) return '/app/buzones';
-  return '/app/onboarding';
+  return ctx.me.onboarding_skipped ? '/app/buzones' : '/app/onboarding';
 }
 
 /** Only allow same-site relative redirects. */

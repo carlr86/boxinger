@@ -71,6 +71,7 @@ export function BoardsPage() {
   const teams = ctx.teams.map((t) => ({ t, shown: sortFav(t.boards.filter(match)) })).filter(({ t, shown }) => shown.length > 0 || (!bq && f === 'all') || (t.boards.length === 0 && !bq && f === 'all'));
   const guests = sortFav(ctx.guest_boards.filter(match));
   const nothing = teams.every((x) => x.shown.length === 0) && guests.length === 0;
+  const noBoards = !ctx.account && ctx.teams.length === 0 && ctx.guest_boards.length === 0; // skipped the onboarding
 
   const copy = (txt: string, msg: string) => { navigator.clipboard?.writeText(txt).catch(() => {}); toast.ok(msg); };
   const fav = async (b: BoardCard) => { await rpc('toggle_favorite', { p_board: b.id }).catch((e) => toast.err(e)); await refresh(); toast.ok(b.fav ? 'Quitado de favoritos' : 'Agregado a favoritos'); };
@@ -149,14 +150,21 @@ export function BoardsPage() {
             <a onClick={() => router.push('/app/perfil?tab=sub')}>Ver planes</a>
           </div>
         )}
-        {!ctx.account && ctx.teams.length === 0 && (
-          <Note>Estás como Invitado en estos buzones. También podés crear tu propio buzón gratis y sumar a tu comunidad.</Note>
+        {!ctx.account && ctx.teams.length === 0 && ctx.guest_boards.length > 0 && (
+          <Note>Estás como Invitado en estos buzones. También podés <a onClick={() => router.push('/app/onboarding')}>crear tu propio buzón gratis</a> y sumar a tu comunidad.</Note>
         )}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        {noBoards && (
+          <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+            <span style={{ fontSize: 18, fontWeight: 600 }}>Todavía no tenés buzones</span>
+            <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', maxWidth: 420 }}>Creá tu primer buzón para recibir ideas de tu comunidad y tu equipo. Si te invitan a un buzón, también va a aparecer acá.</span>
+            <button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>Crear mi primer buzón</button>
+          </div>
+        )}
+        {!noBoards && <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar buzón" style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
           <Seg options={[['all', 'Todos'], ['fav', 'Favoritos']]} value={f} onChange={setF} style={{ alignSelf: 'auto' }} />
-        </div>
-        {nothing && (
+        </div>}
+        {nothing && !noBoards && (
           <div style={{ background: '#fff', borderRadius: 8, padding: '48px 24px', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>
             {f === 'fav' ? 'Todavía no marcaste buzones como favoritos.' : bq ? 'No hay buzones con ese nombre.' : 'Todavía no tenés buzones.'}
           </div>

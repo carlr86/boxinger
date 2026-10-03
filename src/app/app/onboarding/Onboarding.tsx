@@ -20,6 +20,18 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
   const [busy, setBusy] = useState(false);
   const host = SITE_URL.replace(/^https?:\/\//, '');
 
+  async function skip() {
+    setBusy(true);
+    try {
+      await rpc('skip_onboarding');
+      await refresh();
+      router.push('/app/buzones');
+    } catch (e) {
+      toast.err(e);
+      setBusy(false);
+    }
+  }
+
   async function create() {
     setTried(true);
     if (!(board.trim() || team.trim())) return;
@@ -48,7 +60,10 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
             <input className="bx-input" autoFocus maxLength={60} value={team} placeholder="Ej: Pampa Pagos" onChange={(e) => setTeam(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && team.trim()) { setTried(false); setStep(1); } }} />
           </Field>
-          <button type="button" className="bx-btn-primary" style={{ alignSelf: 'flex-end' }} onClick={() => { setTried(true); if (team.trim()) { setTried(false); setStep(1); } }}>Siguiente</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <button type="button" className="bx-btn" disabled={busy} onClick={skip} title="Vas a Mis Buzones; podés crear tu buzón cuando quieras">Omitir por ahora</button>
+            <button type="button" className="bx-btn-primary" onClick={() => { setTried(true); if (team.trim()) { setTried(false); setStep(1); } }}>Siguiente</button>
+          </div>
         </>
       ) : (
         <>
@@ -58,7 +73,7 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
           <Field label="Descripción corta (opcional)" hint={`${desc.length} / 200`}>
             <textarea className="bx-input" rows={3} maxLength={200} value={desc} placeholder="Ideas para nuestra app. Proponé, votá y seguí qué entra al Backlog." onChange={(e) => setDesc(e.target.value)} />
           </Field>
-          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Plan Free: 1 equipo con 1 buzón público. Podés pasar a Pro cuando quieras sumar miembros o más buzones.</span>
+          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Plan Free: 1 equipo con 1 buzón solo para invitados (o público). Podés pasar a Pro cuando quieras sumar miembros o más buzones.</span>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button type="button" className="bx-btn" onClick={() => setStep(0)}>Atrás</button>
             <button type="button" className="bx-btn-primary" disabled={busy} onClick={create}>{busy ? 'Creando…' : 'Crear buzón'}</button>
