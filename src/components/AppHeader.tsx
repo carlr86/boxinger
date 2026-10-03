@@ -70,7 +70,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
         {board && (
           <>
             <span style={{ width: 1, height: 20, background: '#f0f0f0' }} />
-            {board.isTeam && ctx ? <BoardSwitcher current={board} /> : (
+            {ctx ? <BoardSwitcher current={board} /> : (
               <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{board.name}</span>
             )}
           </>
@@ -175,6 +175,7 @@ function BoardSwitcher({ current }: { current: HeaderBoard }) {
           ) : (
             <div className="bx-item" style={{ color: '#059669' }} onClick={() => go('/app/buzones?crear=1')}>+ Crear Buzón</div>
           ))}
+          {!ctx.account && <div className="bx-item" style={{ color: '#059669' }} onClick={() => go('/app/onboarding')}>+ Crear mi propio buzón</div>}
           <div className="bx-item" onClick={() => go('/app/buzones')}>Ver todos mis buzones</div>
         </div>
       )}>
