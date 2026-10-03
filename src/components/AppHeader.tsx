@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Dropdown } from 'antd';
+import { BellOutlined, CreditCardOutlined, DashboardOutlined, InboxOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { useSession, useToast } from '@/components/Providers';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar } from '@/components/ui';
@@ -105,13 +106,13 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
                     {(() => { const t = planTone(ctx?.account?.plan); return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + t.bd, background: t.bg, color: t.fg }}>Plan {t.l}</span>; })()}
                   </div>
                 </div>
-                {hasBoards && <Link className="bx-item" style={menuLink} href="/app/buzones">Mis Buzones</Link>}
-                <Link className="bx-item" style={menuLink} href="/app/perfil">Mi perfil</Link>
-                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=notif">Notificaciones</Link>
-                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=sub">Suscripción</Link>
-                {me.is_super_admin && <Link className="bx-item" style={menuLink} href="/app/admin">Panel de Admin</Link>}
+                {hasBoards && <Link className="bx-item" style={menuLink} href="/app/buzones"><InboxOutlined style={menuIcon} />Mis Buzones</Link>}
+                <Link className="bx-item" style={menuLink} href="/app/perfil"><UserOutlined style={menuIcon} />Mi perfil</Link>
+                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=notif"><BellOutlined style={menuIcon} />Notificaciones</Link>
+                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=sub"><CreditCardOutlined style={menuIcon} />Suscripción</Link>
+                {me.is_super_admin && <Link className="bx-item" style={menuLink} href="/app/admin"><DashboardOutlined style={menuIcon} />Panel de Admin</Link>}
                 <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
-                <div className="bx-item" style={{ color: '#cf1322' }} onClick={logout}>Cerrar sesión</div>
+                <div className="bx-item" style={{ ...menuLink, color: '#cf1322' }} onClick={logout}><LogoutOutlined style={menuIcon} />Cerrar sesión</div>
               </div>
             )}
           >
@@ -129,7 +130,8 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
   );
 }
 
-const menuLink: React.CSSProperties = { display: 'block', color: 'rgba(0,0,0,0.88)' };
+const menuLink: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(0,0,0,0.88)' };
+const menuIcon: React.CSSProperties = { fontSize: 15, width: 16, flex: 'none' };
 
 function BoardSwitcher({ current }: { current: HeaderBoard }) {
   const router = useRouter();
