@@ -121,10 +121,6 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
-      <Section title="Opciones de voto" desc={`Cómo se llaman los tres votos en este buzón (de ${VOTE_LABEL_MIN} a ${VOTE_LABEL_MAX} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.`}>
-        <VoteLabels api={api} />
-      </Section>
-
       <Section title="Qué ven los invitados" desc="Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.">
         <Options>
           {b.visibility === 'private' ? (
@@ -140,6 +136,10 @@ function General({ api }: { api: BoardApi }) {
               }} />
           )}
         </Options>
+      </Section>
+
+      <Section title="Opciones de voto" desc={`Cómo se llaman los tres votos en este buzón (de ${VOTE_LABEL_MIN} a ${VOTE_LABEL_MAX} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.`}>
+        <VoteLabels api={api} />
       </Section>
       {paidNote && <Note>Buzones ilimitados en el plan Pro. <a onClick={api.goPro}>Ver planes</a></Note>}
       <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
@@ -173,14 +173,6 @@ function VoteLabels({ api }: { api: BoardApi }) {
             <input className="bx-input" value={v[k]} maxLength={VOTE_LABEL_MAX} placeholder={VOTE[k]} onChange={(e) => setV({ ...v, [k]: e.target.value })} />
           </label>
         ))}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Así lo ve quien vota:</span>
-        <div style={{ display: 'flex', gap: 4, padding: 3, background: 'rgba(0,0,0,0.06)', borderRadius: 8, maxWidth: 440 }}>
-          {VOTE_KEYS.map((k, n) => (
-            <span key={k} style={{ flex: 1, minWidth: 0, textAlign: 'center', fontSize: 13, padding: '6px 8px', borderRadius: 6, background: n === 0 ? '#059669' : 'transparent', color: n === 0 ? '#fff' : 'rgba(0,0,0,0.65)', fontWeight: n === 0 ? 600 : 400, overflowWrap: 'anywhere' }}>{name(k)}</span>
-          ))}
-        </div>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" className="bx-btn-primary" disabled={busy || !changed || tooLong} onClick={() => save(v, 'Opciones de voto guardadas')}>Guardar opciones</button>
