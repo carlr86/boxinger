@@ -33,6 +33,8 @@ function describe(n: Notice): { text: React.ReactNode; href: string } {
       };
     case 'access_granted':
       return { text: <>Ya tenés acceso a <B>{s(p.board_name)}</B></>, href: board };
+    case 'new_idea':
+      return { text: <><B>{s(p.author)}</B> cargó una idea nueva: <B>{s(p.title)}</B></>, href: idea };
     case 'new_comment':
       return { text: <><B>{s(p.author)}</B> comentó tu idea <B>{s(p.title)}</B></>, href: idea };
     case 'team_reply':
