@@ -143,6 +143,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
         board={{ id: b.id, name: b.name, color: b.color, isTeam }}
         tabs={tabs} view={shownView} onTab={(k) => setView(k as View)}
         onConfig={isTeam ? () => setView('config') : undefined}
+        configBadge={b.pending_requests || 0}
         loginNext={base + '?unirme=1'}
       />
       <main className="bx-main">

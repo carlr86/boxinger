@@ -153,8 +153,9 @@ function Notifs() {
     ['status', 'Cambios de estado', 'Cuando una idea tuya pasa a En revisión, Aprobada o Rechazada, o se lanza una que votaste.'],
   ];
   if (isTeam) rows.push(['digest', 'Resumen diario del buzón', 'Un email por día con los comentarios nuevos en todas las ideas.']);
+  if (ctx!.teams.some((t) => t.is_admin || t.can_create_boards)) rows.push(['requests', 'Solicitudes de acceso a mis buzones', 'Cuando alguien pide sumarse como invitado a un buzón que administrás.']);
   const toggle = async (k: string) => {
-    const next = { ...n, [k]: !n[k] };
+    const next = { ...n, [k]: n[k] === false };
     setN(next);
     try { await rpc('update_notifications', { p_notif: { [k]: next[k] } }); refresh(); } catch (e) { setN(n); toast.err(e); }
   };

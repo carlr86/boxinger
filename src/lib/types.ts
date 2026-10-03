@@ -70,11 +70,15 @@ export interface BoardInfo {
   allowed_domains: string[] | null; // only for whoever can manage the board
   guests_can_view_roadmap: boolean; // effective (setting on, Pro, not private)
   roadmap_setting: boolean; // the raw board setting
+  takes_requests: boolean; // invite-only + Pro: people without access can ask to join
+  pending_requests: number | null; // only for whoever manages the board
 }
 export interface BoardData {
   forbidden?: boolean;
   visibility?: Visibility; // with forbidden
   signed_in?: boolean; // with forbidden
+  can_request?: boolean; // with forbidden: the board takes access requests
+  request?: 'pending' | 'rejected' | null; // with forbidden: my latest request
   board: BoardInfo;
   role: Role;
   joined?: boolean; // has a board_guests row

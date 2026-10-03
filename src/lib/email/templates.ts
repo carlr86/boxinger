@@ -54,6 +54,22 @@ export function render(template: string, p: P): { subject: string; html: string 
         subject: `¡Se lanzó "${s(p.title)}"!`,
         html: layout('Una idea que votaste ya está disponible', `El Equipo de ${esc(p.board_name)} lanzó <b>${esc(p.title)}</b>. Gracias por ayudar a priorizarla.`, { label: 'Ver la idea', url: ideaUrl(p) }),
       };
+    case 'access_request':
+      return {
+        subject: `${s(p.name)} pidió acceso a ${s(p.board_name)}`,
+        html: layout(`Solicitud de acceso a ${esc(p.board_name)}`,
+          `<b>${esc(p.name)}</b> (${esc(p.email)}) quiere sumarse como invitado al buzón <b>${esc(p.board_name)}</b>.` + (p.message ? quote(p.message) : '') +
+          'Si lo aprobás, va a poder ver las ideas, votar y comentar.',
+          { label: 'Revisar solicitud', url: `${boardLink(p)}/config?seccion=comunidad` },
+          `Recibís este email porque administrás ${esc(p.board_name)}. Podés desactivar estos avisos en <a href="${SITE_URL}/app/perfil?tab=notif" style="color:#059669">Mi perfil</a>.`),
+      };
+    case 'access_granted':
+      return {
+        subject: `Ya tenés acceso a ${s(p.board_name)}`,
+        html: layout(`Ya podés entrar a ${esc(p.board_name)}`,
+          `El equipo aprobó tu solicitud. Ya sos parte de la Comunidad del buzón <b>${esc(p.board_name)}</b>: podés ver las ideas, votar y comentar.`,
+          { label: 'Ir al buzón', url: boardLink(p) }, 'Recibís este email porque pediste acceso a este buzón.'),
+      };
     case 'invite_guest':
       return {
         subject: `${s(p.inviter) || 'El Equipo'} te invitó a ${s(p.board_name)}`,

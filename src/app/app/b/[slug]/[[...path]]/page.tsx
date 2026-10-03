@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { BoardApp } from '@/components/board/BoardApp';
 import { SimpleHeader } from '@/components/SimpleHeader';
 import type { BoardData } from '@/lib/types';
+import { RequestAccess } from './RequestAccess';
 
 type Props = {
   params: Promise<{ slug: string; path?: string[] }>;
@@ -52,14 +53,17 @@ export default async function BoardPage({ params, searchParams }: Props) {
             <span style={{ fontSize: 14, lineHeight: 1.6, color: 'rgba(0,0,0,0.65)' }}>
               {invite
                 ? d.signed_in
-                  ? <>Ingresaste como <b>{email}</b>, que no está invitado a este buzón. Si te invitaron con otro email, ingresá con ese. Si no, pedile al equipo que te invite.</>
-                  : 'Ingresá con el email con el que te invitaron para ver las ideas.'
+                  ? <>Ingresaste como <b>{email}</b>, que no está invitado a este buzón. Si te invitaron con otro email, ingresá con ese.{d.can_request ? ' Si no, podés pedirle acceso al equipo.' : ' Si no, pedile al equipo que te invite.'}</>
+                  : d.can_request ? 'Ingresá con el email con el que te invitaron, o ingresá para solicitar acceso al equipo.' : 'Ingresá con el email con el que te invitaron para ver las ideas.'
                 : d.signed_in
                   ? <>Ingresaste como <b>{email}</b>. Solo el Equipo con acceso puede ver este buzón.</>
                   : 'Solo el Equipo con acceso puede verlo. Si sos parte del equipo, ingresá.'}
             </span>
+            {invite && d.can_request && d.signed_in && <RequestAccess slug={slug} initial={d.request ?? null} />}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Link href={login} className="bx-btn-primary" style={{ height: 36, display: 'flex', alignItems: 'center' }}>{d.signed_in ? 'Ingresar con otra cuenta' : 'Ingresar'}</Link>
+              {d.signed_in
+                ? <Link href={login} className="bx-btn" style={{ height: 36, display: 'flex', alignItems: 'center' }}>Ingresar con otra cuenta</Link>
+                : <Link href={login} className="bx-btn-primary" style={{ height: 36, display: 'flex', alignItems: 'center' }}>{invite && d.can_request ? 'Ingresar para solicitar acceso' : 'Ingresar'}</Link>}
               {invite && !d.signed_in && <Link href={'/app/registro?next=' + encodeURIComponent(here)} className="bx-btn" style={{ height: 36, display: 'flex', alignItems: 'center' }}>Crear cuenta</Link>}
             </div>
           </div>

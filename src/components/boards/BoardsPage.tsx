@@ -340,7 +340,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     const inv = b.visibility === 'invite';
     title = inv ? 'Invitar personas' : 'Compartir link a invitados';
     text = inv
-      ? `Invitá por email a quienes quieras sumar a ${b.name}. El link solo funciona para las personas invitadas.`
+      ? `Invitá por email a quienes quieras sumar a ${b.name}. El link solo funciona para las personas invitadas${isPro ? '; quien no lo esté puede solicitar acceso y vos decidís' : ''}.`
       : `Quien se registre desde este link queda como Comunidad de ${b.name}. También podés enviarlo por email.`;
     body = (
       <>

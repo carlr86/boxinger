@@ -19,8 +19,11 @@ const SUB: Record<Tab, string> = {
 };
 
 export function BoardConfig({ api }: { api: BoardApi }) {
-  const [tab, setTab] = useState<Tab>(api.isAdmin ? 'general' : 'com');
-  const tabs: [Tab, string][] = api.isAdmin ? [['general', 'General'], ['cats', 'Categorías'], ['com', 'Comunidad']] : [['com', 'Comunidad']];
+  // ?seccion=comunidad (link from the access-request email) opens the Community tab.
+  const [tab, setTab] = useState<Tab>(() => (!api.isAdmin || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('seccion') === 'comunidad') ? 'com' : 'general'));
+  const pend = api.data.board.pending_requests || 0;
+  const comL = pend ? `Comunidad (${pend})` : 'Comunidad';
+  const tabs: [Tab, string][] = api.isAdmin ? [['general', 'General'], ['cats', 'Categorías'], ['com', comL]] : [['com', comL]];
   return (
     <>
       <PageHead title="Configuración del buzón" sub={SUB[tab]} />
@@ -309,12 +312,58 @@ function AllowedDomains({ api }: { api: BoardApi }) {
   );
 }
 
+type AccessRequest = { id: number; user_id: string; name: string; email: string; avatar_url: string | null; message: string | null; created_at: string };
+
+/** Pending "Solicitar acceso" requests (Pro): approve to add them as Invitados, or reject. */
+function AccessRequests({ api, list, reload }: { api: BoardApi; list: AccessRequest[] | null; reload: () => void }) {
+  const decide = async (r: AccessRequest, ok: boolean) => {
+    const done = await api.run(rpc('decide_access_request', { p_id: r.id, p_approve: ok }), ok ? `${r.name} ya es invitado` : 'Solicitud rechazada');
+    if (done !== undefined) { if (ok) flushEmails(); reload(); api.reload(); }
+  };
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600 }}>
+        Solicitudes de acceso{list && list.length > 0 ? ` · ${list.length}` : ''} <ProPill />
+      </div>
+      <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+        Quien abre el link sin estar invitado puede pedir acceso. Si lo aprobás, entra como invitado; si lo rechazás, no ve nada del buzón.
+      </span>
+      {!api.data.board.takes_requests ? (
+        <Note>Las solicitudes de acceso están disponibles en Pro. <a onClick={api.goPro}>Ver planes</a></Note>
+      ) : !list ? (
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Cargando…</span>
+      ) : list.length === 0 ? (
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>No hay solicitudes pendientes.</span>
+      ) : (
+        <div style={{ border: '1px solid #f0f0f0', borderRadius: 8 }}>
+          {list.map((r, k) => (
+            <div key={r.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', padding: '14px 16px', borderTop: k ? '1px solid #f0f0f0' : undefined }}>
+              <Avatar name={r.name} id={r.user_id} url={r.avatar_url} />
+              <div style={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{r.name}</span>
+                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.email} · pidió acceso {rel(r.created_at)}</span>
+                {r.message && <span style={{ marginTop: 6, fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.75)', background: '#fafafa', borderLeft: '3px solid #a9cbc2', borderRadius: 4, padding: '6px 10px', overflowWrap: 'anywhere' }}>{r.message}</span>}
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Popconfirm title={`¿Rechazar a ${r.name}?`} description="No se le avisa por email. No va a poder pedir acceso de nuevo por 7 días." okText="Rechazar" cancelText="Cancelar" okButtonProps={{ danger: true }} onConfirm={() => decide(r, false)}>
+                  <button type="button" className="bx-btn">Rechazar</button>
+                </Popconfirm>
+                <button type="button" className="bx-btn-primary" onClick={() => decide(r, true)}>Aprobar</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type Guest = { user_id: string; name: string; email: string; avatar_url: string | null; joined_at: string; status: 'active' | 'blocked' };
 
 function Community({ api }: { api: BoardApi }) {
   const toast = useToast();
   const b = api.data.board;
-  const [data, setData] = useState<{ guests: Guest[]; pending: { id: string; email: string; created_at: string }[]; invite_code: string } | null>(null);
+  const [data, setData] = useState<{ guests: Guest[]; pending: { id: string; email: string; created_at: string }[]; invite_code: string; requests: AccessRequest[] | null } | null>(null);
   const [emails, setEmails] = useState<string[]>([]);
   const load = useCallback(async () => {
     try { setData(await rpc('get_board_community', { p_board: b.id })); } catch (e) { toast.err(e); }
@@ -325,6 +374,7 @@ function Community({ api }: { api: BoardApi }) {
 
   return (
     <>
+      {b.visibility === 'invite' && api.isAdmin && <AccessRequests api={api} list={data?.requests ?? null} reload={load} />}
       <div style={card}>
         <div style={{ fontSize: 16, fontWeight: 600 }}>Invitar a la Comunidad</div>
         {priv ? (
@@ -338,7 +388,7 @@ function Community({ api }: { api: BoardApi }) {
               </div>
               <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
                 {b.visibility === 'invite'
-                  ? 'Solo funciona para quienes invitaste por email' + (b.allowed_domains?.length ? ' o tienen un email de los dominios permitidos' : '') + '. Si le llega a otra persona, no ve el buzón.'
+                  ? 'Solo funciona para quienes invitaste por email' + (b.allowed_domains?.length ? ' o tienen un email de los dominios permitidos' : '') + '.' + (b.takes_requests ? ' Si le llega a otra persona, puede solicitar acceso y vos decidís.' : ' Si le llega a otra persona, no ve el buzón.')
                   : `Quien se registre desde este link queda como Comunidad de ${b.name}.`}
               </span>
             </div>
