@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Dropdown, Modal } from 'antd';
+import { DeleteOutlined, EditOutlined, InfoCircleOutlined, LinkOutlined, LockOutlined, LogoutOutlined, SettingOutlined, StarFilled, StarOutlined, TeamOutlined, UserAddOutlined } from '@ant-design/icons';
 import { AppHeader } from '@/components/AppHeader';
 import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Choice, EmailChips, Note, PageHead, Seg, Tag, WarnPill, ToggleRow } from '@/components/ui';
@@ -82,16 +83,16 @@ export function BoardsPage() {
     const admin = !!t?.is_admin;
     const memberN = t ? t.members.filter((m) => m.role !== 'admin').length : 0;
     const items = [
-      { key: 'detail', label: 'Ver detalle del buzón', onClick: () => setDetail(b) },
-      ...(!guestOnly ? [{ key: 'config', label: 'Configuración del buzón', onClick: () => router.push('/app/b/' + b.slug + '/config') }] : []),
-      ...(admin ? [{ key: 'rename', label: 'Cambiar nombre', onClick: () => setModal({ type: 'rename', board: b }) }] : []),
-      { key: 'url', label: 'Compartir URL del buzón', onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
-      ...(!guestOnly ? [{ key: 'guests', label: b.visibility === 'invite' ? 'Invitar personas' : 'Compartir link a invitados', disabled: priv, title: priv ? 'Los buzones privados no admiten invitados' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
-      ...(admin ? [{ key: 'vis', label: 'Cambiar visibilidad', onClick: () => (b.locked ? toast.info('Este buzón requiere el plan Pro') : setVisFor(b)) }] : []),
-      ...(admin ? [{ key: 'access', label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>Acceso de miembros <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: t! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
-      { key: 'fav', label: b.fav ? 'Quitar de favoritos' : 'Agregar a favoritos', onClick: () => fav(b) },
-      ...(admin ? [{ type: 'divider' as const }, { key: 'delete', label: 'Eliminar buzón', danger: true, onClick: () => setModal({ type: 'delete', board: b }) }] : []),
-      ...(guestOnly ? [{ type: 'divider' as const }, { key: 'leave', label: 'Salir del buzón', danger: true, onClick: () => setModal({ type: 'leave', board: b }) }] : []),
+      { key: 'detail', icon: <InfoCircleOutlined />, label: 'Ver detalle del buzón', onClick: () => setDetail(b) },
+      ...(!guestOnly ? [{ key: 'config', icon: <SettingOutlined />, label: 'Configuración del buzón', onClick: () => router.push('/app/b/' + b.slug + '/config') }] : []),
+      ...(admin ? [{ key: 'rename', icon: <EditOutlined />, label: 'Cambiar nombre', onClick: () => setModal({ type: 'rename', board: b }) }] : []),
+      { key: 'url', icon: <LinkOutlined />, label: 'Compartir URL del buzón', onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
+      ...(!guestOnly ? [{ key: 'guests', icon: <UserAddOutlined />, label: b.visibility === 'invite' ? 'Invitar personas' : 'Compartir link a invitados', disabled: priv, title: priv ? 'Los buzones privados no admiten invitados' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
+      ...(admin ? [{ key: 'vis', icon: <LockOutlined />, label: 'Cambiar visibilidad', onClick: () => (b.locked ? toast.info('Este buzón requiere el plan Pro') : setVisFor(b)) }] : []),
+      ...(admin ? [{ key: 'access', icon: <TeamOutlined />, label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>Acceso de miembros <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: t! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
+      { key: 'fav', icon: b.fav ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />, label: b.fav ? 'Quitar de favoritos' : 'Agregar a favoritos', onClick: () => fav(b) },
+      ...(admin ? [{ type: 'divider' as const }, { key: 'delete', icon: <DeleteOutlined />, label: 'Eliminar buzón', danger: true, onClick: () => setModal({ type: 'delete', board: b }) }] : []),
+      ...(guestOnly ? [{ type: 'divider' as const }, { key: 'leave', icon: <LogoutOutlined />, label: 'Salir del buzón', danger: true, onClick: () => setModal({ type: 'leave', board: b }) }] : []),
     ];
     return (
       <div key={b.id} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
