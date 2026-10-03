@@ -26,6 +26,18 @@ export function rel(d: string | number | Date): string {
   return 'hace ' + mo + (mo === 1 ? ' mes' : ' meses');
 }
 
+/** Compact relative time for tight spots (idea cards): "ahora", "5 min", "3 h", "2 d", "4 mes". */
+export function relShort(d: string | number | Date): string {
+  const m = Math.floor((Date.now() - ts(d)) / 6e4);
+  if (m < 1) return 'ahora';
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + ' h';
+  const days = Math.floor(h / 24);
+  if (days < 30) return days + ' d';
+  return Math.floor(days / 30) + ' mes';
+}
+
 export const exact = (d: string | number | Date) =>
   new Date(ts(d)).toLocaleString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 export const dshort = (d: string | number | Date) => new Date(ts(d)).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });

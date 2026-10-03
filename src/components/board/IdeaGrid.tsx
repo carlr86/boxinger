@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS, statusTone } from '@/lib/constants';
-import { dshort, exact, rel } from '@/lib/format';
+import { dshort, exact, relShort } from '@/lib/format';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
 
@@ -251,7 +251,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, color: 'rgba(0,0,0,0.45)', flex: 'none', marginLeft: 'auto' }}>
         <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
-        <span title={exact(i.created_at)} style={{ whiteSpace: 'nowrap' }}>{backlog && i.approved_at ? 'Aprobada el ' + dshort(i.approved_at) : rel(i.created_at)}</span>
+        <span title={exact(i.created_at)} style={{ whiteSpace: 'nowrap' }}>{backlog && i.approved_at ? 'Aprobada el ' + dshort(i.approved_at) : relShort(i.created_at)}</span>
         {!backlog && <span style={{ minWidth: 0 }}><VoteControl api={api} i={i} /></span>}
       </div>
     </div>
@@ -294,10 +294,11 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
           Aprobada el {dshort(i.approved_at)} · {i.votes} votos finales
         </div>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, color: 'rgba(0,0,0,0.45)', borderTop: '1px solid #f0f0f0', paddingTop: 12, flexWrap: 'wrap' }}>
-        <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
-        <span title={exact(i.created_at)}>{rel(i.created_at)}</span>
+      {/* One line, so every card's footer sits at the same height. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'rgba(0,0,0,0.45)', borderTop: '1px solid #f0f0f0', paddingTop: 12, flexWrap: 'nowrap' }}>
+        <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><VoteIcon />{i.votes}</span></Tooltip>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><CommentIcon />{i.comments}</span>
+        <Tooltip title={exact(i.created_at)}><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{relShort(i.created_at)}</span></Tooltip>
         {!backlog && <VoteControl api={api} i={i} />}
       </div>
     </div>
