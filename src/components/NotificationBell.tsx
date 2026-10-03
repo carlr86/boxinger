@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Dropdown } from 'antd';
+import { Dropdown, Tooltip } from 'antd';
 import { rpc } from '@/lib/rpc';
 import { useSession } from '@/components/Providers';
 import { IDEA_STATUS, SHADOW_POP } from '@/lib/constants';
@@ -54,7 +54,6 @@ export function NotificationBell() {
   const { ctx, setCtx } = useSession();
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<Notice[] | null>(null);
-  const [confirmClear, setConfirmClear] = useState(false);
   const unread = ctx?.unread_notifications || 0;
   const setUnread = useCallback((n: number) => setCtx((c) => (c && c.unread_notifications !== n ? { ...c, unread_notifications: n } : c)), [setCtx]);
 
@@ -67,7 +66,7 @@ export function NotificationBell() {
   }, [setUnread]);
 
   useEffect(() => {
-    if (!open) { setConfirmClear(false); return; }
+    if (!open) return;
     rpc<Notice[]>('get_notifications', { p_limit: 30 }).then(setList).catch(() => setList([]));
   }, [open]);
 
@@ -79,7 +78,6 @@ export function NotificationBell() {
   async function clearAll() {
     setList([]);
     setUnread(0);
-    setConfirmClear(false);
     await rpc('delete_notifications', { p_ids: null }).catch(() => {});
   }
   async function remove(n: Notice) {
@@ -103,18 +101,16 @@ export function NotificationBell() {
         <div style={{ width: 360, maxWidth: 'calc(100vw - 24px)', background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, display: 'flex', flexDirection: 'column', maxHeight: '70vh' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
             <span style={{ fontSize: 15, fontWeight: 600 }}>Notificaciones</span>
-            {!!list?.length && (confirmClear ? (
-              <span style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13 }}>
-                <span style={{ color: 'rgba(0,0,0,0.65)' }}>¿Vaciar todas?</span>
-                <a onClick={clearAll} style={{ color: '#cf1322' }}>Vaciar</a>
-                <a onClick={() => setConfirmClear(false)} className="bx-link-muted">Cancelar</a>
-              </span>
-            ) : (
-              <span style={{ display: 'flex', gap: 14, alignItems: 'center', fontSize: 13 }}>
+            {!!list?.length && (
+              <span style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 13 }}>
                 {list.some((n) => !n.read) && <a onClick={markAll} style={{ color: '#059669' }}>Marcar como leídas</a>}
-                <a onClick={() => setConfirmClear(true)} className="bx-link-muted">Vaciar</a>
+                <Tooltip title="Vaciar notificaciones">
+                  <button type="button" aria-label="Vaciar notificaciones" onClick={clearAll} className="bx-icon-btn bx-icon-danger" style={{ width: 28, height: 28 }}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 4h11M6.5 4V2.7h3V4M4 4l.7 9.3h6.6L12 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /><path d="M6.7 6.6v4.4M9.3 6.6v4.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                  </button>
+                </Tooltip>
               </span>
-            ))}
+            )}
           </div>
           <div style={{ overflowY: 'auto' }}>
             {list === null && <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Cargando…</div>}
