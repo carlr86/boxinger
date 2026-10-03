@@ -16,6 +16,7 @@ html{scroll-behavior:smooth}
 .bx-btn-danger{height:32px;padding:0 15px;border-radius:6px;border:1px solid #ff4d4f;background:#fff;color:#ff4d4f;font-size:14px;cursor:pointer}
 .bx-icon-btn{flex:none;width:28px;height:28px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;cursor:pointer;display:grid;place-items:center;color:rgba(0,0,0,0.65)}
 .bx-icon-btn:hover{border-color:#059669;color:#059669}
+.bx-icon-btn.bx-icon-danger:hover{border-color:#ff4d4f;color:#cf1322}
 .bx-card{position:relative;background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:box-shadow .2s}
 .bx-idea-row{transition:background .15s}
 .bx-idea-row:hover{background:#fafafa}

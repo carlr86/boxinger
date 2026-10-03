@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Modal, Popconfirm } from 'antd';
+import { Modal, Popconfirm, Tooltip } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar, EmailChips, Note, PageHead, ProPill, Seg, ToggleRow } from '@/components/ui';
@@ -315,6 +315,10 @@ function AllowedDomains({ api }: { api: BoardApi }) {
   );
 }
 
+const BlockIcon = () => (<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden><circle cx="8" cy="8" r="5.8" stroke="currentColor" strokeWidth="1.5" /><path d="M3.9 12.1l8.2-8.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>);
+const TrashIcon = () => (<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 4h11M6.5 4V2.7h3V4M4 4l.7 9.3h6.6L12 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /><path d="M6.7 6.6v4.4M9.3 6.6v4.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>);
+const UnlockIcon = () => (<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" /><path d="M5.5 7V5a2.5 2.5 0 014.8-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>);
+
 type AccessRequest = { id: number; user_id: string; name: string; email: string; avatar_url: string | null; message: string | null; created_at: string };
 
 /** Pending "Solicitar acceso" requests (Pro): approve to add them as Invitados, or reject. */
@@ -434,15 +438,18 @@ function Community({ api }: { api: BoardApi }) {
               <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email} · se unió {rel(m.joined_at)}</span>
             </div>
             {m.status === 'blocked' && <span style={{ fontSize: 12, color: '#cf1322' }}>Bloqueado</span>}
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {m.status === 'blocked' ? (
-                <a style={{ color: '#059669', fontSize: 14 }} onClick={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'active' }), 'Miembro desbloqueado'); load(); }}>Desbloquear</a>
+                <Tooltip title="Desbloquear">
+                  <button type="button" className="bx-icon-btn" aria-label={'Desbloquear a ' + m.name} style={{ width: 30, height: 30, color: '#059669' }}
+                    onClick={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'active' }), 'Miembro desbloqueado'); load(); }}><UnlockIcon /></button>
+                </Tooltip>
               ) : (
                 <Popconfirm title={`¿Bloquear a ${m.name}?`}
                   description={b.visibility === 'public' ? 'Deja de poder votar, comentar y cargar ideas. Su contenido queda visible.' : 'Deja de ver el buzón y no puede volver a entrar ni pedir acceso. Su contenido queda visible.'}
                   okText="Bloquear" cancelText="Cancelar" okButtonProps={{ danger: true }}
                   onConfirm={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'blocked' }), b.visibility === 'public' ? 'Bloqueado: ya no puede participar' : 'Bloqueado: ya no puede entrar al buzón'); load(); }}>
-                  <a style={{ color: '#cf1322', fontSize: 14 }}>Bloquear</a>
+                  <span><Tooltip title="Bloquear"><button type="button" className="bx-icon-btn bx-icon-danger" aria-label={'Bloquear a ' + m.name} style={{ width: 30, height: 30 }}><BlockIcon /></button></Tooltip></span>
                 </Popconfirm>
               )}
               <Popconfirm title={`¿Eliminar a ${m.name} de la Comunidad?`}
@@ -453,7 +460,7 @@ function Community({ api }: { api: BoardApi }) {
                   if (r?.domain) toast.info('Tiene un email de un dominio permitido, así que puede volver a entrar. Para impedirlo, bloquealo.');
                   load(); api.reload();
                 }}>
-                <a className="bx-link-muted" style={{ fontSize: 14 }}>Eliminar</a>
+                <span><Tooltip title="Eliminar de la Comunidad"><button type="button" className="bx-icon-btn bx-icon-danger" aria-label={'Eliminar a ' + m.name} style={{ width: 30, height: 30 }}><TrashIcon /></button></Tooltip></span>
               </Popconfirm>
             </div>
           </div>
