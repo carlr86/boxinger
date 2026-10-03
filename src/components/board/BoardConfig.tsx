@@ -222,9 +222,17 @@ function Categories({ api }: { api: BoardApi }) {
                     <span style={{ fontSize: 14 }}>{c.name}</span>
                     <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{n === 0 ? 'Sin ideas' : plural(n, 'idea', 'ideas')}</span>
                   </div>
-                  <a onClick={() => { setEdit(c.id); setEditVal(c.name); }} style={{ fontSize: 14 }}>Editar</a>
-                  <a onClick={() => (only ? toast.info('El buzón necesita al menos 1 categoría') : (setDel(c.id), setMoveTo('')))} title={only ? 'El buzón necesita al menos 1 categoría' : ''}
-                    style={{ fontSize: 14, color: only ? 'rgba(0,0,0,0.25)' : '#cf1322', cursor: only ? 'not-allowed' : 'pointer' }}>Eliminar</a>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Tooltip title="Editar nombre">
+                      <button type="button" className="bx-icon-btn" aria-label={'Editar ' + c.name} style={{ width: 30, height: 30 }}
+                        onClick={() => { setEdit(c.id); setEditVal(c.name); }}><PencilIcon /></button>
+                    </Tooltip>
+                    <Tooltip title={only ? 'El buzón necesita al menos 1 categoría' : 'Eliminar categoría'}>
+                      <button type="button" className={'bx-icon-btn' + (only ? '' : ' bx-icon-danger')} aria-label={'Eliminar ' + c.name} aria-disabled={only}
+                        style={{ width: 30, height: 30, opacity: only ? 0.4 : 1, cursor: only ? 'not-allowed' : 'pointer' }}
+                        onClick={() => (only ? toast.info('El buzón necesita al menos 1 categoría') : (setDel(c.id), setMoveTo('')))}><TrashIcon /></button>
+                    </Tooltip>
+                  </div>
                 </>
               )}
             </div>
@@ -315,6 +323,7 @@ function AllowedDomains({ api }: { api: BoardApi }) {
   );
 }
 
+const PencilIcon = () => (<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>);
 const BlockIcon = () => (<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden><circle cx="8" cy="8" r="5.8" stroke="currentColor" strokeWidth="1.5" /><path d="M3.9 12.1l8.2-8.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>);
 const TrashIcon = () => (<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 4h11M6.5 4V2.7h3V4M4 4l.7 9.3h6.6L12 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /><path d="M6.7 6.6v4.4M9.3 6.6v4.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>);
 const UnlockIcon = () => (<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" /><path d="M5.5 7V5a2.5 2.5 0 014.8-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>);
