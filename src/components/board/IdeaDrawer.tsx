@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Drawer, Popconfirm, Tooltip } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Avatar, Bar, Choice, Dots, Help, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE, VOTE_KEYS, statusTone } from '@/lib/constants';
+import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { dshort, exact, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail } from '@/lib/types';
@@ -117,7 +117,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
           <div style={{ display: 'flex', gap: 32 }}>
             <Big l="Votos" v={i.votes} />
             <Big l="Comentarios" v={commentsCount} />
-            {team && <Big l="Puntaje" v={i.score ?? 0} color="#059669" help={<>Suma de los votos: <b>Importante</b> 2 puntos, <b>Interesante</b> 1 y <b>No importante</b> 0. Ordena el Ranking; si hay empate, gana la de más votos Importante. Solo lo ve el Equipo.</>} />}
+            {team && <Big l="Puntaje" v={i.score ?? 0} color="#059669" help={<>Suma de los votos: <b>{api.voteL('importante')}</b> 2 puntos, <b>{api.voteL('interesante')}</b> 1 y <b>{api.voteL('no_importante')}</b> 0. Ordena el Ranking; si hay empate, gana la de más votos {api.voteL('importante')}. Solo lo ve el Equipo.</>} />}
           </div>
           {team && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#fafafa', borderRadius: 8, padding: '14px 16px' }}>
@@ -126,7 +126,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                 const n = i[k] || 0;
                 return (
                   <div key={k} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 28px', gap: 10, alignItems: 'center', fontSize: 13 }}>
-                    <span>{VOTE[k]}</span><Bar pct={Math.round((n / total) * 100) + '%'} color={col} h={6} track="#ebebeb" />
+                    <span>{api.voteL(k)}</span><Bar pct={Math.round((n / total) * 100) + '%'} color={col} h={6} track="#ebebeb" />
                     <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{n}</span>
                   </div>
                 );
@@ -144,7 +144,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                     return (
                       <button key={k} type="button" onClick={() => api.vote(i.id, k).then(load)}
                         style={{ flex: 1, border: 0, cursor: 'pointer', fontSize: 14, padding: '6px 10px', borderRadius: 4, background: on ? '#059669' : 'transparent', color: on ? '#fff' : 'rgba(0,0,0,0.65)', boxShadow: on ? '0 1px 2px rgba(0,0,0,0.1)' : 'none', fontWeight: on ? 600 : 400 }}>
-                        {VOTE[k]}
+                        {api.voteL(k)}
                       </button>
                     );
                   })}

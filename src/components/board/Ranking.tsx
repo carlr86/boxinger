@@ -46,7 +46,7 @@ export function Ranking({ api }: { api: BoardApi }) {
       </div>
       {api.isTeam && (
         <p style={{ margin: 0, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-          Puntaje: Importante 2 · Interesante 1 · No importante 0. Desempate por más votos Importante, más votos totales y antigüedad.
+          Puntaje: {api.voteL('importante')} 2 · {api.voteL('interesante')} 1 · {api.voteL('no_importante')} 0. Desempate por más votos {api.voteL('importante')}, más votos totales y antigüedad.
         </p>
       )}
     </>

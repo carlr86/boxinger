@@ -29,6 +29,7 @@ La clave `service_role` se usa solo en el servidor: webhooks de pago, job diario
 | Visitante | Sin sesión | Ver Buzón, Ranking y Backlog de buzones públicos. Los buzones solo para invitados y privados no muestran nada, ni el nombre. |
 
 **Permisos configurables**
+- Nombres de los votos: cada buzón puede renombrar las 3 opciones (`set_vote_labels`, 2 a 16 caracteres, distintas; `boards.vote_labels` guarda solo las cambiadas). El puntaje no cambia (2 / 1 / 0).
 - Votos: cualquiera con acceso vota cualquier idea abierta (Pendiente o En revisión) salvo las propias; el Equipo también vota las ideas de otros miembros. Comentar se puede en todas, incluidas las propias.
 - Roadmap para invitados: `boards.guests_can_view_roadmap` (apagado por defecto, Pro, no en privados; `set_board_roadmap_public`). Si está activo, quien no es del Equipo ve la pestaña Roadmap en solo lectura: `idea_json` le agrega `rm_col`, `rm_order`, `dev_status` y `launched_at`, nunca prioridad, impacto, esfuerzo, puntaje, diseño, PRD ni Growth.
 - Comunidad: el Equipo puede **eliminar** a un invitado (`remove_board_guest`: deja de ver el buzón, se revocan sus invitaciones; puede volver a ser invitado o pedir acceso; si su email es de un dominio permitido puede volver a entrar y se avisa) o **bloquearlo** (`set_guest_status`: no entra ni puede pedir acceso). El invitado puede **salir** solo (`leave_board`), salvo que esté bloqueado. Su contenido queda siempre.

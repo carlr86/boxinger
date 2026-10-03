@@ -28,6 +28,8 @@ export const ORIGIN: Record<string, Tone> = {
 };
 
 export const VOTE: Record<string, string> = { importante: 'Importante', interesante: 'Interesante', no_importante: 'No importante' };
+/** Board-renamed vote options: 2 to 16 characters each, so the three fit side by side. */
+export const VOTE_LABEL_MIN = 2, VOTE_LABEL_MAX = 16;
 export const VOTE_KEYS = ['importante', 'interesante', 'no_importante'] as const;
 
 export const PRIO: Record<string, Tone> = {

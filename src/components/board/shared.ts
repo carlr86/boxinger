@@ -12,6 +12,7 @@ export interface BoardApi {
   canWrite: boolean;
   me: BoardData['me'];
   catL: (id: string) => string;
+  voteL: (k: string) => string; // vote option name for this board
   cats: Category[];
   reload: () => Promise<void>;
   patchIdea: (id: number, patch: Partial<Idea>) => void;

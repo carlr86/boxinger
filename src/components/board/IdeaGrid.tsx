@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE, VOTE_KEYS, statusTone } from '@/lib/constants';
+import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { dshort, exact, relShort } from '@/lib/format';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
@@ -200,7 +200,7 @@ function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
   const vm = voteMode(api, i);
   const mine = vm === 'can' ? i.my_vote : null;
   const disabled = vm === 'closed' || vm === 'own';
-  const label = vm === 'closed' ? 'Votación cerrada' : vm === 'own' ? 'Tu idea' : mine ? 'Votaste: ' + VOTE[mine] : 'Votar';
+  const label = vm === 'closed' ? 'Votación cerrada' : vm === 'own' ? 'Tu idea' : mine ? 'Votaste: ' + api.voteL(mine) : 'Votar';
   const voteBtn = (
     <button type="button" disabled={disabled}
       onClick={(e) => { e.stopPropagation(); if (vm === 'login') api.goLogin(true); }}
@@ -217,7 +217,7 @@ function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
           {VOTE_KEYS.map((k) => (
             <div key={k} className="bx-item" onClick={() => { setPop(false); api.vote(i.id, k); }}
               style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: mine === k ? '#d1fae5' : undefined, color: mine === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>
-              {VOTE[k]}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? 'Tu voto' : ''}</span>
+              {api.voteL(k)}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? 'Tu voto' : ''}</span>
             </div>
           ))}
           {mine && (

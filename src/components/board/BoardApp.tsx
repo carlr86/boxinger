@@ -5,7 +5,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { Note } from '@/components/ui';
 import { useSession, useToast } from '@/components/Providers';
 import { rpc, flushEmails } from '@/lib/rpc';
-import { IDEA_STATUS } from '@/lib/constants';
+import { IDEA_STATUS, VOTE } from '@/lib/constants';
 import type { BoardData, Idea } from '@/lib/types';
 import { IdeaGrid, useGridCols } from './IdeaGrid';
 import { Ranking } from './Ranking';
@@ -104,11 +104,12 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const patchIdea = (id: number, patch: Partial<Idea>) => setData((d) => ({ ...d, ideas: d.ideas.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
 
   const cats = data.categories;
+  const voteL = useCallback((k: string) => b.vote_labels?.[k] || VOTE[k] || k, [b.vote_labels]);
   const catL = useMemo(() => { const m = new Map(cats.map((c) => [c.id, c.name])); return (id: string) => m.get(id) || 'Sin categoría'; }, [cats]);
 
   const api: BoardApi = {
     data, isTeam, isAdmin: data.perms ? data.perms.can_manage : role === 'admin', canCreate: canWrite && (data.perms ? data.perms.can_create_ideas : true),
-    pro: b.pro, canWrite, me: data.me, cats, catL,
+    pro: b.pro, canWrite, me: data.me, cats, catL, voteL,
     reload, patchIdea, openIdea, goLogin, run,
     goPro: () => router.push('/app/perfil?tab=sub'),
     setView,
@@ -128,7 +129,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
       if (!data.me) return goLogin(true);
       const cur = data.ideas.find((i) => i.id === id);
       if (cur) patchIdea(id, { my_vote: value as Idea['my_vote'], votes: cur.votes + (value && !cur.my_vote ? 1 : !value && cur.my_vote ? -1 : 0) });
-      const r = await run(rpc('vote', { p_idea: id, p_value: value }), value ? 'Votaste: ' + { importante: 'Importante', interesante: 'Interesante', no_importante: 'No importante' }[value] : 'Quitaste tu voto');
+      const r = await run(rpc('vote', { p_idea: id, p_value: value }), value ? 'Votaste: ' + voteL(value) : 'Quitaste tu voto');
       if (r === undefined || !role) refreshCtx();
       reload();
     },

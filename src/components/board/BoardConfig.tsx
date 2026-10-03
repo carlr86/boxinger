@@ -10,7 +10,7 @@ import { rel, plural } from '@/lib/format';
 import type { BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
-import { VISIBILITY } from '@/lib/constants';
+import { VISIBILITY, VOTE, VOTE_KEYS, VOTE_LABEL_MAX, VOTE_LABEL_MIN } from '@/lib/constants';
 
 type Tab = 'general' | 'cats' | 'com';
 const SUB: Record<Tab, string> = {
@@ -121,6 +121,10 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
+      <Section title="Opciones de voto" desc={`Cómo se llaman los tres votos en este buzón (de ${VOTE_LABEL_MIN} a ${VOTE_LABEL_MAX} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.`}>
+        <VoteLabels api={api} />
+      </Section>
+
       <Section title="Qué ven los invitados" desc="Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.">
         <Options>
           {b.visibility === 'private' ? (
@@ -141,6 +145,49 @@ function General({ api }: { api: BoardApi }) {
       <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
         onClose={() => setVisOpen(false)} onDone={() => api.reload()} onGoPro={api.goPro} />
     </div>
+  );
+}
+
+/** Rename the three vote options of a board (scoring stays 2 / 1 / 0). */
+function VoteLabels({ api }: { api: BoardApi }) {
+  const b = api.data.board;
+  const init = () => Object.fromEntries(VOTE_KEYS.map((k) => [k, b.vote_labels?.[k] || ''])) as Record<string, string>;
+  const [v, setV] = useState(init);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setV(init()); }, [b.vote_labels]); // eslint-disable-line react-hooks/exhaustive-deps
+  const name = (k: string) => v[k].trim() || VOTE[k];
+  const tooLong = VOTE_KEYS.some((k) => v[k].trim() && (v[k].trim().length < VOTE_LABEL_MIN || v[k].trim().length > VOTE_LABEL_MAX));
+  const changed = VOTE_KEYS.some((k) => name(k) !== (b.vote_labels?.[k] || VOTE[k]));
+  async function save(labels: Record<string, string>, msg: string) {
+    setBusy(true);
+    const r = await api.run(rpc('set_vote_labels', { p_board: b.id, p_labels: labels }), msg);
+    setBusy(false);
+    if (r !== undefined) api.reload();
+  }
+  return (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,180px),1fr))', gap: 12 }}>
+        {VOTE_KEYS.map((k, n) => (
+          <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+            {['Primera', 'Segunda', 'Tercera'][n]} opción · {2 - n} {n === 1 ? 'punto' : 'puntos'}
+            <input className="bx-input" value={v[k]} maxLength={VOTE_LABEL_MAX} placeholder={VOTE[k]} onChange={(e) => setV({ ...v, [k]: e.target.value })} />
+          </label>
+        ))}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Así lo ve quien vota:</span>
+        <div style={{ display: 'flex', gap: 4, padding: 3, background: 'rgba(0,0,0,0.06)', borderRadius: 8, maxWidth: 440 }}>
+          {VOTE_KEYS.map((k, n) => (
+            <span key={k} style={{ flex: 1, minWidth: 0, textAlign: 'center', fontSize: 13, padding: '6px 8px', borderRadius: 6, background: n === 0 ? '#059669' : 'transparent', color: n === 0 ? '#fff' : 'rgba(0,0,0,0.65)', fontWeight: n === 0 ? 600 : 400, overflowWrap: 'anywhere' }}>{name(k)}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button type="button" className="bx-btn-primary" disabled={busy || !changed || tooLong} onClick={() => save(v, 'Opciones de voto guardadas')}>Guardar opciones</button>
+        {Object.keys(b.vote_labels || {}).length > 0 && <a className="bx-link-muted" onClick={() => save({}, 'Opciones de voto restauradas')}>Restaurar las originales</a>}
+        {tooLong && <span style={{ fontSize: 13, color: '#cf1322' }}>Cada opción debe tener entre {VOTE_LABEL_MIN} y {VOTE_LABEL_MAX} caracteres.</span>}
+      </div>
+    </>
   );
 }
 

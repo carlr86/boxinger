@@ -71,6 +71,7 @@ export interface BoardInfo {
   guests_can_view_roadmap: boolean; // effective (setting on, Pro, not private)
   roadmap_setting: boolean; // the raw board setting
   takes_requests: boolean; // invite-only + Pro: people without access can ask to join
+  vote_labels: Record<string, string>; // renamed vote options; missing keys use VOTE
   pending_requests: number | null; // only for whoever manages the board
 }
 export interface BoardData {
