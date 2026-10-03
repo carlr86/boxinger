@@ -35,6 +35,8 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const first = parse(path);
   const [view, setViewState] = useState<View>(first.view);
   const [selId, setSelId] = useState<number | null>(first.idea);
+  // A link to another view of this same board (e.g. from a notification) re-renders the page with a new path.
+  useEffect(() => { const p = parse(path); setViewState(p.view); setSelId(p.idea); }, [path]);
   const [form, setForm] = useState<{ open: boolean; idea: Idea | null }>({ open: false, idea: null });
   const [rejectFor, setRejectFor] = useState<number | null>(null);
   const version = useRef(initial.board.version);

@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Modal, Popconfirm } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -19,8 +20,10 @@ const SUB: Record<Tab, string> = {
 };
 
 export function BoardConfig({ api }: { api: BoardApi }) {
-  // ?seccion=comunidad (link from the access-request email) opens the Community tab.
-  const [tab, setTab] = useState<Tab>(() => (!api.isAdmin || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('seccion') === 'comunidad') ? 'com' : 'general'));
+  // ?seccion=comunidad (access-request email and notifications) opens the Community tab.
+  const seccion = useSearchParams().get('seccion');
+  const [tab, setTab] = useState<Tab>(!api.isAdmin || seccion === 'comunidad' ? 'com' : 'general');
+  useEffect(() => { if (seccion === 'comunidad') setTab('com'); }, [seccion]);
   const pend = api.data.board.pending_requests || 0;
   const comL = pend ? `Comunidad (${pend})` : 'Comunidad';
   const tabs: [Tab, string][] = api.isAdmin ? [['general', 'General'], ['cats', 'Categorías'], ['com', comL]] : [['com', comL]];
