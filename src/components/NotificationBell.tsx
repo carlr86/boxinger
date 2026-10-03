@@ -54,6 +54,7 @@ export function NotificationBell() {
   const { ctx, setCtx } = useSession();
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<Notice[] | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
   const unread = ctx?.unread_notifications || 0;
   const setUnread = useCallback((n: number) => setCtx((c) => (c && c.unread_notifications !== n ? { ...c, unread_notifications: n } : c)), [setCtx]);
 
@@ -66,7 +67,7 @@ export function NotificationBell() {
   }, [setUnread]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setConfirmClear(false); return; }
     rpc<Notice[]>('get_notifications', { p_limit: 30 }).then(setList).catch(() => setList([]));
   }, [open]);
 
@@ -74,6 +75,17 @@ export function NotificationBell() {
     setList((l) => l?.map((n) => ({ ...n, read: true })) ?? l);
     setUnread(0);
     await rpc('mark_notifications_read', { p_ids: null }).catch(() => {});
+  }
+  async function clearAll() {
+    setList([]);
+    setUnread(0);
+    setConfirmClear(false);
+    await rpc('delete_notifications', { p_ids: null }).catch(() => {});
+  }
+  async function remove(n: Notice) {
+    setList((l) => l?.filter((x) => x.id !== n.id) ?? l);
+    if (!n.read) setUnread(Math.max(0, unread - 1));
+    await rpc('delete_notifications', { p_ids: [n.id] }).catch(() => {});
   }
   async function go(n: Notice, href: string) {
     setOpen(false);
@@ -91,11 +103,30 @@ export function NotificationBell() {
         <div style={{ width: 360, maxWidth: 'calc(100vw - 24px)', background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, display: 'flex', flexDirection: 'column', maxHeight: '70vh' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
             <span style={{ fontSize: 15, fontWeight: 600 }}>Notificaciones</span>
-            {list?.some((n) => !n.read) && <a onClick={markAll} style={{ fontSize: 13, color: '#059669' }}>Marcar todo como leído</a>}
+            {!!list?.length && (confirmClear ? (
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13 }}>
+                <span style={{ color: 'rgba(0,0,0,0.65)' }}>¿Vaciar todas?</span>
+                <a onClick={clearAll} style={{ color: '#cf1322' }}>Vaciar</a>
+                <a onClick={() => setConfirmClear(false)} className="bx-link-muted">Cancelar</a>
+              </span>
+            ) : (
+              <span style={{ display: 'flex', gap: 14, alignItems: 'center', fontSize: 13 }}>
+                {list.some((n) => !n.read) && <a onClick={markAll} style={{ color: '#059669' }}>Marcar como leídas</a>}
+                <a onClick={() => setConfirmClear(true)} className="bx-link-muted">Vaciar</a>
+              </span>
+            ))}
           </div>
           <div style={{ overflowY: 'auto' }}>
             {list === null && <div style={{ padding: 24, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Cargando…</div>}
-            {list && list.length === 0 && <div style={{ padding: '32px 24px', textAlign: 'center', fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>No tenés notificaciones.</div>}
+            {list && list.length === 0 && (
+              <div style={{ padding: '36px 24px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+                <span style={{ width: 48, height: 48, borderRadius: '50%', background: '#f0fdf6', color: '#059669', display: 'grid', placeItems: 'center' }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M6 9a6 6 0 1112 0c0 4.5 1.5 6 2 7H4c.5-1 2-2.5 2-7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M10 19.5a2 2 0 004 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                </span>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(0,0,0,0.85)' }}>Estás al día</span>
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', maxWidth: 260 }}>Acá te avisamos cuando haya ideas nuevas, comentarios, cambios de estado o solicitudes de acceso.</span>
+              </div>
+            )}
             {list?.map((n) => {
               const { text, href } = describe(n);
               return (
@@ -106,6 +137,9 @@ export function NotificationBell() {
                     <span style={{ fontSize: 14, lineHeight: 1.45, color: 'rgba(0,0,0,0.85)', overflowWrap: 'anywhere' }}>{text}</span>
                     <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{s(n.payload.board_name)}{n.payload.board_name ? ' · ' : ''}{rel(n.created_at)}</span>
                   </div>
+                  <button type="button" aria-label="Eliminar notificación" title="Eliminar" className="bx-notif-del"
+                    onClick={(e) => { e.stopPropagation(); remove(n); }}
+                    style={{ flex: 'none', width: 24, height: 24, border: 0, borderRadius: 4, background: 'transparent', color: 'rgba(0,0,0,0.35)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
                 </div>
               );
             })}

@@ -18,6 +18,7 @@ html{scroll-behavior:smooth}
 .bx-icon-btn:hover{border-color:#059669;color:#059669}
 .bx-icon-btn.bx-icon-danger:hover{border-color:#ff4d4f;color:#cf1322}
 .bx-card{position:relative;background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:box-shadow .2s}
+.bx-notif-del:hover{background:rgba(0,0,0,0.06)!important;color:#cf1322!important}
 .bx-idea-row{transition:background .15s}
 .bx-idea-row:hover{background:#fafafa}
 .bx-rm-card{transition:border-color .2s}
