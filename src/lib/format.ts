@@ -17,7 +17,8 @@ const ts = (d: string | number | Date) => (d instanceof Date ? d.getTime() : typ
 
 export function rel(d: string | number | Date): string {
   const m = (Date.now() - ts(d)) / 6e4;
-  if (m < 60) return 'hace unos minutos';
+  if (m < 1) return 'recién';
+  if (m < 60) return 'hace ' + Math.floor(m) + ' min';
   const h = m / 60;
   if (h < 24) return 'hace ' + Math.floor(h) + (Math.floor(h) === 1 ? ' hora' : ' horas');
   const days = Math.floor(h / 24);
