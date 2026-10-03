@@ -21,6 +21,7 @@ type ModalState =
   | { type: 'rename'; board: BoardCard }
   | { type: 'renameTeam'; team: TeamCtx }
   | { type: 'delete'; board: BoardCard }
+  | { type: 'leave'; board: BoardCard }
   | { type: 'guests'; board: BoardCard }
   | { type: 'access'; board: BoardCard; team: TeamCtx }
   | null;
@@ -81,6 +82,7 @@ export function BoardsPage() {
     const memberN = t ? t.members.filter((m) => m.role !== 'admin').length : 0;
     const items = [
       { key: 'detail', label: 'Ver detalle del buzón', onClick: () => setDetail(b) },
+      ...(!guestOnly ? [{ key: 'config', label: 'Configuración del buzón', onClick: () => router.push('/app/b/' + b.slug + '/config') }] : []),
       ...(admin ? [{ key: 'rename', label: 'Cambiar nombre', onClick: () => setModal({ type: 'rename', board: b }) }] : []),
       { key: 'url', label: 'Compartir URL del buzón', onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
       ...(!guestOnly ? [{ key: 'guests', label: b.visibility === 'invite' ? 'Invitar personas' : 'Compartir link a invitados', disabled: priv, title: priv ? 'Los buzones privados no admiten invitados' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
@@ -88,6 +90,7 @@ export function BoardsPage() {
       ...(admin ? [{ key: 'access', label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>Acceso de miembros <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: t! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
       { key: 'fav', label: b.fav ? 'Quitar de favoritos' : 'Agregar a favoritos', onClick: () => fav(b) },
       ...(admin ? [{ type: 'divider' as const }, { key: 'delete', label: 'Eliminar buzón', danger: true, onClick: () => setModal({ type: 'delete', board: b }) }] : []),
+      ...(guestOnly ? [{ type: 'divider' as const }, { key: 'leave', label: 'Salir del buzón', danger: true, onClick: () => setModal({ type: 'leave', board: b }) }] : []),
     ];
     return (
       <div key={b.id} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -335,6 +338,14 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     );
     okL = 'Eliminar'; danger = true;
     ok = () => { setTried(true); if (match) exec(() => rpc('delete_board', { p_board: b.id, p_confirm: input.trim() }), 'Buzón eliminado'); };
+  } else if (t === 'leave' && modal?.type === 'leave') {
+    const b = modal.board;
+    title = 'Salir del buzón';
+    text = b.visibility === 'public'
+      ? `Dejás de ser parte de la Comunidad de ${b.name} y deja de aparecer en Mis Buzones. Tus ideas y comentarios quedan publicados. Podés volver a sumarte con el link.`
+      : `Dejás de ver ${b.name} y deja de aparecer en Mis Buzones. Tus ideas y comentarios quedan publicados. Para volver, te tienen que invitar de nuevo o podés pedir acceso.`;
+    okL = 'Salir'; danger = true;
+    ok = () => exec(() => rpc('leave_board', { p_board: b.id }), 'Saliste de ' + b.name);
   } else if (t === 'guests' && modal?.type === 'guests') {
     const b = modal.board;
     const inv = b.visibility === 'invite';

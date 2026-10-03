@@ -431,14 +431,28 @@ function Community({ api }: { api: BoardApi }) {
               <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email} · se unió {rel(m.joined_at)}</span>
             </div>
             {m.status === 'blocked' && <span style={{ fontSize: 12, color: '#cf1322' }}>Bloqueado</span>}
-            {m.status === 'blocked' ? (
-              <a style={{ color: '#059669', fontSize: 14 }} onClick={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'active' }), 'Miembro desbloqueado'); load(); }}>Desbloquear</a>
-            ) : (
-              <Popconfirm title={`¿Bloquear a ${m.name}?`} description="Deja de poder participar. Su contenido queda visible." okText="Bloquear" cancelText="Cancelar" okButtonProps={{ danger: true }}
-                onConfirm={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'blocked' }), 'Miembro bloqueado: ya no puede participar'); load(); }}>
-                <a style={{ color: '#cf1322', fontSize: 14 }}>Bloquear</a>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              {m.status === 'blocked' ? (
+                <a style={{ color: '#059669', fontSize: 14 }} onClick={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'active' }), 'Miembro desbloqueado'); load(); }}>Desbloquear</a>
+              ) : (
+                <Popconfirm title={`¿Bloquear a ${m.name}?`}
+                  description={b.visibility === 'public' ? 'Deja de poder votar, comentar y cargar ideas. Su contenido queda visible.' : 'Deja de ver el buzón y no puede volver a entrar ni pedir acceso. Su contenido queda visible.'}
+                  okText="Bloquear" cancelText="Cancelar" okButtonProps={{ danger: true }}
+                  onConfirm={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'blocked' }), b.visibility === 'public' ? 'Bloqueado: ya no puede participar' : 'Bloqueado: ya no puede entrar al buzón'); load(); }}>
+                  <a style={{ color: '#cf1322', fontSize: 14 }}>Bloquear</a>
+                </Popconfirm>
+              )}
+              <Popconfirm title={`¿Eliminar a ${m.name} de la Comunidad?`}
+                description={b.visibility === 'public' ? 'Deja de ser parte de la Comunidad. Puede volver a sumarse con el link. Su contenido queda visible.' : 'Deja de ver el buzón. Más adelante puede volver a pedir acceso o lo podés invitar de nuevo. Su contenido queda visible.'}
+                okText="Eliminar" cancelText="Cancelar" okButtonProps={{ danger: true }}
+                onConfirm={async () => {
+                  const r = await api.run(rpc<{ domain: boolean }>('remove_board_guest', { p_board: b.id, p_user: m.user_id }), `${m.name} ya no es parte de la Comunidad`);
+                  if (r?.domain) toast.info('Tiene un email de un dominio permitido, así que puede volver a entrar. Para impedirlo, bloquealo.');
+                  load(); api.reload();
+                }}>
+                <a className="bx-link-muted" style={{ fontSize: 14 }}>Eliminar</a>
               </Popconfirm>
-            )}
+            </div>
           </div>
         ))}
       </div>
