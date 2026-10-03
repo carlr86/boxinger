@@ -7,6 +7,7 @@ import { useSession, useToast } from '@/components/Providers';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar } from '@/components/ui';
 import { Logo } from '@/components/SimpleHeader';
+import { NotificationBell } from '@/components/NotificationBell';
 import { planTone, SHADOW_POP } from '@/lib/constants';
 import type { BoardCard } from '@/lib/types';
 
@@ -23,14 +24,13 @@ const Check = () => (
 export type HeaderBoard = { id: string; name: string; color: string; isTeam: boolean };
 export type HeaderTab = { key: string; label: string };
 
-export function AppHeader({ board, tabs, view, onTab, onConfig, configBadge, loginNext, slogan }: {
+export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, slogan }: {
   board?: HeaderBoard;
   slogan?: string;
   tabs?: HeaderTab[];
   view?: string;
   onTab?: (k: string) => void;
   onConfig?: () => void;
-  configBadge?: number; // pending access requests
   loginNext?: string;
 }) {
   const router = useRouter();
@@ -85,14 +85,12 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, configBadge, log
       ) : <div style={{ flex: 1 }} />}
       <div className="bx-ah-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', marginLeft: 'auto' }}>
         {onConfig && (
-          <button type="button" onClick={onConfig} title={configBadge ? `Configuración del buzón · ${configBadge} solicitud${configBadge > 1 ? 'es' : ''} de acceso` : 'Configuración del buzón'} className="bx-icon-btn"
-            style={{ position: 'relative', width: 32, height: 32, color: view === 'config' ? '#059669' : 'rgba(0,0,0,0.65)' }}>
+          <button type="button" onClick={onConfig} title="Configuración del buzón" className="bx-icon-btn"
+            style={{ width: 32, height: 32, color: view === 'config' ? '#059669' : 'rgba(0,0,0,0.65)' }}>
             <Gear />
-            {!!configBadge && (
-              <span style={{ position: 'absolute', top: -6, right: -6, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, background: '#ff4d4f', color: '#fff', fontSize: 10, fontWeight: 600, lineHeight: '16px', textAlign: 'center' }}>{configBadge}</span>
-            )}
           </button>
         )}
+        {me && <NotificationBell />}
         {me ? (
           <Dropdown
             trigger={['click']}

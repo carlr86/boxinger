@@ -21,7 +21,7 @@ const theme = {
   },
 };
 
-type Session = { ctx: MyContext | null; refresh: () => Promise<MyContext | null>; setCtx: (c: MyContext | null) => void };
+type Session = { ctx: MyContext | null; refresh: () => Promise<MyContext | null>; setCtx: React.Dispatch<React.SetStateAction<MyContext | null>> };
 const SessionContext = createContext<Session>({ ctx: null, refresh: async () => null, setCtx: () => {} });
 export const useSession = () => useContext(SessionContext);
 

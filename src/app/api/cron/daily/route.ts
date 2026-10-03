@@ -65,7 +65,11 @@ export async function GET(req: NextRequest) {
     await admin.rpc('notify_super_admins', { p_pref: 'weekly', p_template: 'admin_weekly', p_payload: w, p_dedupe: 'weekly:' + day });
   }
 
-  // 7. Contact-form messages the mailbox could not take.
+  // 7. Read in-app notifications older than 90 days.
+  const { count: oldN } = await admin.from('notifications').delete({ count: 'exact' }).not('read_at', 'is', null).lt('created_at', new Date(now.getTime() - 90 * 864e5).toISOString());
+  log.notifications_deleted = oldN || 0;
+
+  // 7b. Contact-form messages the mailbox could not take.
   log.contact_retried = await retryContacts().catch((e) => { console.error('contact retry', e); return 0; });
 
   // 8. Send everything queued.

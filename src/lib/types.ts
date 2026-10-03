@@ -108,6 +108,7 @@ export interface Subscription {
   deal_type: 'pct' | 'fixed' | null; deal_value: number | null; deal_until: string | null; effective_amount: number;
 }
 export interface MyContext {
+  unread_notifications?: number;
   me: {
     id: string; name: string; email: string; avatar_url: string | null; is_super_admin: boolean; status: string;
     notif: Record<string, boolean>; admin_notif: Record<string, boolean>; created_at: string; providers: string[];

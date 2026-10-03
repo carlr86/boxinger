@@ -52,7 +52,9 @@ export function render(template: string, p: P): { subject: string; html: string 
     case 'idea_launched':
       return {
         subject: `¡Se lanzó "${s(p.title)}"!`,
-        html: layout('Una idea que votaste ya está disponible', `El Equipo de ${esc(p.board_name)} lanzó <b>${esc(p.title)}</b>. Gracias por ayudar a priorizarla.`, { label: 'Ver la idea', url: ideaUrl(p) }),
+        html: p.mine
+          ? layout('Tu idea ya está disponible', `El Equipo de ${esc(p.board_name)} lanzó <b>${esc(p.title)}</b>, la idea que propusiste. ¡Gracias por sumarla!`, { label: 'Ver la idea', url: ideaUrl(p) })
+          : layout('Una idea que votaste ya está disponible', `El Equipo de ${esc(p.board_name)} lanzó <b>${esc(p.title)}</b>. Gracias por ayudar a priorizarla.`, { label: 'Ver la idea', url: ideaUrl(p) }),
       };
     case 'access_request':
       return {
