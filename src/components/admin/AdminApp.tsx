@@ -1,8 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Popconfirm } from 'antd';
-import { CopyOutlined, EditOutlined, ExportOutlined, EyeOutlined, LockOutlined, MailOutlined, SendOutlined, SlidersOutlined, StopOutlined, SwapOutlined, UnlockOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { Popconfirm, Tooltip } from 'antd';
+import { CopyOutlined, EditOutlined, InfoCircleOutlined, ExportOutlined, EyeOutlined, LockOutlined, MailOutlined, SendOutlined, SlidersOutlined, StopOutlined, SwapOutlined, UnlockOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import { rpc } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSession, useToast } from '@/components/Providers';
@@ -267,7 +267,9 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
       {prices.enterprise && (
         <div style={{ borderTop: '1px solid #f0f0f0' }}>
           <PlanPrice plan="Enterprise" cur={cur} p={prices.enterprise} onNew={() => onNew('enterprise')} onCancel={onCancel}
-            note={`Contratadas en la web${cur === 'USD' ? ' (cada precio en dólares tiene su producto en Creem, que se crea solo)' : ''}. Los Enterprise a medida se asignan desde Clientes y no siguen este precio.`} />
+            note={cur === 'USD'
+              ? 'Cuenta las suscripciones Enterprise contratadas en la web con tarjeta internacional. Cada precio en dólares tiene su propio producto en Creem, que se crea solo al primer cobro. Los Enterprise a medida se asignan desde Clientes y no siguen este precio.'
+              : 'Cuenta las suscripciones Enterprise contratadas en la web con Mercado Pago. Los Enterprise a medida se asignan desde Clientes y no siguen este precio.'} />
         </div>
       )}
     </div>
@@ -285,8 +287,14 @@ function PlanPrice({ plan, cur, p, onNew, onCancel, note }: { plan: 'Pro' | 'Ent
         <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={{ alignSelf: 'flex-start' }}><Tag tone={planTone(plan)}>{plan}</Tag></span>
           <span style={{ fontSize: 28, fontWeight: 600 }}>{p.current[cur] != null ? money(cur, Number(p.current[cur])) : '—'}<span style={{ fontSize: 14, fontWeight: 400, color: sec }}> / mes</span></span>
-          <span style={{ fontSize: 12, color: sec }}>{p.current_since[cur] ? `Vigente desde el ${ddmmyyyy(p.current_since[cur])} · ` : ''}{n} {n === 1 ? 'suscripción activa' : 'suscripciones activas'}</span>
-          {note && <span style={{ fontSize: 12, color: sec }}>{note}</span>}
+          <span style={{ fontSize: 12, color: sec, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {p.current_since[cur] ? `Vigente desde el ${ddmmyyyy(p.current_since[cur])} · ` : ''}{n} {n === 1 ? 'suscripción activa' : 'suscripciones activas'}
+            {note && (
+              <Tooltip title={<span style={{ fontSize: 13, lineHeight: 1.5 }}>{note}</span>} trigger={['hover', 'click']} styles={{ root: { maxWidth: 320 } }}>
+                <InfoCircleOutlined aria-label="Más información" style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)', cursor: 'help' }} />
+              </Tooltip>
+            )}
+          </span>
         </div>
         <button type="button" className="bx-btn" onClick={onNew}>Programar nuevo precio</button>
       </div>
