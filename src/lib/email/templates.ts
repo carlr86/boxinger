@@ -27,7 +27,7 @@ function layout(title: string, body: string, cta?: { label: string; url: string 
   return `<!doctype html><html lang="${L}"><body style="margin:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;color:rgba(0,0,0,0.88)">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border:1px solid #f0f0f0;border-radius:8px">
-<tr><td style="padding:24px 32px;border-bottom:1px solid #f0f0f0"><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:6px;background:#059669;color:#fff;font-weight:700">B</span> <span style="font-weight:600;font-size:16px;vertical-align:middle;margin-left:8px">Boxinger</span></td></tr>
+<tr><td style="padding:24px 32px;border-bottom:1px solid #f0f0f0"><img src="${SITE_URL}/logo-email.png" width="28" height="28" alt="" style="display:inline-block;vertical-align:middle;border:0"> <span style="font-weight:600;font-size:16px;vertical-align:middle;margin-left:8px">Boxinger</span></td></tr>
 <tr><td style="padding:28px 32px 8px"><h1 style="margin:0 0 12px;font-size:20px;line-height:1.35;font-weight:600">${title}</h1>
 <div style="font-size:15px;line-height:1.6;color:rgba(0,0,0,0.75)">${body}</div>
 ${cta ? `<p style="margin:24px 0 8px"><a href="${cta.url}" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:15px">${cta.label}</a></p>` : ''}

@@ -4,7 +4,7 @@ import { LanguageSwitch } from '@/components/LanguageSwitch';
 export function Logo({ size = 28, compactOnMobile }: { size?: number; compactOnMobile?: boolean }) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'rgba(0,0,0,0.88)' }}>
-      <span style={{ width: size, height: size, borderRadius: 6, background: '#059669', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15 }}>B</span>
+      <img src="/logo.svg" alt="" width={size} height={size} style={{ display: 'block', flex: 'none' }} />
       <span className={compactOnMobile ? 'bx-hide-mobile' : undefined} style={{ fontWeight: 600, fontSize: 16 }}>Boxinger</span>
     </span>
   );

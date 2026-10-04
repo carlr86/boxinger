@@ -84,7 +84,7 @@ export default async function Landing() {
       <header className={s.header}>
         <div className={s.headerIn}>
           <a href="#top" className={s.brand}>
-            <span className={s.logo}>B</span>
+            <img src="/logo.svg" alt="" width={30} height={30} className={s.logo} />
             <span className={s.brandName}>Boxinger</span>
           </a>
           <nav className={s.nav}>

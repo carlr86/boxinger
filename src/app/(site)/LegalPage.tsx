@@ -10,7 +10,7 @@ export async function LegalPage({ title, updated, children }: { title: string; u
       <header style={{ borderBottom: '1px solid #f0f0f0' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(0,0,0,0.88)' }}>
-            <span style={{ width: 30, height: 30, borderRadius: 7, background: '#059669', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>B</span>
+            <img src="/logo.svg" alt="" width={30} height={30} style={{ display: 'block' }} />
             <span style={{ fontWeight: 600, fontSize: 17 }}>Boxinger</span>
           </Link>
           <LanguageSwitch style={{ marginLeft: 'auto' }} />

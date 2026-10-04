@@ -4,7 +4,7 @@
 .headerIn{max-width:1120px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:24px}
 .brand{display:flex;align-items:center;gap:10px;color:rgba(0,0,0,0.88)}
 .brand:hover{color:rgba(0,0,0,0.88)}
-.logo{width:30px;height:30px;border-radius:7px;background:#059669;color:#fff;display:grid;place-items:center;font-weight:700}
+.logo{width:30px;height:30px;display:block;flex:none}
 .brandName{font-weight:600;font-size:17px}
 .nav{display:flex;gap:24px;flex:1;font-size:14px;flex-wrap:wrap}
 .navLink{color:rgba(0,0,0,0.65)}

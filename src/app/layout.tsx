@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(SITE_URL),
     title: t('Boxinger · Buzón de ideas para equipos de producto'),
     description: t('Boxinger reúne las propuestas de tu comunidad y de tu equipo. La comunidad vota, el equipo revisa y las ideas aprobadas pasan al backlog, la matriz de esfuerzo e impacto y el roadmap.'),
-    icons: { icon: '/favicon.svg' },
+    // Icons come from src/app/favicon.ico, icon.svg and apple-icon.png (made from public/logo.svg).
   };
 }
 

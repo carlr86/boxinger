@@ -190,7 +190,7 @@ export function AdminApp() {
     <div style={{ flex: isMobile ? 1 : 'none', minHeight: 0, display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap', height: isMobile ? 'auto' : '100vh', overflow: isMobile ? 'visible' : 'hidden' }}>
       <aside style={{ background: '#fff', borderRight: '1px solid #f0f0f0', width: isMobile ? '100%' : 220, padding: '16px 8px', display: 'flex', flexDirection: 'column', gap: 4, height: isMobile ? 'auto' : '100%', overflowY: 'auto', flex: 'none' }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 12px 16px', color: 'rgba(0,0,0,0.88)' }}>
-          <span style={{ width: 28, height: 28, borderRadius: 6, background: '#059669', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>B</span>
+          <img src="/logo.svg" alt="" width={28} height={28} style={{ display: 'block' }} />
           <span style={{ fontWeight: 600 }}>Boxinger Admin</span>
         </a>
         <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: 4, flexWrap: 'wrap' }}>
