@@ -172,7 +172,20 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                   onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: !i.hidden }), i.hidden ? 'La idea vuelve a ser visible' : 'Idea oculta para la Comunidad')}>
                   {i.hidden ? t('Mostrar idea') : t('Ocultar idea')}
                 </button>
+                {api.isAdmin && (
+                  <Popconfirm
+                    title={t('¿Eliminar esta idea?')}
+                    description={<span style={{ display: 'block', maxWidth: 280 }}>{t('Se borran también sus votos y comentarios, y no se puede deshacer. Si solo querés que la Comunidad no la vea, usá Ocultar.')}</span>}
+                    okText={t('Eliminar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }} disabled={!api.canWrite}
+                    onConfirm={async () => {
+                      const r = await api.run(rpc('delete_idea', { p_id: i.id }), 'Idea eliminada');
+                      if (r !== undefined) { onClose(); api.reload(); }
+                    }}>
+                    <button type="button" className="bx-btn" disabled={!api.canWrite} style={{ color: '#cf1322', borderColor: '#ffccc7' }}>{t('Eliminar idea')}</button>
+                  </Popconfirm>
+                )}
               </div>
+              {api.isAdmin && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Ocultar la saca de la vista de la Comunidad. Eliminar la borra para siempre: sirve para ideas repetidas.')}</span>}
               {api.pro && i.status === 'aprobada' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Roadmap <ProPill /></span>
