@@ -26,6 +26,6 @@ export type Overview = {
   pro: Client[]; enterprise: number; prices: { USD: number; ARS: number };
 };
 export type Prices = {
-  current: { USD: number; ARS: number }; current_since: { USD: string; ARS: string }; pro_count: { USD: number; ARS: number };
+  current: { USD: number; ARS: number }; current_since: { USD: string; ARS: string }; pro_count: { USD: number; ARS: number }; enterprise_count?: { USD: number; ARS: number };
   rows: { id: string; currency: 'USD' | 'ARS'; amount: number; effective_from: string; scope: 'all' | 'new'; notify: boolean; applied_at: string | null; state: 'current' | 'scheduled' | 'previous' }[];
 };

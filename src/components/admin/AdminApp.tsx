@@ -254,17 +254,27 @@ export function AdminApp() {
 
 const Loading = () => <div style={{ color: sec, fontSize: 14 }}>Cargando…</div>;
 
+/** One card per payment provider (Creem in USD, Mercado Pago in ARS) with both paid plans: Pro and Enterprise. */
 function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; prices: Prices; onNew: () => void; onCancel: (id: string) => void }) {
   const rows = prices.rows.filter((r) => r.currency === cur);
   const n = prices.pro_count[cur];
+  const ne = prices.enterprise_count?.[cur] ?? 0;
+  const subs = (k: number) => `${k} ${k === 1 ? 'suscripción activa' : 'suscripciones activas'}`;
   const ST: Record<string, Tone> = { current: OK, scheduled: { l: 'Programado', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' }, previous: { l: 'Anterior', bg: '#fafafa', bd: '#d9d9d9', fg: sec } };
+  const big = (v: number) => <span style={{ fontSize: 28, fontWeight: 600 }}>{money(cur, v)}<span style={{ fontSize: 14, fontWeight: 400, color: sec }}> / mes</span></span>;
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+      <div style={{ padding: '14px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600 }}>
+        {cur === 'USD'
+          ? <><img src="/pay/creem.svg" alt="Creem" style={{ height: 16, width: 'auto' }} /><span style={{ color: sec, fontWeight: 400 }}>Tarjeta internacional · USD</span></>
+          : <><img src="/pay/mercadopago.svg" alt="" width={20} height={20} />Mercado Pago<span style={{ color: sec, fontWeight: 400 }}>· Argentina · ARS</span></>}
+      </div>
+
+      <div style={{ padding: '18px 24px', display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 14, color: sec }}>Precio vigente del plan Pro · {cur === 'USD' ? 'Tarjeta internacional · Creem (USD)' : 'Mercado Pago (ARS)'}</span>
-          <span style={{ fontSize: 28, fontWeight: 600 }}>{money(cur, Number(prices.current[cur]))}<span style={{ fontSize: 14, fontWeight: 400, color: sec }}> / mes</span></span>
-          <span style={{ fontSize: 12, color: sec }}>Vigente desde el {ddmmyyyy(prices.current_since[cur])} · {n} {n === 1 ? 'suscripción activa' : 'suscripciones activas'}</span>
+          <span style={{ alignSelf: 'flex-start' }}><Tag tone={planTone('Pro')}>Pro</Tag></span>
+          {big(Number(prices.current[cur]))}
+          <span style={{ fontSize: 12, color: sec }}>Vigente desde el {ddmmyyyy(prices.current_since[cur])} · {subs(n)}</span>
         </div>
         <button type="button" className="bx-btn" onClick={onNew}>Programar nuevo precio</button>
       </div>
@@ -272,7 +282,7 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
         <div style={{ borderTop: '1px solid #f0f0f0', overflowX: 'auto' }}>
           <div style={{ minWidth: 520 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1.3fr 110px 80px', background: '#fafafa', borderBottom: '1px solid #f0f0f0', fontSize: 13, fontWeight: 600 }}>
-              {['Precio', 'Desde', 'Aplica a', 'Estado', ''].map((h, k) => <div key={k} style={{ padding: '10px 16px' }}>{h}</div>)}
+              {['Precio Pro', 'Desde', 'Aplica a', 'Estado', ''].map((h, k) => <div key={k} style={{ padding: '10px 16px' }}>{h}</div>)}
             </div>
             {rows.map((r) => (
               <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1.3fr 110px 80px', borderBottom: '1px solid #f0f0f0', fontSize: 13, alignItems: 'center' }}>
@@ -290,6 +300,14 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
           </div>
         </div>
       )}
+
+      <div style={{ padding: '18px 24px', borderTop: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ alignSelf: 'flex-start' }}><Tag tone={planTone('Enterprise')}>Enterprise</Tag></span>
+        {big(cur === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS)}
+        <span style={{ fontSize: 12, color: sec }}>
+          Precio de lista fijo · {subs(ne)} contratadas en la web{cur === 'USD' ? ' (producto «Enterprise Plan» en Creem)' : ''}. Los Enterprise a medida se asignan desde Clientes y no se cobran acá.
+        </span>
+      </div>
     </div>
   );
 }
