@@ -16,6 +16,7 @@ type Rank = { summary: string; candidates: { idea_id: number; reason: string; co
 type Status = {
   enabled: boolean; can_edit: boolean; context: string | null;
   used: { suggest: number; rank: number }; limits: { suggest: number; rank: number };
+  left?: { suggest: number; rank: number }; // smaller of the board's and the whole client's monthly uses left
   last_suggest: { at: string; result: { suggestions: Suggestion[] } } | null;
   last_rank: { at: string; result: Rank } | null;
 };
@@ -82,7 +83,7 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
     finally { setBusy(null); }
   }
 
-  const left = (k: Kind) => (st ? Math.max(0, st.limits[k] - st.used[k]) : 0);
+  const left = (k: Kind) => (!st ? 0 : st.left ? st.left[k] : Math.max(0, st.limits[k] - st.used[k]));
   const ready = !!st?.enabled && !!st.context && st.context.length >= 30 && !editing;
 
   return (

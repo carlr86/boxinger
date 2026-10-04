@@ -121,4 +121,35 @@ await ok('Consumo IA: Enterprise clients without use appear with zeros', async (
 });
 await err('Consumo IA: only the platform admin', () => rpc(owner, 'admin_ai_overview', [null]), 'plataforma');
 
+console.log('\n# monthly limit per client (all boards together)');
+const fin = (b, kind, n) => Promise.all(Array.from({ length: n }, () => rpc(null, 'ai_finish', [b, owner, kind, 'test', 1000, 200, 0.004, '{}'], 'service_role')));
+const b2 = (await rpc(owner, 'create_board', [team, 'Segundo', 'public', true, true])).id;
+const b3 = (await rpc(owner, 'create_board', [team, 'Tercero', 'public', true, true])).id;
+for (const b of [b2, b3]) await rpc(owner, 'set_ai_context', [b, CONTEXT]);
+await ok('defaults: 30 analyses and 20 suggestions per client', async () => {
+  const o = await rpc(root, 'admin_ai_overview', [null]);
+  const l = o.clients.find((x) => x.account_id === acc).limits;
+  eq([l.suggest, l.rank, l.custom], [20, 30, false]);
+});
+await ok('each board shows what is left (board and client)', async () => {
+  await fin(b2, 'rank', 15); await fin(b3, 'rank', 10);
+  eq((await rpc(owner, 'ai_status', [board])).left.rank, 5); // client: 30 - 25
+  eq((await rpc(owner, 'ai_status', [b2])).left.rank, 0); // board: 15 - 15
+});
+await ok('the last client analysis can run', () => begin(owner, 'rank'));
+await err('client limit reached on a board with room left', async () => { await fin(b3, 'rank', 5); return begin(owner, 'rank'); }, 'Tu equipo ya usó todos los análisis');
+await ok('suggestions keep their own client limit', () => begin(owner, 'suggest'));
+await ok('the platform admin raises it for this client', async () => {
+  const l = await rpc(root, 'admin_set_ai_quota', [acc, 40, null]);
+  eq([l.suggest, l.rank, l.custom], [20, 40, true]);
+  eq((await rpc(owner, 'ai_status', [board])).left.rank, 10);
+  await begin(owner, 'rank');
+});
+await ok('back to the default', async () => {
+  await rpc(root, 'admin_set_ai_quota', [acc, null, null]);
+  eq((await rpc(owner, 'ai_status', [board])).left.rank, 0);
+});
+await err('only the platform admin changes it', () => rpc(owner, 'admin_set_ai_quota', [acc, 100, 100]), 'plataforma');
+await err('sane numbers only', () => rpc(root, 'admin_set_ai_quota', [acc, -1, 5]), '1.000');
+
 await done();

@@ -1181,6 +1181,8 @@ export const EN: Record<string, string> = {
   "Ej.: Somos un CRM para inmobiliarias chicas de Argentina. Lo usan agentes desde el celular. Este trimestre queremos que carguen propiedades más rápido y reducir las bajas.": "E.g.: We are a CRM for small real estate agencies. Agents use it from their phones. This quarter we want them to list properties faster and reduce churn.",
   "El Admin del buzón todavía no describió el producto. Cuando lo haga, vas a poder usar el asistente.": "The board's Admin hasn't described the product yet. Once they do, you'll be able to use the assistant.",
   "Ideas del Buzón": "Board ideas",
+  "Tu equipo ya usó todos los análisis de este mes. Se renuevan el día 1.": "Your team has used all of this month's analyses. They renew on the 1st.",
+  "Tu equipo ya usó todas las sugerencias de este mes. Se renuevan el día 1.": "Your team has used all of this month's suggestions. They renew on the 1st.",
   "Idea sugerida por el Asistente IA": "Idea suggested by the AI assistant",
   "IA": "AI",
   "El asistente de IA es solo para el Admin del equipo.": "The AI assistant is only for the team's Admins.",

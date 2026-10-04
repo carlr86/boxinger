@@ -1,19 +1,22 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { Modal } from 'antd';
 import { rpc } from '@/lib/rpc';
 import { Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { planTone } from '@/lib/constants';
 import { ddmmyyyy, rel } from '@/lib/format';
-import { Table, type Col } from './Table';
+import { Table, type Col, type MenuItems } from './Table';
 
 type Board = { board_id: string; name: string; suggest: number; rank: number; cost_usd: number };
-type ClientUse = { account_id: string; name: string; email: string; plan: string; runs: number; suggest: number; rank: number; cost_usd: number; tokens: number; last_at: string | null; boards: Board[] };
+type Limits = { suggest: number; rank: number; custom: boolean };
+type ClientUse = { account_id: string; name: string; email: string; plan: string; runs: number; suggest: number; rank: number; cost_usd: number; tokens: number; last_at: string | null; boards: Board[]; limits: Limits };
 type Overview = {
   month: string;
   months: { month: string; runs: number; cost_usd: number }[];
   totals: { runs: number; suggest: number; rank: number; cost_usd: number; input_tokens: number; output_tokens: number; clients: number };
   clients: ClientUse[];
+  defaults: { suggest: number; rank: number; account_suggest: number; account_rank: number };
 };
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -28,9 +31,12 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
   const toast = useToast();
   const [month, setMonth] = useState<string | null>(null);
   const [d, setD] = useState<Overview | null>(null);
-  useEffect(() => { rpc<Overview>('admin_ai_overview', { p_month: month }).then(setD).catch((e) => toast.err(e)); }, [month]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [quota, setQuota] = useState<ClientUse | null>(null);
+  const load = () => rpc<Overview>('admin_ai_overview', { p_month: month }).then(setD).catch((e) => toast.err(e));
+  useEffect(() => { load(); }, [month]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!d) return <span style={{ fontSize: 14, color: sec }}>Cargando…</span>;
   const t = d.totals;
+  const current = d.month === d.months[0]?.month; // limits apply to the current month
   const max = Math.max(0.0001, ...d.months.map((m) => Number(m.cost_usd)));
 
   const cols: Col<ClientUse>[] = [
@@ -48,6 +54,13 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
     ) : <span style={{ color: sec }}>Sin uso</span> },
     { key: 'rank', title: 'Análisis', width: '100px', sort: (c) => c.rank, render: (c) => num(c.rank) },
     { key: 'suggest', title: 'Sugerencias', width: '110px', sort: (c) => c.suggest, render: (c) => num(c.suggest) },
+    { key: 'quota', title: 'Cupo mensual', width: '150px', sort: (c) => c.limits.rank, render: (c) => (
+      <a onClick={() => setQuota(c)} title="Cambiar cupo" style={{ display: 'flex', flexDirection: 'column', fontSize: 13, color: 'inherit' }}>
+        <span>{current ? `${c.rank} / ${c.limits.rank}` : c.limits.rank} análisis</span>
+        <span>{current ? `${c.suggest} / ${c.limits.suggest}` : c.limits.suggest} sugerencias</span>
+        {c.limits.custom && <span style={{ fontSize: 12, color: '#4338ca' }}>Cupo especial</span>}
+      </a>
+    ) },
     { key: 'tokens', title: 'Tokens', width: '110px', sort: (c) => c.tokens, render: (c) => <span style={{ color: sec }}>{num(c.tokens)}</span> },
     { key: 'cost', title: 'Costo', width: '110px', sort: (c) => Number(c.cost_usd), render: (c) => <b>{usd(c.cost_usd)}</b> },
     { key: 'last', title: 'Último uso', width: '120px', sort: (c) => (c.last_at ? +new Date(c.last_at) : 0), render: (c) => c.last_at ? <span title={ddmmyyyy(c.last_at)}>{rel(c.last_at)}</span> : <span style={{ color: sec }}>—</span> },
@@ -90,7 +103,47 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
         </div>
       </div>
 
-      <Table cols={cols} rows={d.clients} rowKey={(c) => c.account_id} minWidth={1100} empty="Ningún cliente usó el asistente este mes y no hay clientes Enterprise." />
+      <span style={{ fontSize: 13, color: sec }}>
+        Cupo por cliente: {d.defaults.account_rank} análisis y {d.defaults.account_suggest} sugerencias por mes entre todos sus buzones (y hasta {d.defaults.rank} y {d.defaults.suggest} en cada buzón). Tocá el cupo de un cliente para cambiarlo.
+      </span>
+      <Table cols={cols} rows={d.clients} rowKey={(c) => c.account_id} minWidth={1250} menu={(c): MenuItems => [{ key: 'q', label: 'Cambiar cupo', onClick: () => setQuota(c) }, { key: 'd', label: 'Ver cliente', onClick: () => openClient(c.account_id) }]} empty="Ningún cliente usó el asistente este mes y no hay clientes Enterprise." />
+      <QuotaModal client={quota} defaults={d.defaults} onClose={() => setQuota(null)} onDone={() => { setQuota(null); load(); }} />
     </>
+  );
+}
+
+/** A different monthly AI limit for one client; empty fields go back to the default. */
+function QuotaModal({ client, defaults, onClose, onDone }: { client: ClientUse | null; defaults: Overview['defaults']; onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [rank, setRank] = useState('');
+  const [sug, setSug] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (client) { setRank(String(client.limits.rank)); setSug(String(client.limits.suggest)); } }, [client]);
+  const n = (v: string, def: number) => (v.trim() === '' || Number(v) === def ? null : Math.round(Number(v)));
+  const worst = (Number(rank || defaults.account_rank) * 0.16 + Number(sug || defaults.account_suggest) * 0.03);
+  async function save(reset?: boolean) {
+    setBusy(true);
+    try {
+      await rpc('admin_set_ai_quota', { p_account: client!.account_id, p_rank: reset ? null : n(rank, defaults.account_rank), p_suggest: reset ? null : n(sug, defaults.account_suggest) });
+      toast.ok(reset ? 'Cupo por defecto' : 'Cupo actualizado');
+      onDone();
+    } catch (e) { toast.err(e); } finally { setBusy(false); }
+  }
+  return (
+    <Modal open={!!client} onCancel={onClose} footer={null} title={client ? `Cupo de IA · ${client.name}` : ''} width={440} destroyOnHidden>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
+        <span style={{ fontSize: 13, color: sec }}>Por mes, entre todos los buzones del cliente. Por defecto: {defaults.account_rank} análisis y {defaults.account_suggest} sugerencias. Cada buzón sigue teniendo su tope ({defaults.rank} y {defaults.suggest}).</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Análisis por mes<input className="bx-input" type="number" min="0" max="1000" value={rank} onChange={(e) => setRank(e.target.value)} /></label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Sugerencias por mes<input className="bx-input" type="number" min="0" max="1000" value={sug} onChange={(e) => setSug(e.target.value)} /></label>
+        </div>
+        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)', background: '#fafafa', borderRadius: 8, padding: '8px 12px' }}>Costo máximo si usa todo (buzones grandes): {usd(worst)} por mes.</span>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          {client?.limits.custom && <button type="button" className="bx-btn" disabled={busy} onClick={() => save(true)} style={{ marginRight: 'auto' }}>Volver al cupo por defecto</button>}
+          <button type="button" className="bx-btn" onClick={onClose}>Cancelar</button>
+          <button type="button" className="bx-btn-primary" disabled={busy} onClick={() => save()}>Guardar</button>
+        </div>
+      </div>
+    </Modal>
   );
 }
