@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import * as paypal from '@/lib/billing/paypal';
 import { activate, addMonth, cancelled, claimEvent, expired, findAccount, finishEvent, paymentFailed, recordPayment, setPeriodEnd } from '@/lib/billing/service';
+import { reportError } from '@/lib/alerts';
 
 // Configure in developer.paypal.com › App › Webhooks with the events listed in docs/SETUP.md.
 export async function POST(req: NextRequest) {
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     await finishEvent('paypal', event.id);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error('paypal webhook', e);
+    await reportError('webhook-paypal', e, { event: event?.id, type: event?.event_type });
     await finishEvent('paypal', event.id, String((e as Error).message).slice(0, 500));
     return NextResponse.json({ error: 'processing failed' }, { status: 500 });
   }

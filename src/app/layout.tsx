@@ -3,6 +3,7 @@ import './globals.css';
 import { SITE_URL } from '@/lib/env';
 import { getLocale, getT } from '@/lib/i18n/server';
 import { I18nProvider } from '@/lib/i18n/client';
+import { ErrorReporter } from '@/components/ErrorReporter';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getT();
@@ -20,7 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   return (
     <html lang={locale}>
-      <body><I18nProvider locale={locale}>{children}</I18nProvider></body>
+      <body><I18nProvider locale={locale}>{children}<ErrorReporter /></I18nProvider></body>
     </html>
   );
 }

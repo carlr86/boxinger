@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import * as creem from '@/lib/billing/creem';
 import { activate, addMonth, cancelled, claimEvent, currentPrice, expired, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { reportError } from '@/lib/alerts';
 
 // Registered on Creem (webhook "Boxinger") with the checkout/subscription/refund events. See docs/SETUP.md.
 type Obj = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
     await finishEvent('creem', eventId);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error('creem webhook', e);
+    await reportError('webhook-creem', e, { event: eventId, type: body?.eventType });
     await finishEvent('creem', eventId, String((e as Error).message).slice(0, 500));
     return NextResponse.json({ error: 'processing failed' }, { status: 500 });
   }

@@ -35,6 +35,7 @@ export function Dashboard({ period, openClient, openBoard }: { period: '7' | '30
 
   return (
     <>
+      <AppErrors />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 16 }}>
         {([['Cuentas', o.accounts], ['Buzones activos', o.active_boards], ['Ideas', o.ideas], ['Votos', o.votes], ['Comentarios', o.comments]] as const).map(([l, v]) => (
           <div key={l} style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -179,6 +180,48 @@ function Signups() {
               <div style={{ height: x.pro + x.free ? Math.round((x.free / mx) * 110) : 2, background: '#a9cbc2', borderRadius: x.pro ? 0 : '3px 3px 0 0' }} />
             </div>
             <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>{k % step === 0 ? label(x.at) : ''}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type AppError = { id: number; source: string; message: string; detail: Record<string, unknown>; count: number; first_at: string; last_at: string };
+
+/** Open production errors (src/lib/alerts.ts). Hidden when there are none. */
+function AppErrors() {
+  const toast = useToast();
+  const [d, setD] = useState<{ open: number; rows: AppError[] } | null>(null);
+  const [more, setMore] = useState<number | null>(null);
+  const load = () => rpc<{ open: number; rows: AppError[] }>('admin_errors', { p_limit: 20 }).then(setD).catch(() => {});
+  useEffect(() => { load(); }, []);
+  if (!d || d.open === 0) return null;
+  const resolve = async (id: number | null) => {
+    try { await rpc('admin_resolve_error', { p_id: id }); toast.ok(id ? 'Error marcado como resuelto' : 'Errores marcados como resueltos'); load(); } catch (e) { toast.err(e); }
+  };
+  return (
+    <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #ffccc7', padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 16, fontWeight: 600, color: '#cf1322' }}>Errores sin resolver · {d.open}</span>
+        <a onClick={() => resolve(null)} style={{ fontSize: 13 }}>Marcar todos como resueltos</a>
+      </div>
+      <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Fallas de la app en producción. Te llega un email por cada error nuevo (como máximo cada 6 horas si se repite).</span>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {d.rows.map((e) => (
+          <div key={e.id} style={{ borderTop: '1px solid #f0f0f0', padding: '10px 0', display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14 }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+              <Tag tone={{ l: '', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' }}>{e.source}</Tag>
+              <span style={{ flex: 1, minWidth: 200, overflowWrap: 'anywhere' }}>{e.message}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>{e.count > 1 ? e.count + ' veces · ' : ''}{rel(e.last_at)}</span>
+              <a onClick={() => setMore(more === e.id ? null : e.id)} style={{ fontSize: 13 }}>{more === e.id ? 'Ocultar' : 'Detalle'}</a>
+              <a onClick={() => resolve(e.id)} style={{ fontSize: 13 }}>Resuelto</a>
+            </div>
+            {more === e.id && (
+              <pre style={{ margin: 0, fontSize: 12, background: '#fafafa', borderRadius: 6, padding: 10, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 260, overflowY: 'auto' }}>
+                {`Primera vez: ${ddmmyyyy(e.first_at)}\n` + JSON.stringify(e.detail, null, 2)}
+              </pre>
+            )}
           </div>
         ))}
       </div>

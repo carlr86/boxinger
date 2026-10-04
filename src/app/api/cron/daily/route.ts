@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dispatchOutbox } from '@/lib/email/outbox';
 import { syncAmount } from '@/lib/billing/sync';
 import { retryContacts } from '@/lib/email/contact';
+import { reportError } from '@/lib/alerts';
 
 // Daily job, triggered by .github/workflows/daily-cron.yml with Authorization: Bearer $CRON_SECRET.
 export async function GET(req: NextRequest) {
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   for (const p of due || []) {
     if (p.scope === 'all') {
       const { data: subs } = await admin.from('subscriptions').update({ list_amount: p.amount, updated_at: now.toISOString() }).eq('currency', p.currency).eq('plan', 'pro').select('account_id');
-      for (const s of subs || []) await syncAmount(s.account_id).catch((e) => console.error('sync', s.account_id, e));
+      for (const s of subs || []) await syncAmount(s.account_id).catch((e) => reportError('cron-precios', e, { account: s.account_id }));
       log['price_' + p.currency] = subs?.length || 0;
     }
     await admin.from('price_schedule').update({ applied_at: now.toISOString() }).eq('id', p.id);
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
   const { data: ended } = await admin.from('subscriptions').select('account_id').not('deal_type', 'is', null).lt('deal_until', now.toISOString());
   for (const s of ended || []) {
     await admin.from('subscriptions').update({ deal_type: null, deal_value: null, deal_until: null, deal_note: null }).eq('account_id', s.account_id);
-    await syncAmount(s.account_id).catch((e) => console.error('sync', s.account_id, e));
+    await syncAmount(s.account_id).catch((e) => reportError('cron-precios', e, { account: s.account_id }));
   }
   log.deals_ended = ended?.length || 0;
 
@@ -70,7 +71,11 @@ export async function GET(req: NextRequest) {
   log.notifications_deleted = oldN || 0;
 
   // 7b. Contact-form messages the mailbox could not take.
-  log.contact_retried = await retryContacts().catch((e) => { console.error('contact retry', e); return 0; });
+  log.contact_retried = await retryContacts().catch(async (e) => { await reportError('cron-contacto', e); return 0; });
+
+  // 7c. Error log: resolved errors older than 30 days, any older than 90.
+  await admin.from('app_errors').delete().lt('resolved_at', new Date(now.getTime() - 30 * 864e5).toISOString());
+  await admin.from('app_errors').delete().lt('last_at', new Date(now.getTime() - 90 * 864e5).toISOString());
 
   // 8. Send everything queued.
   let sent = 0;

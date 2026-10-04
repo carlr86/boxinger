@@ -110,6 +110,12 @@ Límites anti-bots dentro de las funciones: 5 ideas cada 10 minutos, 30 votos y 
 
 Las funciones de Postgres encolan emails en `email_outbox` respetando las preferencias del usuario. La app los envía por Resend enseguida (`/api/outbox`) y el job diario reintenta los que fallaron. Los emails de Auth (verificación, recuperar contraseña) los manda Supabase por SMTP de Resend.
 
+## Errores en producción
+
+`reportError()` (`src/lib/alerts.ts`) guarda cada error en `app_errors` (el mismo error suma al contador) y le manda un email a `CONTACT_TO`: como máximo uno cada 6 horas por error y 20 por hora en total. Los abiertos se ven en el Panel de Admin › Dashboard, donde se marcan como resueltos.
+
+Lo usan: errores no atrapados del servidor (`src/instrumentation.ts`), los webhooks de Creem, Mercado Pago y PayPal, el checkout y la cancelación, el proceso diario, los emails que fallan 5 veces y los errores del navegador (`ErrorReporter`, `app/error.tsx` y `global-error.tsx` → `/api/client-error`). En desarrollo solo se loguean, salvo con `REPORT_ERRORS=1`.
+
 ## Idioma (español e inglés)
 
 - **Textos:** el español del código es la fuente y la clave: `t('Guardar')` devuelve "Save" en inglés. Las traducciones están en `src/lib/i18n/en.ts`; si falta una, se ve el español. `npm run i18n` lista las que faltan (y `-- --loose` los textos sin envolver).

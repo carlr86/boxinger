@@ -1171,6 +1171,10 @@ export const EN: Record<string, string> = {
   // ── Legales ──
   "Última actualización: {date}": "Last updated: {date}",
   "Términos y condiciones": "Terms and conditions",
+  // ── Errores de la app ──
+  "Algo salió mal": "Something went wrong",
+  "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",
+  "Reintentar": "Retry",
 };
 
 /** Database messages with values inside: regex on the Spanish text → English with $1, $2… */

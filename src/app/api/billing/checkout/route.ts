@@ -8,6 +8,7 @@ import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
 import * as creem from '@/lib/billing/creem';
 import { currentPrice, effectiveAmount, type SubRow } from '@/lib/billing/service';
+import { reportError } from '@/lib/alerts';
 
 // Starts a Pro subscription: Creem (USD, cards worldwide), Mercado Pago (ARS) or PayPal (USD, off).
 // Returns the provider's checkout URL.
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     await admin.from('subscriptions').update({ checkout_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(provider === 'creem' ? { pending_checkout_id: r.id } : {}) }).eq('account_id', acc.id);
     return NextResponse.json({ url: r.url });
   } catch (e) {
-    console.error('checkout', e);
+    await reportError('checkout', e, { provider, account: acc.id });
     return NextResponse.json({ error: 'No pudimos iniciar el pago con ' + ({ paypal: 'PayPal', mercadopago: 'Mercado Pago', creem: 'tarjeta' }[provider]) + '. Probá de nuevo en unos minutos.' }, { status: 502 });
   }
 }

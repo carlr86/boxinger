@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import * as mercadopago from '@/lib/billing/mercadopago';
 import { claimEvent, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
 import { handlePreapproval } from '@/lib/billing/mp-events';
+import { reportError } from '@/lib/alerts';
 
 // Configure in mercadopago.com.ar/developers › Tus integraciones › Webhooks with the
 // "Planes y suscripciones" topics. See docs/SETUP.md.
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     await finishEvent('mercadopago', eventId);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error('mercadopago webhook', e);
+    await reportError('webhook-mercadopago', e, { event: eventId });
     await finishEvent('mercadopago', eventId, String((e as Error).message).slice(0, 500));
     return NextResponse.json({ error: 'processing failed' }, { status: 500 });
   }

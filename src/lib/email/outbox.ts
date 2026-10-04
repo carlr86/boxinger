@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { render } from './templates';
 import { sendSmtp, smtpConfigured } from './smtp';
 import { isLocale, type Locale } from '@/lib/i18n';
+import { reportError } from '@/lib/alerts';
 
 let resend: Resend | null = null;
 const FROM = process.env.EMAIL_FROM || 'Boxinger <hola@boxinger.com>';
@@ -57,6 +58,7 @@ export async function dispatchOutbox(limit = 50): Promise<{ sent: number; failed
     } catch (e) {
       failed++;
       const retry = r.attempts < 5;
+      if (!retry) await reportError('emails', e, { template: r.template, to: r.to_email, attempts: r.attempts, outbox_id: r.id });
       await admin.from('email_outbox').update({
         status: retry ? 'pending' : 'failed',
         last_error: String((e as Error).message).slice(0, 500),

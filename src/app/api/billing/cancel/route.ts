@@ -5,6 +5,7 @@ import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
 import * as creem from '@/lib/billing/creem';
 import { addMonth, cancelled } from '@/lib/billing/service';
+import { reportError } from '@/lib/alerts';
 
 export async function POST() {
   const sb = await createClient();
@@ -33,7 +34,7 @@ export async function POST() {
     await cancelled(acc.id, s.provider_subscription_id, end || addMonth());
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error('cancel', e);
+    await reportError('cancelar-suscripcion', e, { provider: s.provider });
     return NextResponse.json({ error: 'No pudimos cancelar la suscripción. Escribinos a hola@boxinger.com.' }, { status: 502 });
   }
 }
