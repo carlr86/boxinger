@@ -40,11 +40,24 @@
 .mockCard{background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:12px 14px;display:flex;gap:14px;align-items:flex-start}
 .voteBox{flex:none;width:44px;border:1px solid #e6ebe9;border-radius:6px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
 .voteN{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
-.mockBody{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.mockBody{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
 .mockTitle{font-size:14px;font-weight:500}
 .tags{display:flex;gap:6px;flex-wrap:wrap}
 .tag{font-size:12px;line-height:20px;padding:0 7px;border-radius:4px;border:1px solid #d9d9d9;background:#fafafa}
-.mockComments{flex:none;font-size:12px;color:rgba(0,0,0,0.45)}
+.mockComments{display:inline-flex;align-items:center;gap:4px}
+.mockMeta{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(0,0,0,0.5)}
+.mockAvatar{width:18px;height:18px;border-radius:50%;color:#fff;font-size:9px;font-weight:600;display:grid;place-items:center;flex:none}
+.mockDot{color:rgba(0,0,0,0.25)}
+/* Hero mock + the floating AI card over its bottom-right corner (stacked below on phones). */
+.mockWrap{position:relative;padding:0 0 150px}
+.aiCard{position:absolute;right:-12px;bottom:0;width:min(300px,78%);background:#fff;border:1px solid #c7d2fe;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 20px 40px -20px rgba(67,56,202,0.45)}
+.aiHead{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#4338ca}
+.aiPill{margin-left:auto;font-size:11px;font-weight:400;line-height:18px;padding:0 6px;border-radius:4px;border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca}
+.aiLabel{font-size:12px;color:rgba(0,0,0,0.45)}
+.aiTitle{font-size:14px;font-weight:600;line-height:1.4}
+.aiWhy{font-size:12px;line-height:1.5;color:rgba(0,0,0,0.65)}
+.aiFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.aiBtn{font-size:12px;font-weight:500;line-height:26px;padding:0 12px;border-radius:6px;background:#059669;color:#fff}
 
 .section{max-width:1120px;margin:0 auto;padding:88px 24px;width:100%;display:flex;flex-direction:column;gap:40px}
 .sectionHead{display:flex;flex-direction:column;gap:10px;max-width:620px}
@@ -112,6 +125,8 @@
   .contactIn{padding:64px 16px;gap:32px}
   .contactCard{padding:20px}
   .mockTabs span:nth-child(n+3){display:none}
+  .mockWrap{padding:0}
+  .aiCard{position:static;width:auto;margin-top:12px}
 }
 @media (max-width:420px){
   .headerCtas .btnSm{display:none}

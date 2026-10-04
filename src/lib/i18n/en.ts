@@ -1282,6 +1282,11 @@ export const EN: Record<string, string> = {
   "Cambio en el precio del plan Enterprise": "Enterprise plan price change",
   "Actualizamos el precio de Enterprise": "We're updating the Enterprise price",
   "Desde el {date} el plan Enterprise pasa de {old} a {new} por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.": "From {date} the Enterprise plan goes from {old} to {new} per month. The change applies on your next renewal from that date. You can cancel anytime from your profile.",
+  "Mejora": "Improvement",
+  "Propuesta": "Suggestion",
+  "Conciliación automática con el banco": "Automatic bank reconciliation",
+  "Mejor candidata para el Backlog": "Best candidate for the Backlog",
+  "31 votos y 7 comentarios: es lo que más piden y baja las consultas al soporte, el objetivo del trimestre.": "31 votes and 7 comments: it's what users ask for most and it cuts support requests, this quarter's goal.",
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

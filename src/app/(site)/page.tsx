@@ -8,17 +8,31 @@ import { getT } from '@/lib/i18n/server';
 
 // Texts below are the Spanish source; the page shows them through t() (src/lib/i18n).
 
+// Same colors as the app (src/lib/constants.ts: IDEA_STATUS and ORIGIN).
 const ST = {
   ok: { bd: '#b7eb8f', bg: '#f6ffed', fg: '#389e0d' },
-  rev: { bd: '#91caff', bg: '#e6f4ff', fg: '#0958d9' },
+  rev: { bd: '#ffd591', bg: '#fff7e6', fg: '#d46b08' },
   pend: { bd: '#d9d9d9', bg: '#fafafa', fg: 'rgba(0,0,0,0.65)' },
+} as const;
+const ORI = {
+  Comunidad: { bd: '#d3adf7', bg: '#f9f0ff', fg: '#531dab' },
+  Equipo: { bd: '#93c5fd', bg: '#eff6ff', fg: '#3b82f6' },
 } as const;
 
 const DEMO = [
-  { title: 'Exportar movimientos a Excel', cat: 'Feature', st: ST.ok, status: 'Aprobada', votes: 48, comments: 12 },
-  { title: 'Notificación cuando se acredita un pago', cat: 'Mejoras Funcionales', st: ST.rev, status: 'En revisión', votes: 31, comments: 7 },
-  { title: 'Modo oscuro en la app', cat: 'Propuestas', st: ST.pend, status: 'Pendiente de revisión', votes: 19, comments: 4 },
+  { title: 'Exportar movimientos a Excel', origin: 'Comunidad' as const, cat: 'Feature', st: ST.ok, status: 'Aprobada', votes: 48, comments: 12, author: 'Lucía Fernández', ini: 'LF', color: '#a8487a' },
+  { title: 'Notificación cuando se acredita un pago', origin: 'Comunidad' as const, cat: 'Mejora', st: ST.rev, status: 'En revisión', votes: 31, comments: 7, author: 'Martín Gómez', ini: 'MG', color: '#3a78b5' },
+  { title: 'Conciliación automática con el banco', origin: 'Equipo' as const, cat: 'Propuesta', st: ST.pend, status: 'Pendiente de revisión', votes: 19, comments: 4, author: 'Sofía Ruiz', ini: 'SR', color: '#5b8a3a' },
 ];
+
+function Sparkle({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden style={{ flex: 'none' }}>
+      <path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 12.5 6.4 8.3 2 7l4.4-1.3z" fill="currentColor" />
+      <path d="M13 11l.6 1.4 1.4.6-1.4.6L13 15l-.6-1.4-1.4-.6 1.4-.6z" fill="currentColor" />
+    </svg>
+  );
+}
 
 const STEPS = [
   { n: '01', t: 'Recibí ideas', d: 'Invitá a tus clientes y a tu equipo. Cargan propuestas con título, descripción y categoría, y solo ven el buzón quienes invitás.' },
@@ -101,31 +115,53 @@ export default async function Landing() {
             <span className={s.note}>{t('Plan Free sin tarjeta de crédito.')}</span>
           </div>
 
-          <div className={s.mock} aria-hidden>
-            <div className={s.mockHead}>
-              <span className={s.mockLogo}>PP</span>
-              <span className={s.mockName}>Pampa Pagos</span>
-              <div className={s.mockTabs}>
-                <span className={s.mockTabActive}>{t('Buzón')}</span><span>{t('Ranking')}</span><span>{t('Backlog')}</span><span>{t('Roadmap')}</span>
+          <div className={s.mockWrap} aria-hidden>
+            <div className={s.mock}>
+              <div className={s.mockHead}>
+                <span className={s.mockLogo}>PP</span>
+                <span className={s.mockName}>Pampa Pagos</span>
+                <div className={s.mockTabs}>
+                  <span className={s.mockTabActive}>{t('Buzón')}</span><span>{t('Ranking')}</span><span>{t('Backlog')}</span><span>{t('Roadmap')}</span>
+                </div>
               </div>
-            </div>
-            <div className={s.mockList}>
-              {DEMO.map((d) => (
-                <div key={d.title} className={s.mockCard}>
-                  <div className={s.voteBox}>
-                    <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 2l4 5H2z" fill="#059669" /></svg>
-                    <span className={s.voteN}>{d.votes}</span>
-                  </div>
-                  <div className={s.mockBody}>
-                    <span className={s.mockTitle}>{t(d.title)}</span>
-                    <div className={s.tags}>
-                      <span className={s.tag}>{t(d.cat)}</span>
-                      <span className={s.tag} style={{ borderColor: d.st.bd, background: d.st.bg, color: d.st.fg }}>{t(d.status)}</span>
+              <div className={s.mockList}>
+                {DEMO.map((d) => (
+                  <div key={d.title} className={s.mockCard}>
+                    <div className={s.voteBox}>
+                      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 2l4 5H2z" fill="#059669" /></svg>
+                      <span className={s.voteN}>{d.votes}</span>
+                    </div>
+                    <div className={s.mockBody}>
+                      <div className={s.tags}>
+                        <span className={s.tag} style={{ borderColor: ORI[d.origin].bd, background: ORI[d.origin].bg, color: ORI[d.origin].fg }}>{t(d.origin)}</span>
+                        <span className={s.tag}>{t(d.cat)}</span>
+                        <span className={s.tag} style={{ borderColor: d.st.bd, background: d.st.bg, color: d.st.fg }}>{t(d.status)}</span>
+                      </div>
+                      <span className={s.mockTitle}>{t(d.title)}</span>
+                      <div className={s.mockMeta}>
+                        <span className={s.mockAvatar} style={{ background: d.color }}>{d.ini}</span>
+                        <span>{d.author}</span>
+                        <span className={s.mockDot}>·</span>
+                        <span className={s.mockComments}>
+                          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>
+                          {d.comments}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <span className={s.mockComments}>{t('{n} comentarios', { n: d.comments })}</span>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+            {/* Enterprise AI assistant: what the team sees when it asks for the best candidate. */}
+            <div className={s.aiCard}>
+              <span className={s.aiHead}><Sparkle />{t('Asistente IA')}<span className={s.aiPill}>Enterprise</span></span>
+              <span className={s.aiLabel}>{t('Mejor candidata para el Backlog')}</span>
+              <span className={s.aiTitle}>{t('Notificación cuando se acredita un pago')}</span>
+              <span className={s.aiWhy}>{t('31 votos y 7 comentarios: es lo que más piden y baja las consultas al soporte, el objetivo del trimestre.')}</span>
+              <div className={s.aiFoot}>
+                <span className={s.tag} style={{ borderColor: '#b7eb8f', background: '#f6ffed', color: '#389e0d' }}>{t('Confianza alta')}</span>
+                <span className={s.aiBtn}>{t('Aprobar')}</span>
+              </div>
             </div>
           </div>
         </div>
