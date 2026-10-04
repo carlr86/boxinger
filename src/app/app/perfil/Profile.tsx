@@ -94,7 +94,7 @@ function Datos() {
         </div>
         {(I18N_LIVE || me.is_super_admin || locale === 'en') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>{t('Idioma')}
-            <LanguageSwitch preview style={{ fontSize: 14 }} />
+            <LanguageSwitch preview style={{ alignSelf: 'flex-start' }} />
             <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('También cambia el idioma de los emails que te enviamos.')}</span>
           </div>
         )}

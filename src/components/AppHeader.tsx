@@ -120,7 +120,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
                 {me.is_super_admin && <Link className="bx-item" style={menuLink} href="/app/admin"><DashboardOutlined style={menuIcon} />{t('Panel de Admin')}</Link>}
                 <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
                 {(I18N_LIVE || me.is_super_admin || locale === 'en') && <>
-                  <div style={{ padding: '6px 12px' }}><LanguageSwitch preview /></div>
+                  <div style={{ padding: '4px 12px' }}><LanguageSwitch preview label style={{ display: 'flex', width: '100%', fontSize: 14, color: 'rgba(0,0,0,0.88)', gap: 10 }} /></div>
                   <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
                 </>}
                 <div className="bx-item" style={{ ...menuLink, color: '#cf1322' }} onClick={logout}><LogoutOutlined style={menuIcon} />{t('Cerrar sesión')}</div>

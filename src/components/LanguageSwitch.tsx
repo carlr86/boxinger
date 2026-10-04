@@ -13,27 +13,21 @@ export async function changeLocale(l: Locale) {
   applyLocale(l);
 }
 
-/** "Español · English" picker. `tone="dark"` for dark footers. */
-export function LanguageSwitch({ tone = 'light', style, preview }: { tone?: 'light' | 'dark'; style?: React.CSSProperties; preview?: boolean }) {
+/** Language selector (globe + dropdown). `label` adds the word "Idioma" before it, as a menu row. */
+export function LanguageSwitch({ style, preview, label }: { style?: React.CSSProperties; preview?: boolean; label?: boolean }) {
   const { locale, t } = useI18n();
   const [busy, setBusy] = useState(false);
   // Until the English version is live, only `preview` (the platform admin's menu) shows it, or whoever already switched.
   if (!I18N_LIVE && !preview && locale === 'es') return null;
-  const dim = tone === 'dark' ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)';
-  const on = tone === 'dark' ? '#fff' : 'rgba(0,0,0,0.88)';
   return (
-    <span role="group" aria-label={t('Idioma')} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: dim, ...style }}>
-      <GlobalOutlined aria-hidden />
-      {LOCALES.map((l, i) => (
-        <span key={l} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          {i > 0 && <span aria-hidden>·</span>}
-          <button type="button" disabled={busy || l === locale} aria-pressed={l === locale} lang={l}
-            onClick={() => { setBusy(true); changeLocale(l); }}
-            style={{ border: 0, background: 'transparent', padding: 0, font: 'inherit', cursor: l === locale ? 'default' : 'pointer', color: l === locale ? on : dim, fontWeight: l === locale ? 600 : 400 }}>
-            {LOCALE_NAMES[l]}
-          </button>
-        </span>
-      ))}
-    </span>
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'rgba(0,0,0,0.65)', ...style }}>
+      <GlobalOutlined aria-hidden style={{ fontSize: 15 }} />
+      {label ? <span style={{ flex: 1 }}>{t('Idioma')}</span> : <span className="bx-sr-only">{t('Idioma')}</span>}
+      <select className="bx-select" value={locale} disabled={busy} aria-label={t('Idioma')}
+        onChange={(e) => { const l = e.target.value as Locale; setBusy(true); changeLocale(l); }}
+        style={{ height: 30, fontSize: 13, cursor: 'pointer', paddingRight: 4 }}>
+        {LOCALES.map((l) => <option key={l} value={l} lang={l}>{LOCALE_NAMES[l]}</option>)}
+      </select>
+    </label>
   );
 }
