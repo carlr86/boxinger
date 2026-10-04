@@ -105,17 +105,17 @@ Sin SMTP usa Resend si está configurado.
 
 Cómo funciona: *Pasar a Pro* crea la suscripción en PayPal y redirige a aprobarla. Al volver (`/api/billing/paypal/return`) y con el webhook `ACTIVATED`, la cuenta pasa a Pro. Los precios especiales y los cambios de precio se aplican a cada suscripción con `PATCH /v1/billing/subscriptions/{id}` desde el próximo cobro.
 
-## 3b. Lemon Squeezy (USD, pagos internacionales)
+## 3b. Creem (USD, pagos internacionales)
 
-Reemplaza a PayPal (la cuenta de PayPal fue cerrada). Lemon Squeezy actúa como *merchant of record*: cobra con tarjeta o PayPal en cualquier país, resuelve impuestos y factura al cliente; paga a tu banco argentino dos veces por mes.
+Reemplaza a PayPal (la cuenta de PayPal fue cerrada). Creem es *merchant of record*: cobra con tarjeta, Apple Pay o Google Pay en cualquier país, resuelve impuestos y factura al cliente. Comisión 3,9 % + USD 0,40; cobro a banco argentino (USD 7 o 1 %, lo mayor).
 
-1. Creá la cuenta en app.lemonsqueezy.com, una tienda y el producto **Boxinger Pro** con una variante de **suscripción mensual de USD 9,99**.
-2. *Settings › API* → creá una API key → `LEMONSQUEEZY_API_KEY`.
-3. `LEMONSQUEEZY_STORE_ID` y `LEMONSQUEEZY_VARIANT_ID` salen de la API (`/v1/stores`, `/v1/variants`).
-4. Webhook (*Settings › Webhooks*) a `https://boxinger.com/api/billing/lemonsqueezy/webhook` con los eventos `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_resumed`, `subscription_expired`, `subscription_payment_success`, `subscription_payment_failed`, `subscription_payment_refunded`. Su *signing secret* → `LEMONSQUEEZY_WEBHOOK_SECRET`.
-5. `NEXT_PUBLIC_LEMONSQUEEZY_ENABLED=1` muestra la opción "Tarjeta internacional" (se lee al compilar: después de cambiarla, Redeploy).
+1. En creem.io creá el producto **Plan Pro**: suscripción mensual de USD 9,99 (uno en modo test y otro en producción).
+2. *Developers › API Keys* → `CREEM_API_KEY` (las de test empiezan con `creem_test_` y usan `test-api.creem.io`).
+3. `CREEM_PRODUCT_ID`: el `prod_…` del producto (`GET /v1/products/search`).
+4. Webhook a `https://boxinger.com/api/billing/creem/webhook` (se crea con `POST /v1/webhooks`; el `secret` que devuelve → `CREEM_WEBHOOK_SECRET`). Eventos: `checkout.completed`, `subscription.active`, `subscription.paid`, `subscription.canceled`, `subscription.scheduled_cancel`, `subscription.expired`, `subscription.past_due`, `subscription.unpaid`, `subscription.update`, `refund.created`.
+5. `NEXT_PUBLIC_CREEM_ENABLED=1` muestra "Tarjeta internacional" (se lee al compilar: después de cambiarla, Redeploy).
 
-Notas: los precios especiales se aplican al iniciar la suscripción (`custom_price`); Lemon Squeezy no permite cambiar el precio de una suscripción en curso, así que los cambios de precio de lista no se trasladan a suscriptores existentes de Lemon Squeezy.
+Notas: Creem no permite precios especiales por cliente en suscripciones ni cambiar el precio de una suscripción en curso; para un precio especial usá un código de descuento de Creem.
 
 ## 4. Mercado Pago (ARS, Argentina)
 

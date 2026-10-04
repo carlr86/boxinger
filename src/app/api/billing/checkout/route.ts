@@ -6,19 +6,19 @@ import { isEmail } from '@/lib/format';
 import { PAYPAL_ENABLED } from '@/lib/constants';
 import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
-import * as lemon from '@/lib/billing/lemonsqueezy';
+import * as creem from '@/lib/billing/creem';
 import { currentPrice, effectiveAmount, type SubRow } from '@/lib/billing/service';
 
-// Starts a Pro subscription: Lemon Squeezy (USD, cards worldwide), Mercado Pago (ARS) or PayPal (USD, off).
+// Starts a Pro subscription: Creem (USD, cards worldwide), Mercado Pago (ARS) or PayPal (USD, off).
 // Returns the provider's checkout URL.
 export async function POST(req: NextRequest) {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Necesitás iniciar sesión.' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const provider = body.provider as 'paypal' | 'mercadopago' | 'lemonsqueezy';
-  if (!['paypal', 'mercadopago', 'lemonsqueezy'].includes(provider)) return NextResponse.json({ error: 'Medio de pago inválido.' }, { status: 400 });
-  if (provider === 'lemonsqueezy' && !lemon.lemonConfigured()) return NextResponse.json({ error: 'El pago con tarjeta internacional no está disponible por ahora.' }, { status: 400 });
+  const provider = body.provider as 'paypal' | 'mercadopago' | 'creem';
+  if (!['paypal', 'mercadopago', 'creem'].includes(provider)) return NextResponse.json({ error: 'Medio de pago inválido.' }, { status: 400 });
+  if (provider === 'creem' && !creem.creemConfigured()) return NextResponse.json({ error: 'El pago con tarjeta internacional no está disponible por ahora.' }, { status: 400 });
   if (provider === 'paypal' && !PAYPAL_ENABLED) return NextResponse.json({ error: 'El pago con PayPal no está disponible por ahora. Probá con Mercado Pago.' }, { status: 400 });
 
   const admin = supabaseAdmin();
@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
         planId, accountId: acc.id, email: owner.email, name: owner.name, amount, listAmount: price.amount,
         returnUrl: `${SITE_URL}/api/billing/paypal/return`, cancelUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=cancel`,
       });
-    } else if (provider === 'lemonsqueezy') {
-      const c = await lemon.createCheckout({ accountId: acc.id, email: owner.email, name: owner.name, amount, listAmount: price.amount, redirectUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=ok` });
+    } else if (provider === 'creem') {
+      const c = await creem.createCheckout({ accountId: acc.id, email: owner.email, successUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=ok` });
       r = { id: '', url: c.url };
     } else {
       const payer = typeof body.payer_email === 'string' && isEmail(body.payer_email) ? body.payer_email : owner.email;
@@ -55,6 +55,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: r.url });
   } catch (e) {
     console.error('checkout', e);
-    return NextResponse.json({ error: 'No pudimos iniciar el pago con ' + ({ paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'tarjeta' }[provider]) + '. Probá de nuevo en unos minutos.' }, { status: 502 });
+    return NextResponse.json({ error: 'No pudimos iniciar el pago con ' + ({ paypal: 'PayPal', mercadopago: 'Mercado Pago', creem: 'tarjeta' }[provider]) + '. Probá de nuevo en unos minutos.' }, { status: 502 });
   }
 }

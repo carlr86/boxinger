@@ -26,12 +26,12 @@ export default function Terminos() {
       <h2>5. Planes y precios</h2>
       <ul>
         <li><b>Free:</b> sin costo, con los límites que se muestran en la página de planes (1 equipo con 1 buzón, sin miembros).</li>
-        <li><b>Pro:</b> suscripción mensual que se paga por adelantado con tarjeta internacional a través de Lemon Squeezy (en dólares) o con Mercado Pago (en pesos argentinos). Se renueva automáticamente cada mes hasta que la canceles.</li>
+        <li><b>Pro:</b> suscripción mensual que se paga por adelantado con tarjeta internacional a través de Creem (en dólares) o con Mercado Pago (en pesos argentinos). Se renueva automáticamente cada mes hasta que la canceles.</li>
         <li><b>Enterprise:</b> plan a medida que se contrata por contacto directo, con condiciones acordadas por escrito.</li>
       </ul>
       <p>Los precios vigentes se muestran en la web y en Mi perfil antes de contratar. Para usuarios en Argentina son precios finales. Podemos ofrecer precios especiales por un plazo determinado; al vencer, la suscripción vuelve al precio de lista.</p>
       <p>Si cambiamos el precio de Pro, te avisamos por email antes de que se aplique. El nuevo precio rige desde el período siguiente al aviso; si no estás de acuerdo, podés cancelar antes de ese cobro.</p>
-      <p>Los pagos los procesan Mercado Pago y Lemon Squeezy según sus propias condiciones. En los pagos en dólares, Lemon Squeezy actúa como revendedor autorizado (merchant of record): es quien te cobra, calcula los impuestos que correspondan en tu país y te emite el comprobante. Boxinger no recibe ni guarda los datos de tu tarjeta. Si un cobro falla, el proveedor puede reintentarlo; si no se regulariza, la cuenta puede volver al plan Free.</p>
+      <p>Los pagos los procesan Mercado Pago y Creem según sus propias condiciones. En los pagos en dólares, Creem actúa como revendedor autorizado (merchant of record): es quien te cobra, calcula los impuestos que correspondan en tu país y te emite el comprobante. Boxinger no recibe ni guarda los datos de tu tarjeta. Si un cobro falla, el proveedor puede reintentarlo; si no se regulariza, la cuenta puede volver al plan Free.</p>
 
       <h2>6. Cancelación (baja)</h2>
       <p>Podés cancelar Pro cuando quieras, desde <Link href="/app/perfil?tab=sub">Mi perfil › Suscripción</Link>, con la misma facilidad con que lo contrataste. No se hacen más cobros y seguís con Pro hasta el final del período ya pagado; después la cuenta pasa a Free. Tus buzones y datos se conservan, pero los que excedan el plan Free quedan bloqueados hasta que vuelvas a Pro.</p>
@@ -55,7 +55,7 @@ export default function Terminos() {
       <p>La marca Boxinger, el software, el diseño y los textos del servicio son nuestros o de nuestros licenciantes. Te damos un permiso personal, no exclusivo e intransferible para usar Boxinger según estos términos.</p>
 
       <h2>11. Servicios de terceros</h2>
-      <p>Boxinger usa servicios de terceros, como Google (inicio de sesión), Lemon Squeezy y Mercado Pago (cobros). Su uso se rige además por las condiciones de cada uno.</p>
+      <p>Boxinger usa servicios de terceros, como Google (inicio de sesión), Creem y Mercado Pago (cobros). Su uso se rige además por las condiciones de cada uno.</p>
 
       <h2>12. Disponibilidad y responsabilidad</h2>
       <p>Trabajamos para que Boxinger funcione de forma continua y segura, pero puede haber interrupciones por mantenimiento, fallas o causas ajenas. En la medida que lo permita la ley, no respondemos por daños indirectos ni por el lucro cesante derivados del uso o la imposibilidad de uso del servicio, ni por el contenido que publican los usuarios. Nada de lo anterior limita los derechos que te reconoce la Ley 24.240 si sos consumidor.</p>

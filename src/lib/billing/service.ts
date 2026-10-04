@@ -49,7 +49,7 @@ export async function findAccount(provider: string, subId: string | null, ref?: 
 }
 
 /** Provider confirmed the subscription: the account is Pro. */
-export async function activate(accountId: string, o: { provider: 'paypal' | 'mercadopago' | 'lemonsqueezy'; subId: string; currency: 'USD' | 'ARS'; amount: number; periodEnd?: string | null }) {
+export async function activate(accountId: string, o: { provider: 'paypal' | 'mercadopago' | 'creem'; subId: string; currency: 'USD' | 'ARS'; amount: number; periodEnd?: string | null }) {
   const admin = supabaseAdmin();
   const { data: before } = await admin.from('subscriptions').select('*').eq('account_id', accountId).single();
   const wasPro = before?.plan === 'pro' && ['active', 'past_due'].includes(before.status) && before.provider_subscription_id === o.subId;
@@ -97,12 +97,12 @@ export async function paymentFailed(accountId: string, provider: string, subId: 
   const admin = supabaseAdmin();
   await admin.from('subscriptions').update({ status: 'past_due', updated_at: new Date().toISOString() }).eq('account_id', accountId).eq('provider_subscription_id', subId).eq('plan', 'pro');
   const owner = await accountOwner(accountId);
-  const name = provider === 'paypal' ? 'PayPal' : provider === 'lemonsqueezy' ? 'tu tarjeta (Lemon Squeezy)' : 'Mercado Pago';
+  const name = provider === 'paypal' ? 'PayPal' : provider === 'creem' ? 'tu tarjeta (Creem)' : 'Mercado Pago';
   if (owner.email) await sendNow(owner.email, 'payment_failed', { provider: name }, owner.ownerId, 'payfail:' + key);
   await admin.rpc('notify_super_admins', { p_pref: 'payfail', p_template: 'admin_payfail', p_payload: { name: owner.name, email: owner.email, provider: name }, p_dedupe: 'payfail:' + key });
 }
 
-export async function recordPayment(o: { accountId: string | null; provider: 'paypal' | 'mercadopago' | 'lemonsqueezy'; paymentId: string; subId: string | null; amount: number; currency: string; status: string; paidAt?: string | null; raw: unknown }) {
+export async function recordPayment(o: { accountId: string | null; provider: 'paypal' | 'mercadopago' | 'creem'; paymentId: string; subId: string | null; amount: number; currency: string; status: string; paidAt?: string | null; raw: unknown }) {
   await supabaseAdmin().from('payments').upsert({
     account_id: o.accountId, provider: o.provider, provider_payment_id: o.paymentId, provider_subscription_id: o.subId,
     amount: o.amount, currency: o.currency, status: o.status, paid_at: o.paidAt || null, raw: o.raw as object,

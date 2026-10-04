@@ -12,7 +12,7 @@ export async function deleteMyAccount(): Promise<{ error?: string }> {
   const { data: acc } = await admin.from('accounts').select('id').eq('owner_id', user.id).maybeSingle();
   if (acc) {
     const { data: sub } = await admin.from('subscriptions').select('*').eq('account_id', acc.id).maybeSingle();
-    if (sub?.provider_subscription_id && ['paypal', 'mercadopago', 'lemonsqueezy'].includes(sub.provider)) {
+    if (sub?.provider_subscription_id && ['paypal', 'mercadopago', 'creem'].includes(sub.provider)) {
       await cancelProviderSubscription(sub.provider, sub.provider_subscription_id).catch(() => {});
     }
     await admin.from('accounts').delete().eq('id', acc.id);

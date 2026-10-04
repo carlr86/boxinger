@@ -168,7 +168,7 @@ export function render(template: string, p: P): { subject: string; html: string 
           subject: `[Arrepentimiento] ${code} · ${s(p.name)}`,
           html: layout(`Solicitud de arrepentimiento ${code}`,
             `<p style="margin:0 0 12px"><b>${esc(p.name)}</b> (${esc(p.email)}) pidió revocar la contratación de Pro con el botón de arrepentimiento. Ya recibió el código <b>${code}</b> por email.</p>` +
-            `<p style="margin:0 0 12px">Revisá que esté dentro de los 10 días corridos desde el pago, cancelá la suscripción (Panel de Admin › la cuenta › plan Free) y hacé el reembolso total desde Lemon Squeezy o Mercado Pago. Después respondé este email para confirmarle.</p>` +
+            `<p style="margin:0 0 12px">Revisá que esté dentro de los 10 días corridos desde el pago, cancelá la suscripción (Panel de Admin › la cuenta › plan Free) y hacé el reembolso total desde Creem o Mercado Pago. Después respondé este email para confirmarle.</p>` +
             (p.company ? `<p style="margin:0 0 12px">Email de la cuenta de Boxinger: <b>${esc(p.company)}</b></p>` : '') + quote(p.message),
             undefined, `Solicitud #${s(p.id)} del botón de arrepentimiento de boxinger.com.`),
         };

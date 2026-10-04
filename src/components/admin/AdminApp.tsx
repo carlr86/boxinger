@@ -19,7 +19,7 @@ import type { AdminBoard, AdminUser, Client, Prices } from './types';
 type Tab = 'dashboard' | 'clientes' | 'boards' | 'suscripciones' | 'usuarios' | 'perfil';
 const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Clientes'], ['boards', 'Buzones'], ['suscripciones', 'Suscripciones'], ['usuarios', 'Usuarios']];
 const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes', boards: 'Buzones', suscripciones: 'Suscripciones', usuarios: 'Usuarios', perfil: 'Mi perfil' };
-const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Lemon Squeezy', manual: 'Manual' };
+const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Lemon Squeezy', creem: 'Creem', manual: 'Manual' };
 const sec = 'rgba(0,0,0,0.45)';
 const planTag = (p: string) => <Tag tone={planTone(p)}>{p}</Tag>;
 const planRank = (p: string) => ({ Free: 0, Pro: 1, Enterprise: 2 } as Record<string, number>)[p] ?? 0;
