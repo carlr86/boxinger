@@ -13,6 +13,11 @@ html{scroll-behavior:smooth}
 .bx-btn-primary:disabled{background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.25);cursor:not-allowed;box-shadow:none;border:1px solid #d9d9d9}
 .bx-btn{height:32px;padding:0 15px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;font-size:14px;cursor:pointer;color:rgba(0,0,0,0.88);white-space:nowrap}
 .bx-btn:hover{border-color:#059669;color:#059669}
+@keyframes bx-spin{to{transform:rotate(360deg)}}
+.bx-spinner{display:inline-block;width:14px;height:14px;flex:none;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:bx-spin .7s linear infinite;vertical-align:-2px}
+.bx-pay:disabled{cursor:not-allowed;opacity:.5}
+.bx-pay:disabled:hover{border-color:#d9d9d9;color:rgba(0,0,0,0.88)}
+.bx-pay.is-loading:disabled{cursor:wait;opacity:1;border-color:#059669;box-shadow:0 0 0 2px rgba(5,150,105,0.1)}
 .bx-btn-danger{height:32px;padding:0 15px;border-radius:6px;border:1px solid #ff4d4f;background:#fff;color:#ff4d4f;font-size:14px;cursor:pointer}
 .bx-icon-btn{flex:none;width:28px;height:28px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;cursor:pointer;display:grid;place-items:center;color:rgba(0,0,0,0.65)}
 .bx-icon-btn:hover{border-color:#059669;color:#059669}

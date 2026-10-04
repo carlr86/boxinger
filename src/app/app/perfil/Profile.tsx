@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Modal, Popconfirm } from 'antd';
 import { useSession, useToast } from '@/components/Providers';
@@ -189,8 +189,12 @@ function Subscription() {
   const [contact, setContact] = useState(false);
   const [mpEmail, setMpEmail] = useState(ctx!.me.email);
   const [mpOpen, setMpOpen] = useState(false);
-  const closePick = () => { setPick(false); setMpOpen(false); };
   const [busy, setBusy] = useState(false);
+  // The provider being opened: the checkout takes a few seconds to answer, so the modal shows it and locks.
+  type Provider = 'paypal' | 'mercadopago' | 'creem';
+  const [going, setGoing] = useState<Provider | null>(null);
+  const goingRef = useRef(false);
+  const closePick = () => { if (goingRef.current) return; setPick(false); setMpOpen(false); };
   const acc = ctx!.account;
   const s = acc?.subscription;
   const plan = acc?.plan || 'free';
@@ -209,14 +213,24 @@ function Subscription() {
     if (checkout === 'cancel') toast.info('No se completó el pago. Podés intentarlo de nuevo cuando quieras.');
   }, [checkout]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function start(provider: 'paypal' | 'mercadopago' | 'creem') {
+  // Coming back from the checkout with the browser's Back button restores this page as it was: unlock it.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) { goingRef.current = false; setGoing(null); setBusy(false); } };
+    window.addEventListener('pageshow', onShow);
+    return () => window.removeEventListener('pageshow', onShow);
+  }, []);
+
+  async function start(provider: Provider) {
+    if (goingRef.current) return;
+    goingRef.current = true;
+    setGoing(provider);
     setBusy(true);
     try {
       const r = await fetch('/api/billing/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ provider, payer_email: provider === 'mercadopago' ? mpEmail.trim() : undefined }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'No pudimos iniciar el pago.');
       window.location.href = j.url;
-    } catch (e) { toast.err(e); setBusy(false); }
+    } catch (e) { toast.err(e); goingRef.current = false; setGoing(null); setBusy(false); }
   }
   async function cancel() {
     setBusy(true);
@@ -295,13 +309,13 @@ function Subscription() {
         </div>
       </Modal>
 
-      <Modal open={pick} onCancel={closePick} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
+      <Modal open={pick} onCancel={closePick} closable={!going} mask={{ closable: !going }} keyboard={!going} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.</span>
           {CREEM_ENABLED
-            ? <PayOption title="Tarjeta internacional" sub="Visa, Mastercard, Amex, Apple Pay o Google Pay · cualquier país · en dólares" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('creem')} />
+            ? <PayOption title="Tarjeta internacional" sub="Visa, Mastercard, Amex, Apple Pay o Google Pay · cualquier país · en dólares" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} loading={going === 'creem'} onClick={() => start('creem')} />
             : PAYPAL_ENABLED
-              ? <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
+              ? <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} loading={going === 'paypal'} onClick={() => start('paypal')} />
               : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El pago internacional vuelve pronto. Si estás fuera de Argentina, escribinos a hola@boxinger.com.</span>}
           <PayOption title="Mercado Pago" sub="Tarjetas argentinas · se cobra en pesos" price={money('ARS', Number(prices.ARS)) + ' / mes'} disabled={busy} selected={mpOpen} onClick={() => setMpOpen((v) => !v)} />
           {mpOpen && (
@@ -312,25 +326,32 @@ function Subscription() {
                 <input className="bx-input" type="email" autoFocus required value={mpEmail} onChange={(e) => setMpEmail(e.target.value)} />
                 <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Tiene que ser el mismo con el que vas a ingresar a Mercado Pago para pagar.</span>
               </label>
-              <button type="submit" className="bx-btn-primary" style={{ height: 36 }} disabled={busy || !isEmail(mpEmail.trim())}>Continuar a Mercado Pago</button>
+              <button type="submit" className="bx-btn-primary" disabled={busy || !isEmail(mpEmail.trim())}
+                style={{ height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, ...(going === 'mercadopago' ? { background: '#059669', color: '#fff', border: 0, cursor: 'wait' } : null) }}>
+                {going === 'mercadopago' ? <><span className="bx-spinner" aria-hidden />Abriendo Mercado Pago…</> : 'Continuar a Mercado Pago'}
+              </button>
             </form>
           )}
-          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Te llevamos al sitio del medio de pago para confirmar. Al volver, Pro se activa automáticamente.</span>
+          <span role="status" style={{ fontSize: 12, color: going ? '#059669' : 'rgba(0,0,0,0.45)' }}>
+            {going ? 'Te estamos llevando al sitio de pago. Puede tardar unos segundos, no cierres esta ventana.' : 'Te llevamos al sitio del medio de pago para confirmar. Al volver, Pro se activa automáticamente.'}
+          </span>
         </div>
       </Modal>
     </>
   );
 }
 
-function PayOption({ title, sub, price, onClick, disabled, selected }: { title: string; sub: string; price: string; onClick: () => void; disabled?: boolean; selected?: boolean }) {
+function PayOption({ title, sub, price, onClick, disabled, selected, loading }: { title: string; sub: string; price: string; onClick: () => void; disabled?: boolean; selected?: boolean; loading?: boolean }) {
   return (
-    <button type="button" disabled={disabled} onClick={onClick} className="bx-btn" aria-expanded={selected}
+    <button type="button" disabled={disabled} onClick={onClick} className={'bx-btn bx-pay' + (loading ? ' is-loading' : '')} aria-expanded={selected} aria-busy={loading}
       style={{ height: 'auto', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', whiteSpace: 'normal', ...(selected ? { borderColor: '#059669', boxShadow: '0 0 0 2px rgba(5,150,105,0.1)' } : null) }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ fontSize: 15, fontWeight: 600 }}>{title}</span>
         <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{sub}</span>
       </div>
-      <span style={{ fontSize: 14, fontWeight: 500 }}>{price}</span>
+      {loading
+        ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 500, color: '#059669', whiteSpace: 'nowrap' }}><span className="bx-spinner" aria-hidden />Abriendo…</span>
+        : <span style={{ fontSize: 14, fontWeight: 500 }}>{price}</span>}
     </button>
   );
 }
