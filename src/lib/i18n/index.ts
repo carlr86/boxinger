@@ -10,7 +10,7 @@ export const LOCALE_NAMES: Record<Locale, string> = { es: 'Español', en: 'Engli
 
 /** Off while the English version is being finished: the switch shows only to the platform admin
  * and the browser language is ignored. Turn on when every screen is translated. */
-export const I18N_LIVE = false;
+export const I18N_LIVE = true;
 
 export type Vars = Record<string, string | number>;
 
