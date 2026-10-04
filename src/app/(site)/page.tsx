@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ENTERPRISE_USD } from '@/lib/constants';
 import s from './landing.module.css';
 import { getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
@@ -58,8 +59,9 @@ export default async function Landing() {
       cta: 'Crear cuenta', ctaBg: '#059669', ctaFg: '#fff', ctaBd: '#059669',
     },
     {
-      name: 'Enterprise', price: 'A medida', per: '', bd: '#c7d2fe', badge: 'Exclusivo',
-      items: ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Asistente IA: sugiere ideas y cuáles aprobar', 'Alta y acompañamiento dedicados'],
+      name: 'Enterprise', price: 'USD ' + fmtPrice(ENTERPRISE_USD, locale), per: '/ mes', bd: '#c7d2fe', badge: 'Con IA',
+      items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'],
+      note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.',
       cta: 'Contactanos', ctaBg: '#fff', ctaFg: '#4338ca', ctaBd: '#4338ca', href: '#contacto-enterprise',
     },
   ];
@@ -169,7 +171,7 @@ export default async function Landing() {
       <section id="planes" className={s.section}>
         <div className={s.sectionHead}>
           <h2 className={s.h2}>{t('Planes')}</h2>
-          <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o hablemos de Enterprise si necesitás más.')}</p>
+          <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o a Enterprise para equipos más grandes y el Asistente IA.')}</p>
         </div>
         <div className={s.plans}>
           {plans.map((p) => (
@@ -183,6 +185,7 @@ export default async function Landing() {
                   <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>
                 ))}
               </div>
+              {'note' in p && p.note && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', textWrap: 'pretty' }}>{t(p.note)}</span>}
               {'href' in p && p.href
                 ? <a href={p.href} className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</a>
                 : <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</Link>}

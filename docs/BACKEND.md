@@ -48,14 +48,15 @@ Una misma persona puede ser Admin de su cuenta, Miembro de otro equipo e Invitad
 | | Free | Pro | Enterprise |
 | --- | --- | --- | --- |
 | Equipos / buzones | 1 / 1 | Ilimitados | Ilimitados |
-| Miembros por equipo | 0 (solo el Admin) | 4 + el Admin | Ilimitados |
+| Miembros por equipo | 0 (solo el Admin) | 4 + el Admin | 20 + el Admin (ajustable por cliente) |
+| Asistente IA | No | No | 30 análisis y 20 sugerencias por mes, entre todos los buzones |
 | Buzones solo para invitados | Sí | Sí | Sí |
 | Acceso por dominio de email | No | Sí | Sí |
 | Buzones privados | No | Sí | Sí |
 | Matriz, Roadmap, Status, Growth | No | Sí | Sí |
 | Invitados, ideas, votos, comentarios, Ranking, Backlog | Sí | Sí | Sí |
 
-**Enterprise** no se vende en la web: el landing y Mi perfil muestran "Contactanos", que abre el formulario de contacto (`/api/contact` → tabla `contact_messages` → email a hola@boxinger.com), y lo asigna el Super Admin desde el panel. Incluye todo lo de Pro, miembros ilimitados y (próximamente) funciones con IA. Se factura fuera de la plataforma, por eso no suma al MRR; el dashboard lo cuenta aparte. Al asignarlo, si había una suscripción Pro en PayPal o Mercado Pago, se cancela.
+**Enterprise** se publica a USD 19,90 / mes (`ENTERPRISE_USD` en `src/lib/constants.ts`) pero no se cobra en la web: el landing y Mi perfil muestran "Contactanos", que abre el formulario de contacto (`/api/contact` → tabla `contact_messages` → email a hola@boxinger.com), y lo asigna el Super Admin desde el panel. Incluye todo lo de Pro, hasta 20 miembros por equipo y el Asistente IA. Los límites por cliente (miembros por equipo o ilimitados, cupo de IA) se cambian en Admin › Clientes › ⋯ › Límites del cliente o en Consumo IA (`admin_set_client_limits`). Las cuentas que ya eran Enterprise antes del precio publicado quedaron con miembros ilimitados (`accounts.members_unlimited`). Se factura fuera de la plataforma, por eso no suma al MRR; el dashboard lo cuenta aparte. Al asignarlo, si había una suscripción Pro en PayPal o Mercado Pago, se cancela.
 
 Al volver a Free: el primer buzón del primer equipo sigue activo; el resto queda en **solo lectura** ("Requiere Pro") y los miembros quedan pausados. Nada se borra.
 
@@ -123,7 +124,7 @@ Lo usan: errores no atrapados del servidor (`src/instrumentation.ts`), los webho
 
 En el Buzón, el Admin del equipo (solo ese rol) abre *Asistente IA*, describe el producto (`boards.ai_context`, `set_ai_context`) y con eso la IA:
 - **Ideas del Buzón:** lee las ideas pendientes y en revisión (hasta 300, con votos, comentarios, impacto y esfuerzo) y propone hasta 5 para aprobar, con el motivo, la confianza e ideas repetidas.
-- **Sugerir nuevas ideas:** propone 5 ideas nuevas, distintas de las del buzón y con una de sus categorías; "Agregar al buzón" abre el formulario ya completo y la idea se crea con `create_ai_idea`: autor = quien la agrega, marca `ideas.ai_generated` (tag «IA»).
+- **Sugerir nuevas ideas:** propone 5 ideas nuevas, distintas de las del buzón y con una de sus categorías; "Descartar idea" la saca de la lista y la recuerda (`boards.ai_discarded`, últimas 30) para que la IA no proponga ideas parecidas; el tacho limpia la lista. "Agregar al buzón" abre el formulario ya completo y la idea se crea con `create_ai_idea`: autor = quien la agrega, marca `ideas.ai_generated` (tag «IA»).
 
 `/api/ai` → `ai_begin` (plan Enterprise, rol del Equipo, descripción, topes) → Claude (`src/lib/ai/claude.ts`, respuesta en JSON con esquema fijo (structured outputs); instrucciones en `src/lib/ai/prompts.ts`) → `ai_finish` guarda tokens, costo y resultado en `ai_runs`. Topes en `ai_limits()`: 10 sugerencias y 15 análisis por buzón por mes; por cliente, 20 y 30 por mes entre todos sus buzones (el Admin de plataforma lo cambia por cliente en Consumo IA, `admin_set_ai_quota`); 500 usos por día en toda la plataforma. Un error no consume el cupo y va a `reportError('asistente-ia')`. A la IA no le llegan nombres ni emails. El uso y el costo se ven en Admin › Consumo IA (`admin_ai_overview`: por mes, por cliente y por buzón, con los Enterprise que no lo usaron) y en el detalle del cliente (`admin_ai_usage`).
 

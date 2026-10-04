@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Popconfirm } from 'antd';
+import { CopyOutlined, EditOutlined, ExportOutlined, EyeOutlined, LockOutlined, MailOutlined, SendOutlined, SlidersOutlined, StopOutlined, SwapOutlined, UnlockOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import { rpc } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSession, useToast } from '@/components/Providers';
@@ -14,7 +15,7 @@ import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/ac
 import { Table, type Col, type MenuItems } from './Table';
 import { Dashboard } from './Dashboard';
 import { ErrorsPage, type ErrorsData } from './Errors';
-import { AiUsagePage } from './AiUsage';
+import { AiUsagePage, LimitsModal } from './AiUsage';
 import { AdminBoardDrawer, ClientDrawer, EditSubscriptionModal, NewClientModal, SchedulePriceModal } from './AdminModals';
 import type { AdminBoard, AdminUser, Client, Prices } from './types';
 
@@ -47,6 +48,7 @@ export function AdminApp() {
   const [editSub, setEditSub] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState(false);
   const [pp, setPp] = useState<'USD' | 'ARS' | null>(null);
+  const [limitsFor, setLimitsFor] = useState<string | null>(null);
 
   const load = useCallback(async (t: Tab) => {
     try {
@@ -69,7 +71,7 @@ export function AdminApp() {
     toast.ok(plan === 'enterprise' ? 'Cuenta pasada a Enterprise' : 'Plan actualizado manualmente'); reloadAll();
   };
   const suspendItem = (c: Client): MenuItems[number] => ({
-    key: 'st', danger: c.status === 'active', label: c.status === 'active' ? 'Suspender cuenta' : 'Reactivar cuenta',
+    key: 'st', danger: c.status === 'active', icon: c.status === 'active' ? <StopOutlined /> : <UnlockOutlined />, label: c.status === 'active' ? 'Suspender cuenta' : 'Reactivar cuenta',
     onClick: () => act(rpc('admin_set_account_status', { p_account: c.account_id, p_status: c.status === 'active' ? 'suspended' : 'active' }), c.status === 'active' ? 'Cuenta suspendida · queda en solo lectura' : 'Cuenta reactivada'),
   });
   const clientStatus = (c: Client) => {
@@ -90,10 +92,11 @@ export function AdminApp() {
     { key: 'st', title: 'Estado', width: '130px', sort: (c) => (c.status === 'active' ? 1 : 0), render: clientStatus },
   ];
   const clientMenu = (c: Client): MenuItems => [
-    { key: 'd', label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
-    ...(!c.activated ? [{ key: 'acc', label: c.invite === 'sent' ? 'Reenviar acceso' : 'Enviar acceso', onClick: async () => { const r = await adminSendActivation(c.account_id, true); if (r.ok) { toast.ok((c.invite === 'sent' ? 'Acceso reenviado a ' : 'Acceso enviado a ') + c.email); reloadAll(); } else toast.err(new Error(r.error)); } }] : []),
-    { key: 'mail', label: <a href={'mailto:' + c.email}>Contactar</a> },
-    ...(['free', 'pro', 'enterprise'] as const).filter((k) => k !== c.plan.toLowerCase()).map((k) => ({ key: 'plan-' + k, label: 'Cambiar a ' + { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }[k], onClick: () => setPlan(c, k) })),
+    { key: 'd', icon: <EyeOutlined />, label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
+    ...(!c.activated ? [{ key: 'acc', icon: <SendOutlined />, label: c.invite === 'sent' ? 'Reenviar acceso' : 'Enviar acceso', onClick: async () => { const r = await adminSendActivation(c.account_id, true); if (r.ok) { toast.ok((c.invite === 'sent' ? 'Acceso reenviado a ' : 'Acceso enviado a ') + c.email); reloadAll(); } else toast.err(new Error(r.error)); } }] : []),
+    { key: 'mail', icon: <MailOutlined />, label: <a href={'mailto:' + c.email}>Contactar</a> },
+    ...(['free', 'pro', 'enterprise'] as const).filter((k) => k !== c.plan.toLowerCase()).map((k) => ({ key: 'plan-' + k, icon: <SwapOutlined />, label: 'Cambiar a ' + { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }[k], onClick: () => setPlan(c, k) })),
+    ...(c.plan === 'Enterprise' ? [{ key: 'lim', icon: <SlidersOutlined />, label: 'Límites del cliente', onClick: () => setLimitsFor(c.account_id) }] : []),
     { type: 'divider' },
     suspendItem(c),
   ];
@@ -109,12 +112,12 @@ export function AdminApp() {
     { key: 'st', title: 'Estado', width: '110px', sort: (b) => (b.status === 'active' ? 1 : 0), render: (b) => statusTag(b.status === 'active', 'Activo', 'Suspendido') },
   ];
   const boardMenu = (b: AdminBoard): MenuItems => [
-    { key: 'd', label: 'Ver detalle', onClick: () => setBoardId(b.board_id) },
-    { key: 'copy', label: 'Copiar link', onClick: () => { navigator.clipboard?.writeText(boardUrl(b.slug)).catch(() => {}); toast.ok('Link del buzón copiado'); } },
-    { key: 'open', label: <a href={'/app/b/' + b.slug} target="_blank" rel="noreferrer">Ver buzón</a> },
-    { key: 'mail', label: <a href={'mailto:' + b.owner_email}>Contactar al dueño</a> },
+    { key: 'd', icon: <EyeOutlined />, label: 'Ver detalle', onClick: () => setBoardId(b.board_id) },
+    { key: 'copy', icon: <CopyOutlined />, label: 'Copiar link', onClick: () => { navigator.clipboard?.writeText(boardUrl(b.slug)).catch(() => {}); toast.ok('Link del buzón copiado'); } },
+    { key: 'open', icon: <ExportOutlined />, label: <a href={'/app/b/' + b.slug} target="_blank" rel="noreferrer">Ver buzón</a> },
+    { key: 'mail', icon: <MailOutlined />, label: <a href={'mailto:' + b.owner_email}>Contactar al dueño</a> },
     { type: 'divider' },
-    { key: 'st', danger: b.status === 'active', label: b.status === 'active' ? 'Suspender buzón' : 'Reactivar buzón', onClick: () => act(rpc('admin_set_board_status', { p_board: b.board_id, p_status: b.status === 'active' ? 'suspended' : 'active' }), b.status === 'active' ? 'Buzón suspendido · queda en solo lectura' : 'Buzón reactivado') },
+    { key: 'st', danger: b.status === 'active', icon: b.status === 'active' ? <LockOutlined /> : <UnlockOutlined />, label: b.status === 'active' ? 'Suspender buzón' : 'Reactivar buzón', onClick: () => act(rpc('admin_set_board_status', { p_board: b.board_id, p_status: b.status === 'active' ? 'suspended' : 'active' }), b.status === 'active' ? 'Buzón suspendido · queda en solo lectura' : 'Buzón reactivado') },
   ];
 
   const subCols: Col<Client>[] = [
@@ -133,10 +136,11 @@ export function AdminApp() {
     ) : statusTag(c.status === 'active') },
   ];
   const subMenu = (c: Client): MenuItems => [
-    { key: 'd', label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
-    { key: 'e', label: 'Editar suscripción', onClick: () => setEditSub(c) },
-    { key: 'mail', label: <a href={'mailto:' + c.email}>Contactar</a> },
-    ...(['free', 'pro', 'enterprise'] as const).filter((k) => k !== c.plan.toLowerCase()).map((k) => ({ key: 'plan-' + k, label: 'Cambiar a ' + { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }[k], onClick: () => setPlan(c, k) })),
+    { key: 'd', icon: <EyeOutlined />, label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
+    { key: 'e', icon: <EditOutlined />, label: 'Editar suscripción', onClick: () => setEditSub(c) },
+    { key: 'mail', icon: <MailOutlined />, label: <a href={'mailto:' + c.email}>Contactar</a> },
+    ...(['free', 'pro', 'enterprise'] as const).filter((k) => k !== c.plan.toLowerCase()).map((k) => ({ key: 'plan-' + k, icon: <SwapOutlined />, label: 'Cambiar a ' + { free: 'Free', pro: 'Pro', enterprise: 'Enterprise' }[k], onClick: () => setPlan(c, k) })),
+    ...(c.plan === 'Enterprise' ? [{ key: 'lim', icon: <SlidersOutlined />, label: 'Límites del cliente', onClick: () => setLimitsFor(c.account_id) }] : []),
     { type: 'divider' },
     suspendItem(c),
   ];
@@ -150,10 +154,10 @@ export function AdminApp() {
     { key: 'st', title: 'Estado', width: '110px', sort: (u) => (u.status === 'active' ? 1 : 0), render: (u) => statusTag(u.status === 'active', 'Activo', 'Bloqueado') },
   ];
   const userMenu = (u: AdminUser): MenuItems => [
-    ...(u.board ? [{ key: 'b', label: 'Ver buzón', onClick: () => setBoardId(u.board!.id) }] : []),
-    { key: 'mail', label: <a href={'mailto:' + u.email}>Contactar</a> },
+    ...(u.board ? [{ key: 'b', icon: <EyeOutlined />, label: 'Ver buzón', onClick: () => setBoardId(u.board!.id) }] : []),
+    { key: 'mail', icon: <MailOutlined />, label: <a href={'mailto:' + u.email}>Contactar</a> },
     ...(u.board && (u.role === 'Miembro' || u.role === 'Invitado') ? [{
-      key: 'role', label: 'Cambiar rol',
+      key: 'role', icon: <UserSwitchOutlined />, label: 'Cambiar rol',
       children: ([['member', 'Miembro', 'Gestiona las ideas del equipo'], ['guest', 'Invitado', 'Propone, vota y comenta']] as const).map(([k, l, d]) => {
         const cur = u.role === l;
         return {
@@ -169,7 +173,7 @@ export function AdminApp() {
       }),
     }] : []),
     { type: 'divider' },
-    { key: 'st', danger: u.status === 'active', disabled: u.user_id === ctx?.me.id, label: u.status === 'active' ? 'Bloquear usuario' : 'Desbloquear usuario',
+    { key: 'st', danger: u.status === 'active', disabled: u.user_id === ctx?.me.id, icon: u.status === 'active' ? <StopOutlined /> : <UnlockOutlined />, label: u.status === 'active' ? 'Bloquear usuario' : 'Desbloquear usuario',
       onClick: () => act(rpc('admin_set_user_status', { p_user: u.user_id, p_status: u.status === 'active' ? 'blocked' : 'active' }), u.status === 'active' ? 'Usuario bloqueado' : 'Usuario desbloqueado') },
   ];
 
@@ -237,6 +241,7 @@ export function AdminApp() {
         </div>
       </div>
 
+      <LimitsModal accountId={limitsFor} onClose={() => setLimitsFor(null)} onDone={() => { setLimitsFor(null); reloadAll(); }} />
       {clientId && <ClientDrawer accountId={clientId} onClose={() => setClientId(null)} openBoard={(id) => { setClientId(null); setBoardId(id); }} onEditSub={(c) => setEditSub(c)} reload={reloadAll} />}
       {boardId && <AdminBoardDrawer boardId={boardId} onClose={() => setBoardId(null)} onChanged={reloadAll} openClient={(id) => { setBoardId(null); setClientId(id); }} />}
       <EditSubscriptionModal client={editSub} onClose={() => setEditSub(null)} onDone={() => { reloadAll(); if (clientId) { const id = clientId; setClientId(null); setTimeout(() => setClientId(id)); } }} />

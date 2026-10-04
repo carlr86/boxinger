@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Drawer } from 'antd';
+import { Drawer, Popconfirm, Tooltip } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import { Note, Seg, Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { rpc } from '@/lib/rpc';
@@ -59,7 +60,6 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
   const [busy, setBusy] = useState<Kind | null>(null);
   const [editing, setEditing] = useState(false);
   const [ctx, setCtx] = useState('');
-  const [added, setAdded] = useState<string[]>([]);
   const board = api.data.board.id;
 
   const load = () => rpc<Status>('ai_status', { p_board: board }).then((s) => { setSt(s); setCtx(s.context || ''); setEditing(s.can_edit && !s.context); }).catch((e) => toast.err(e));
@@ -77,12 +77,20 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
       const r = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ board, kind }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Algo salió mal. Probá de nuevo.');
-      if (kind === 'suggest') setAdded([]);
       await load();
     } catch (e) { toast.err(e); }
     finally { setBusy(null); }
   }
 
+  // Discard = "this kind of idea doesn't fit" (the AI avoids similar ones); clear = empty the list.
+  async function dismiss(title: string) {
+    setSt((x) => x && x.last_suggest ? { ...x, last_suggest: { ...x.last_suggest, result: { suggestions: x.last_suggest.result.suggestions.filter((s) => s.title !== title) } } } : x);
+    try { await rpc('ai_dismiss_suggestion', { p_board: board, p_title: title, p_discard: true }); toast.ok(t('Idea descartada: la IA va a evitar ideas parecidas')); }
+    catch (e) { toast.err(e); load(); }
+  }
+  async function clearAll() {
+    try { await rpc('ai_clear_suggestions', { p_board: board }); load(); } catch (e) { toast.err(e); }
+  }
   const left = (k: Kind) => (!st ? 0 : st.left ? st.left[k] : Math.max(0, st.limits[k] - st.used[k]));
   const ready = !!st?.enabled && !!st.context && st.context.length >= 30 && !editing;
 
@@ -133,25 +141,36 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
               </section>
             ) : (
               <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', textWrap: 'pretty' }}>{t('La IA propone ideas nuevas para tu producto, distintas de las que ya están en el buzón. Elegí las que te sirvan y editalas antes de publicarlas.')}</span>
-                <RunBar busy={busy === 'suggest'} ready={ready} left={left('suggest')} at={st.last_suggest?.at} rel={rel}
-                  label={st.last_suggest ? t('Sugerir otras') : t('Sugerir ideas')} onRun={() => run('suggest')} />
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', textWrap: 'pretty' }}>{t('La IA propone ideas nuevas para tu producto, distintas de las que ya están en el buzón. Agregá las que te sirvan y descartá las que no: la IA aprende qué tipo de ideas no aplican.')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <RunBar busy={busy === 'suggest'} ready={ready} left={left('suggest')} at={st.last_suggest?.at} rel={rel}
+                      label={st.last_suggest?.result.suggestions.length ? t('Sugerir otras') : t('Sugerir ideas')} onRun={() => run('suggest')} />
+                  </div>
+                  {!!st.last_suggest?.result.suggestions.length && busy !== 'suggest' && (
+                    <Popconfirm title={t('¿Limpiar todas las sugerencias?')} okText={t('Limpiar')} cancelText={t('Cancelar')} onConfirm={clearAll}>
+                      <Tooltip title={t('Limpiar sugerencias')}>
+                        <button type="button" className="bx-icon-btn" aria-label={t('Limpiar sugerencias')}><DeleteOutlined /></button>
+                      </Tooltip>
+                    </Popconfirm>
+                  )}
+                </div>
                 {busy === 'suggest' && <Working text={t('Pensando ideas para tu producto…')} />}
                 {st.last_suggest && busy !== 'suggest' && st.last_suggest.result.suggestions.map((s) => (
-                  <div key={s.title} style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, opacity: added.includes(s.title) ? 0.55 : 1 }}>
+                  <div key={s.title} style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       <span style={{ flex: 1, fontSize: 15, fontWeight: 600, lineHeight: 1.4 }}>{s.title}</span>
                       <Tag>{api.catL(s.category_id)}</Tag>
                     </div>
                     <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', lineHeight: 1.55 }}>{s.description}</span>
                     <span style={{ fontSize: 13, color: AI, background: '#eef2ff', borderRadius: 6, padding: '6px 10px', display: 'flex', gap: 6 }}><Sparkle size={12} /><span>{s.why}</span></span>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      {added.includes(s.title) ? <span style={{ fontSize: 13, color: '#389e0d' }}>{t('Agregada al buzón')}</span>
-                        : api.canCreate ? (
-                          <button type="button" className="bx-btn-primary" onClick={() => api.openNewWith({ title: s.title, description: s.description, category_id: s.category_id, ai: true }, () => setAdded((a) => [...a, s.title]))}>
-                            {t('Agregar al buzón')}
-                          </button>
-                        ) : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('No tenés permiso para cargar ideas en este buzón.')}</span>}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                      <button type="button" className="bx-btn" onClick={() => dismiss(s.title)}>{t('Descartar idea')}</button>
+                      {api.canCreate ? (
+                        <button type="button" className="bx-btn-primary" onClick={() => api.openNewWith({ title: s.title, description: s.description, category_id: s.category_id, ai: true, suggestion: s.title }, () => { load(); })}>
+                          {t('Agregar al buzón')}
+                        </button>
+                      ) : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', alignSelf: 'center' }}>{t('No tenés permiso para cargar ideas en este buzón.')}</span>}
                     </div>
                   </div>
                 ))}

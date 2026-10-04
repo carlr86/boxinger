@@ -251,8 +251,12 @@ console.log('\n# enterprise');
 const cacc = (await rpc(carla, 'get_my_context')).account.id;
 await err('users cannot self-assign enterprise', () => rpc(carla, 'admin_update_subscription', [cacc, 'enterprise', null, null, null, null, false]), 'Admin de plataforma');
 await ok('super admin assigns enterprise', () => rpc(root, 'admin_update_subscription', [cacc, 'enterprise', 'pct', 50, null, 'ignorado', true]));
-await ok('context: enterprise, pro features, unlimited', async () => { const a = (await rpc(carla, 'get_my_context')).account; eq([a.plan, a.pro, a.member_limit, a.subscription.deal_type, a.subscription.provider], ['enterprise', true, null, null, 'manual']); });
-await ok('team: unlimited members', async () => eq((await rpc(carla, 'get_team', [t3])).max_members, null));
+await ok('context: enterprise, pro features, 20 members per team', async () => { const a = (await rpc(carla, 'get_my_context')).account; eq([a.plan, a.pro, a.member_limit, a.subscription.deal_type, a.subscription.provider], ['enterprise', true, 20, null, 'manual']); });
+await ok('team: 20 members on Enterprise', async () => eq((await rpc(carla, 'get_team', [t3])).max_members, 20));
+await ok('team: unlimited when the platform admin sets it', async () => {
+  await rpc(root, 'admin_set_client_limits', [cacc, null, true, null, null]);
+  eq((await rpc(carla, 'get_team', [t3])).max_members, null);
+});
 await ok('invite 6 more members (over the Pro limit)', () => rpc(carla, 'invite_team_members', [t3, ['e1@x.com', 'e2@x.com', 'e3@x.com', 'e4@x.com', 'e5@x.com', 'e6@x.com'], null]));
 await ok('pro features still on (private board allowed)', () => rpc(carla, 'create_board', [t3, 'Interno enterprise', 'private', true, false]));
 await ok('admin sees Enterprise', async () => eq((await rpc(root, 'admin_clients')).find((c) => c.account_id === cacc).plan, 'Enterprise'));

@@ -54,7 +54,7 @@ export function NewClientModal({ open, onClose, onDone, prices }: { open: boolea
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Plan
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 }}>
-              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'A medida · miembros ilimitados · IA']] as const).map(([k, l, d]) => (
+              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'USD 19,90 / mes · 20 miembros por equipo · IA']] as const).map(([k, l, d]) => (
                 <div key={k} style={card(f.plan === k)} onClick={() => setF({ ...f, plan: k })}><span style={{ fontWeight: 600 }}>{l}</span><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{d}</span></div>
               ))}
             </div>
@@ -129,7 +129,7 @@ export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: 
   const untilTs = !hasValue || term === 'none' ? null : term === 'months' ? (m >= 1 ? (() => { const d = new Date(); d.setMonth(d.getMonth() + m); return d.getTime(); })() : NaN) : until ? new Date(until + 'T23:59').getTime() : NaN;
   const termErr = !hasValue ? '' : term === 'months' ? (!(Number.isInteger(m) && m >= 1 && m <= 36) ? 'Entre 1 y 36 meses' : '') : term === 'date' ? (!until ? 'Elegí una fecha' : (untilTs as number) < tomorrow().getTime() ? 'La fecha tiene que ser posterior a hoy' : '') : '';
   const eff = !isPro ? 0 : !hasValue || valueErr ? list : mode === 'fixed' ? v : Math.round(list * (1 - v / 100) * 100) / 100;
-  const sum = plan === 'enterprise' ? 'Todo lo de Pro, miembros ilimitados y funciones con IA. Se factura fuera de la plataforma.' : !isPro ? 'Plan Free, sin costo.' : !hasValue ? 'Precio de lista. Sigue los cambios de precio programados.' : valueErr || termErr ? 'Completá los datos para ver el resumen.'
+  const sum = plan === 'enterprise' ? 'Todo lo de Pro, hasta 20 miembros por equipo (se cambia en Límites del cliente) y Asistente IA. Se factura fuera de la plataforma.' : !isPro ? 'Plan Free, sin costo.' : !hasValue ? 'Precio de lista. Sigue los cambios de precio programados.' : valueErr || termErr ? 'Completá los datos para ver el resumen.'
     : (mode === 'pct' ? v + '% de descuento sobre la lista' : 'Precio exclusivo') + (untilTs ? ` hasta el ${ddmmyyyy(untilTs)}. Después vuelve al precio de lista (${money(cur, list)}).` : ', sin vencimiento.');
 
   async function save() {

@@ -10,7 +10,7 @@ import { isEmail } from '@/lib/format';
 import { useI18n } from '@/lib/i18n/client';
 import { I18N_LIVE } from '@/lib/i18n';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
-import { CREEM_ENABLED, ENTERPRISE_TAG, PAYPAL_ENABLED } from '@/lib/constants';
+import { CREEM_ENABLED, ENTERPRISE_TAG, PAYPAL_ENABLED, ENTERPRISE_USD } from '@/lib/constants';
 import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
@@ -193,7 +193,7 @@ function Notifs() {
 }
 
 const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
-const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Asistente IA: sugiere ideas y cuáles aprobar', 'Alta y facturación a medida'];
+const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'];
 const PRO_ITEMS = ['Todo lo de Free', 'Equipos ilimitados', 'Buzones ilimitados por equipo', 'Hasta 4 miembros por equipo', 'Acceso por buzón para cada miembro', 'Buzones privados', 'Acceso por dominio de email', 'Matriz de esfuerzo e impacto', 'Roadmap de las ideas', 'Status de las ideas'];
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', creem: 'Tarjeta internacional (Creem)', manual: 'Asignado por Boxinger' };
 
@@ -339,13 +339,22 @@ function Subscription() {
         <div style={{ ...box(isEnt), border: isEnt ? '2px solid #4338ca' : '1px solid #f0f0f0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 18, fontWeight: 600 }}>Enterprise</span>
-            {isEnt ? <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca' }}>{t('Tu plan')}</span> : <Tag tone={ENTERPRISE_TAG}>{t('Exclusivo')}</Tag>}
+            {isEnt ? <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca' }}>{t('Tu plan')}</span> : <Tag tone={ENTERPRISE_TAG}>{t('Con IA')}</Tag>}
           </div>
-          <div><span style={{ fontSize: 28, fontWeight: 600 }}>{t('A medida')}</span></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{ENTERPRISE_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}</div>
+          {/* Clients already on Enterprise keep the price and limits they agreed with Boxinger. */}
+          <div>
+            {isEnt ? <span style={{ fontSize: 20, fontWeight: 600 }}>{t('Precio acordado')}</span>
+              : <><span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', ENTERPRISE_USD)}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></>}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>
+            {ENTERPRISE_ITEMS.map((x) => <span key={x}>{t(isEnt && x === 'Hasta 20 miembros por equipo' ? (acc?.member_limit == null ? 'Miembros ilimitados por equipo' : x) : x)}</span>)}
+          </div>
           {isEnt
             ? <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Tu plan lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.')}</span>
-            : <button type="button" className="bx-btn" style={{ height: 36, borderColor: '#4338ca', color: '#4338ca' }} onClick={() => setContact(true)}>{t('Contactanos')}</button>}
+            : <>
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>{t('¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.')}</span>
+                <button type="button" className="bx-btn" style={{ height: 36, borderColor: '#4338ca', color: '#4338ca' }} onClick={() => setContact(true)}>{t('Contactanos')}</button>
+              </>}
         </div>
       </div>
 

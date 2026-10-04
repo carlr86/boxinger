@@ -77,6 +77,9 @@ export const TEXT2 = 'rgba(0,0,0,0.65)';
 export const TEXT3 = 'rgba(0,0,0,0.45)';
 export const BORDER = '#f0f0f0';
 export const MAX_MEMBERS = 4;
+/** Enterprise list price (USD / month) and what it includes; clients can get a custom price or limits. */
+export const ENTERPRISE_USD = 19.9;
+export const ENTERPRISE_MEMBERS = 20;
 
 export const GROWTH: Record<string, Tone> = {
   adquisicion: { l: 'Adquisición', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' },

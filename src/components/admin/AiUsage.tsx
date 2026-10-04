@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Modal } from 'antd';
+import { EyeOutlined, SlidersOutlined } from '@ant-design/icons';
 import { rpc } from '@/lib/rpc';
 import { Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
@@ -31,7 +32,7 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
   const toast = useToast();
   const [month, setMonth] = useState<string | null>(null);
   const [d, setD] = useState<Overview | null>(null);
-  const [quota, setQuota] = useState<ClientUse | null>(null);
+  const [quota, setQuota] = useState<string | null>(null);
   const load = () => rpc<Overview>('admin_ai_overview', { p_month: month }).then(setD).catch((e) => toast.err(e));
   useEffect(() => { load(); }, [month]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!d) return <span style={{ fontSize: 14, color: sec }}>Cargando…</span>;
@@ -55,7 +56,7 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
     { key: 'rank', title: 'Análisis', width: '100px', sort: (c) => c.rank, render: (c) => num(c.rank) },
     { key: 'suggest', title: 'Sugerencias', width: '110px', sort: (c) => c.suggest, render: (c) => num(c.suggest) },
     { key: 'quota', title: 'Cupo mensual', width: '150px', sort: (c) => c.limits.rank, render: (c) => (
-      <a onClick={() => setQuota(c)} title="Cambiar cupo" style={{ display: 'flex', flexDirection: 'column', fontSize: 13, color: 'inherit' }}>
+      <a onClick={() => setQuota(c.account_id)} title="Cambiar cupo" style={{ display: 'flex', flexDirection: 'column', fontSize: 13, color: 'inherit' }}>
         <span>{current ? `${c.rank} / ${c.limits.rank}` : c.limits.rank} análisis</span>
         <span>{current ? `${c.suggest} / ${c.limits.suggest}` : c.limits.suggest} sugerencias</span>
         {c.limits.custom && <span style={{ fontSize: 12, color: '#4338ca' }}>Cupo especial</span>}
@@ -106,44 +107,77 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
       <span style={{ fontSize: 13, color: sec }}>
         Cupo por cliente: {d.defaults.account_rank} análisis y {d.defaults.account_suggest} sugerencias por mes entre todos sus buzones (y hasta {d.defaults.rank} y {d.defaults.suggest} en cada buzón). Tocá el cupo de un cliente para cambiarlo.
       </span>
-      <Table cols={cols} rows={d.clients} rowKey={(c) => c.account_id} minWidth={1250} menu={(c): MenuItems => [{ key: 'q', label: 'Cambiar cupo', onClick: () => setQuota(c) }, { key: 'd', label: 'Ver cliente', onClick: () => openClient(c.account_id) }]} empty="Ningún cliente usó el asistente este mes y no hay clientes Enterprise." />
-      <QuotaModal client={quota} defaults={d.defaults} onClose={() => setQuota(null)} onDone={() => { setQuota(null); load(); }} />
+      <Table cols={cols} rows={d.clients} rowKey={(c) => c.account_id} minWidth={1250} menu={(c): MenuItems => [{ key: 'q', icon: <SlidersOutlined />, label: 'Cambiar cupo', onClick: () => setQuota(c.account_id) }, { key: 'd', icon: <EyeOutlined />, label: 'Ver cliente', onClick: () => openClient(c.account_id) }]} empty="Ningún cliente usó el asistente este mes y no hay clientes Enterprise." />
+      <LimitsModal accountId={quota} onClose={() => setQuota(null)} onDone={() => { setQuota(null); load(); }} />
     </>
   );
 }
 
-/** A different monthly AI limit for one client; empty fields go back to the default. */
-function QuotaModal({ client, defaults, onClose, onDone }: { client: ClientUse | null; defaults: Overview['defaults']; onClose: () => void; onDone: () => void }) {
+type ClientLimits = {
+  plan: string;
+  members: { limit: number; unlimited: boolean; custom: boolean; default: number };
+  ai: { rank: number; suggest: number; custom: boolean };
+  ai_defaults: { account_rank: number; account_suggest: number; rank: number; suggest: number };
+};
+
+/** Platform admin: one client's limits (members per team on Enterprise and monthly AI uses). Defaults leave fields as they are. */
+export function LimitsModal({ accountId, onClose, onDone }: { accountId: string | null; onClose: () => void; onDone: () => void }) {
   const toast = useToast();
+  const [l, setL] = useState<ClientLimits | null>(null);
+  const [members, setMembers] = useState('');
+  const [unlimited, setUnlimited] = useState(false);
   const [rank, setRank] = useState('');
   const [sug, setSug] = useState('');
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (client) { setRank(String(client.limits.rank)); setSug(String(client.limits.suggest)); } }, [client]);
-  const n = (v: string, def: number) => (v.trim() === '' || Number(v) === def ? null : Math.round(Number(v)));
-  const worst = (Number(rank || defaults.account_rank) * 0.16 + Number(sug || defaults.account_suggest) * 0.03);
+  useEffect(() => {
+    setL(null);
+    if (accountId) rpc<ClientLimits>('admin_client_limits', { p_account: accountId }).then((r) => {
+      setL(r); setMembers(String(r.members.limit)); setUnlimited(r.members.unlimited); setRank(String(r.ai.rank)); setSug(String(r.ai.suggest));
+    }).catch((e) => toast.err(e));
+  }, [accountId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const custom = (v: string, def: number) => (v.trim() === '' || Number(v) === def ? null : Math.round(Number(v)));
+  const worst = l ? Number(rank || l.ai_defaults.account_rank) * 0.16 + Number(sug || l.ai_defaults.account_suggest) * 0.03 : 0;
   async function save(reset?: boolean) {
+    if (!l) return;
     setBusy(true);
     try {
-      await rpc('admin_set_ai_quota', { p_account: client!.account_id, p_rank: reset ? null : n(rank, defaults.account_rank), p_suggest: reset ? null : n(sug, defaults.account_suggest) });
-      toast.ok(reset ? 'Cupo por defecto' : 'Cupo actualizado');
+      await rpc('admin_set_client_limits', reset
+        ? { p_account: accountId, p_members: null, p_members_unlimited: false, p_rank: null, p_suggest: null }
+        : { p_account: accountId, p_members: unlimited ? null : custom(members, l.members.default), p_members_unlimited: unlimited,
+            p_rank: custom(rank, l.ai_defaults.account_rank), p_suggest: custom(sug, l.ai_defaults.account_suggest) });
+      toast.ok(reset ? 'Límites por defecto' : 'Límites actualizados');
       onDone();
     } catch (e) { toast.err(e); } finally { setBusy(false); }
   }
+  const field: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 };
   return (
-    <Modal open={!!client} onCancel={onClose} footer={null} title={client ? `Cupo de IA · ${client.name}` : ''} width={440} destroyOnHidden>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
-        <span style={{ fontSize: 13, color: sec }}>Por mes, entre todos los buzones del cliente. Por defecto: {defaults.account_rank} análisis y {defaults.account_suggest} sugerencias. Cada buzón sigue teniendo su tope ({defaults.rank} y {defaults.suggest}).</span>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Análisis por mes<input className="bx-input" type="number" min="0" max="1000" value={rank} onChange={(e) => setRank(e.target.value)} /></label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Sugerencias por mes<input className="bx-input" type="number" min="0" max="1000" value={sug} onChange={(e) => setSug(e.target.value)} /></label>
+    <Modal open={!!accountId} onCancel={onClose} footer={null} title="Límites del cliente" width={460} destroyOnHidden>
+      {!l ? <span style={{ fontSize: 14, color: sec }}>Cargando…</span> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
+          {l.plan !== 'enterprise' && <span style={{ fontSize: 13, color: '#d46b08' }}>Este cliente no está en Enterprise: los límites aplican cuando lo esté.</span>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Miembros por equipo</span>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, cursor: 'pointer' }}>
+              <input type="checkbox" checked={unlimited} onChange={(e) => setUnlimited(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#059669' }} />Ilimitados
+            </label>
+            {!unlimited && <label style={field}>Hasta (además del dueño)<input className="bx-input" type="number" min="1" max="10000" value={members} onChange={(e) => setMembers(e.target.value)} /></label>}
+            <span style={{ fontSize: 12, color: sec }}>Por defecto: {l.members.default}. Los invitados de la Comunidad no tienen límite.</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Asistente IA por mes (entre todos los buzones)</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <label style={field}>Análisis<input className="bx-input" type="number" min="0" max="1000" value={rank} onChange={(e) => setRank(e.target.value)} /></label>
+              <label style={field}>Sugerencias<input className="bx-input" type="number" min="0" max="1000" value={sug} onChange={(e) => setSug(e.target.value)} /></label>
+            </div>
+            <span style={{ fontSize: 12, color: sec }}>Por defecto: {l.ai_defaults.account_rank} y {l.ai_defaults.account_suggest}. Cada buzón tiene además su tope ({l.ai_defaults.rank} y {l.ai_defaults.suggest}). Costo máximo si usa todo: {usd(worst)} por mes.</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+            {(l.members.custom || l.ai.custom) && <button type="button" className="bx-btn" disabled={busy} onClick={() => save(true)} style={{ marginRight: 'auto' }}>Volver a los límites por defecto</button>}
+            <button type="button" className="bx-btn" onClick={onClose}>Cancelar</button>
+            <button type="button" className="bx-btn-primary" disabled={busy} onClick={() => save()}>Guardar</button>
+          </div>
         </div>
-        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)', background: '#fafafa', borderRadius: 8, padding: '8px 12px' }}>Costo máximo si usa todo (buzones grandes): {usd(worst)} por mes.</span>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          {client?.limits.custom && <button type="button" className="bx-btn" disabled={busy} onClick={() => save(true)} style={{ marginRight: 'auto' }}>Volver al cupo por defecto</button>}
-          <button type="button" className="bx-btn" onClick={onClose}>Cancelar</button>
-          <button type="button" className="bx-btn-primary" disabled={busy} onClick={() => save()}>Guardar</button>
-        </div>
-      </div>
+      )}
     </Modal>
   );
 }

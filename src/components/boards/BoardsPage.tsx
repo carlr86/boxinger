@@ -139,7 +139,7 @@ export function BoardsPage() {
       <AppHeader slogan="From idea to Product" />
       <main className="bx-main">
         <PageHead title={t('Mis Buzones de ideas')}
-          sub={<>{t('Elegí un buzón para entrar.')} {ctx.account ? (ctx.account.plan === 'enterprise' ? t('Plan Enterprise · equipos, buzones y miembros ilimitados.') : isPro ? t('Plan Pro · equipos y buzones ilimitados.') : t('Plan Free · 1 equipo · 1 buzón.')) : ''}</>}
+          sub={<>{t('Elegí un buzón para entrar.')} {ctx.account ? (ctx.account.plan === 'enterprise' ? (ctx.account.member_limit == null ? t('Plan Enterprise · equipos, buzones y miembros ilimitados.') : t('Plan Enterprise · equipos y buzones ilimitados, hasta {n} miembros por equipo.', { n: ctx.account.member_limit })) : isPro ? t('Plan Pro · equipos y buzones ilimitados.') : t('Plan Free · 1 equipo · 1 buzón.')) : ''}</>}
           right={ctx.account ? (
             <button type="button" className="bx-btn" onClick={() => (isPro ? setModal({ type: 'createTeam' }) : toast.info('Equipos ilimitados en el plan Pro'))} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               + {t('Crear equipo')}{!isPro && <WarnPill>Pro</WarnPill>}
@@ -334,7 +334,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis, p_members_ideas: membersIdeas, p_guests_ideas: guestsIdeas }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
   } else if (kind === 'createTeam') {
     title = t('Crear equipo');
-    text = ctx?.account?.plan === 'enterprise' ? t('Cada equipo tiene sus propios buzones y miembros ilimitados.') : t('Cada equipo tiene sus propios buzones y hasta {n} miembros además de vos.', { n: MAX_MEMBERS });
+    text = ctx?.account?.plan === 'enterprise' && ctx.account.member_limit == null ? t('Cada equipo tiene sus propios buzones y miembros ilimitados.') : t('Cada equipo tiene sus propios buzones y hasta {n} miembros además de vos.', { n: ctx?.account?.member_limit ?? MAX_MEMBERS });
     body = (
       <>
         <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder={t('Nombre del equipo')} value={input} onChange={(e) => setInput(e.target.value)} />

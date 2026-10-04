@@ -121,7 +121,7 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
       if (s(p.plan) === 'enterprise')
         return {
           subject: t('Tu cuenta ahora es Enterprise'),
-          html: layout(t('Bienvenido a Boxinger Enterprise'), t('Tu cuenta pasó al plan Enterprise: todo lo de Pro, con miembros ilimitados en tus equipos y acceso anticipado a las nuevas funciones con IA.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
+          html: layout(t('Bienvenido a Boxinger Enterprise'), t('Tu cuenta pasó al plan Enterprise: todo lo de Pro, más miembros en tus equipos y el Asistente IA, que te sugiere ideas nuevas y cuáles conviene aprobar.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
         };
       const pro = s(p.plan) === 'pro';
       const amount = money(p.currency, p.amount);

@@ -67,14 +67,14 @@ await err('server-only functions are not public', () => rpc(owner, 'ai_begin', [
 
 console.log('\n# ideas from a suggestion');
 await ok('the Admin adds it: authored by them and marked as AI', async () => {
-  const id = await rpc(owner, 'create_ai_idea', [board, 'Recibos de sueldo en el celular', 'Que cada empleado vea y descargue su recibo desde el celular.', cat]);
+  const id = await rpc(owner, 'create_ai_idea', [board, 'Recibos de sueldo en el celular', 'Que cada empleado vea y descargue su recibo desde el celular.', cat, null]);
   const r = (await db.query(`select author_id, origin, ai_generated from public.ideas where id = $1`, [id])).rows[0];
   eq(r.author_id, owner); eq(r.origin, 'equipo'); eq(r.ai_generated, true);
   const slug = (await db.query(`select slug from public.boards where id = $1`, [board])).rows[0].slug;
   const b = await rpc(owner, 'get_board', [slug]);
   eq(b.ideas.find((i) => i.id === id).ai, true); eq(b.ideas.find((i) => i.id === i1).ai, false);
 });
-await err('members cannot add AI ideas', () => rpc(member, 'create_ai_idea', [board, 'Otra idea de prueba', 'Una descripción suficientemente larga para pasar.', cat]), 'Admin del equipo');
+await err('members cannot add AI ideas', () => rpc(member, 'create_ai_idea', [board, 'Otra idea de prueba', 'Una descripción suficientemente larga para pasar.', cat, null]), 'Admin del equipo');
 await ok('regular ideas are not marked', async () => eq((await db.query(`select ai_generated from public.ideas where id = $1`, [i1])).rows[0].ai_generated, false));
 
 console.log('\n# monthly limits');
@@ -151,5 +151,49 @@ await ok('back to the default', async () => {
 });
 await err('only the platform admin changes it', () => rpc(owner, 'admin_set_ai_quota', [acc, 100, 100]), 'plataforma');
 await err('sane numbers only', () => rpc(root, 'admin_set_ai_quota', [acc, -1, 5]), '1.000');
+
+
+console.log('\n# suggestion feedback');
+const sugs = { suggestions: ['Uno', 'Dos', 'Tres'].map((x) => ({ title: 'Idea ' + x, description: 'Una descripción suficientemente larga.', category_id: cat, why: 'porque sí' })) };
+await rpc(null, 'ai_finish', [board, owner, 'suggest', 'test', 10, 10, 0.001, JSON.stringify(sugs)], 'service_role');
+const lastTitles = async () => (await rpc(owner, 'ai_status', [board])).last_suggest.result.suggestions.map((x) => x.title);
+await ok('discard one: leaves the list and is remembered for the AI', async () => {
+  await rpc(owner, 'ai_dismiss_suggestion', [board, 'Idea Dos', true]);
+  eq(await lastTitles(), ['Idea Uno', 'Idea Tres']);
+  await db.query(`update public.ai_runs set created_at = created_at - interval '40 days'`); // free the monthly limits, keep the order
+  await db.query(`update public.accounts set ai_suggest_limit = null, ai_rank_limit = null where id = $1`, [acc]);
+  eq((await begin(owner, 'suggest')).discarded, ['Idea Dos']);
+});
+await ok('adding one to the board takes it off the list (not as discarded)', async () => {
+  await rpc(owner, 'create_ai_idea', [board, 'Idea Uno editada', 'Una descripción suficientemente larga para pasar.', cat, 'Idea Uno']);
+  eq(await lastTitles(), ['Idea Tres']);
+  eq((await begin(owner, 'suggest')).discarded, ['Idea Dos']);
+});
+await ok('newest discarded first, at most 30', async () => {
+  for (let k = 0; k < 32; k++) await rpc(owner, 'ai_dismiss_suggestion', [board, 'Descartada ' + k, true]);
+  const d = (await begin(owner, 'suggest')).discarded;
+  eq(d.length, 30); eq(d[0], 'Descartada 31');
+});
+await ok('clear all', async () => { await rpc(owner, 'ai_clear_suggestions', [board]); eq(await lastTitles(), []); });
+await err('members cannot discard', () => rpc(member, 'ai_dismiss_suggestion', [board, 'Idea Tres', true]), 'Admin del equipo');
+
+console.log('\n# members per team');
+const limitOf = async (a) => (await db.query(`select public.account_member_limit($1) l`, [a])).rows[0].l;
+await ok('this Enterprise client (from before the migration in real data) is limited to 20 by default here', async () => eq(await limitOf(acc), 20));
+await ok('Pro stays at 4', async () => {
+  const p2 = await mk('pro@x.com'); await rpc(p2, 'onboard', ['P', 'Uno', 'public', '']);
+  const a2 = (await db.query(`select id from public.accounts where owner_id = $1`, [p2])).rows[0].id;
+  await db.query(`update public.subscriptions set plan = 'pro', status = 'active', current_period_end = now() + interval '20 days' where account_id = $1`, [a2]);
+  eq(await limitOf(a2), 4);
+});
+await ok('the platform admin raises it or makes it unlimited', async () => {
+  let l = await rpc(root, 'admin_set_client_limits', [acc, 35, false, null, null]);
+  eq([l.members.limit, l.members.unlimited, l.members.custom], [35, false, true]); eq(await limitOf(acc), 35);
+  l = await rpc(root, 'admin_set_client_limits', [acc, null, true, 40, 25]);
+  eq(l.members.unlimited, true); eq(await limitOf(acc), null); eq([l.ai.rank, l.ai.suggest], [40, 25]);
+  l = await rpc(root, 'admin_set_client_limits', [acc, null, false, null, null]);
+  eq(l.members.custom, false); eq(await limitOf(acc), 20);
+});
+await err('only the platform admin', () => rpc(owner, 'admin_set_client_limits', [acc, 100, false, null, null]), 'plataforma');
 
 await done();
