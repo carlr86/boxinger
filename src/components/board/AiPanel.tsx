@@ -114,7 +114,7 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
               )}
             </section>
 
-            <Seg options={[['rank', t('Mejores para el Backlog')], ['suggest', t('Sugerir ideas')]]} value={tab} onChange={setTab} />
+            <Seg options={[['rank', t('Ideas del Buzón')], ['suggest', t('Sugerir nuevas ideas')]]} value={tab} onChange={setTab} />
 
             {tab === 'rank' ? (
               <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -161,8 +161,9 @@ function RunBar({ busy, ready, left, at, label, onRun, rel }: { busy: boolean; r
   const { t } = useI18n();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      {/* Disabled keeps the standard grey button; the AI violet only when it can run. */}
       <button type="button" className="bx-btn-primary" disabled={busy || !ready || left === 0} onClick={onRun}
-        style={{ background: AI, borderColor: AI, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        style={{ ...(busy || !ready || left === 0 ? {} : { background: AI, borderColor: AI }), display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         <Sparkle />{busy ? t('Trabajando…') : label}
       </button>
       <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
