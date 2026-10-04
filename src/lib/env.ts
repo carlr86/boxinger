@@ -15,8 +15,11 @@ export const SITE_URL = siteUrl();
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
+/** Pasted values sometimes carry spaces or quotes: drop them. */
+export const cleanEnv = (v: string | undefined) => v?.trim().replace(/^(['"])(.*)\1$/, '$2').trim() || undefined;
+
 export function requireEnv(name: string): string {
-  const v = process.env[name];
+  const v = cleanEnv(process.env[name]);
   if (!v) throw new Error(`Falta la variable de entorno ${name}`);
   return v;
 }
