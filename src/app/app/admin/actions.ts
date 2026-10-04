@@ -62,7 +62,7 @@ export async function adminUpdateSubscription(f: { account: string; plan: 'free'
     const { data: before } = await admin.from('subscriptions').select('*').eq('account_id', f.account).single();
     let warning: string | undefined;
     // Leaving a paid Pro (to Free or Enterprise): stop PayPal / Mercado Pago from charging again.
-    if (f.plan !== 'pro' && before?.plan === 'pro' && before.provider_subscription_id && ['paypal', 'mercadopago'].includes(before.provider)) {
+    if (f.plan !== 'pro' && before?.plan === 'pro' && before.provider_subscription_id && ['paypal', 'mercadopago', 'lemonsqueezy'].includes(before.provider)) {
       try { await cancelProviderSubscription(before.provider, before.provider_subscription_id); }
       catch { warning = 'Cambiamos el plan, pero no pudimos cancelar la suscripción en el proveedor. Cancelala a mano.'; }
     }

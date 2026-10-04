@@ -6,16 +6,19 @@ import { isEmail } from '@/lib/format';
 import { PAYPAL_ENABLED } from '@/lib/constants';
 import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
+import * as lemon from '@/lib/billing/lemonsqueezy';
 import { currentPrice, effectiveAmount, type SubRow } from '@/lib/billing/service';
 
-// Starts a Pro subscription: PayPal (USD) or Mercado Pago (ARS). Returns the provider's approval URL.
+// Starts a Pro subscription: Lemon Squeezy (USD, cards worldwide), Mercado Pago (ARS) or PayPal (USD, off).
+// Returns the provider's checkout URL.
 export async function POST(req: NextRequest) {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Necesitás iniciar sesión.' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const provider = body.provider as 'paypal' | 'mercadopago';
-  if (provider !== 'paypal' && provider !== 'mercadopago') return NextResponse.json({ error: 'Medio de pago inválido.' }, { status: 400 });
+  const provider = body.provider as 'paypal' | 'mercadopago' | 'lemonsqueezy';
+  if (!['paypal', 'mercadopago', 'lemonsqueezy'].includes(provider)) return NextResponse.json({ error: 'Medio de pago inválido.' }, { status: 400 });
+  if (provider === 'lemonsqueezy' && !lemon.lemonConfigured()) return NextResponse.json({ error: 'El pago con tarjeta internacional no está disponible por ahora.' }, { status: 400 });
   if (provider === 'paypal' && !PAYPAL_ENABLED) return NextResponse.json({ error: 'El pago con PayPal no está disponible por ahora. Probá con Mercado Pago.' }, { status: 400 });
 
   const admin = supabaseAdmin();
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ya tenés el plan Pro activo.' }, { status: 409 });
 
   const owner = (acc as unknown as { profiles: { name: string; email: string } }).profiles;
-  const currency = provider === 'paypal' ? 'USD' : 'ARS';
+  const currency = provider === 'mercadopago' ? 'ARS' : 'USD';
   const price = await currentPrice(currency);
   // Deals are defined per account; they follow the account across providers only for fixed prices in the same currency.
   const amount = sub && sub.deal_type && sub.currency === currency ? await effectiveAmount({ ...sub, list_amount: price.amount }, price.amount) : price.amount;
@@ -41,6 +44,9 @@ export async function POST(req: NextRequest) {
         planId, accountId: acc.id, email: owner.email, name: owner.name, amount, listAmount: price.amount,
         returnUrl: `${SITE_URL}/api/billing/paypal/return`, cancelUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=cancel`,
       });
+    } else if (provider === 'lemonsqueezy') {
+      const c = await lemon.createCheckout({ accountId: acc.id, email: owner.email, name: owner.name, amount, listAmount: price.amount, redirectUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=ok` });
+      r = { id: '', url: c.url };
     } else {
       const payer = typeof body.payer_email === 'string' && isEmail(body.payer_email) ? body.payer_email : owner.email;
       r = await mercadopago.createPreapproval({ accountId: acc.id, payerEmail: payer, amount, backUrl: `${SITE_URL}/api/billing/mercadopago/return` });
@@ -49,6 +55,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: r.url });
   } catch (e) {
     console.error('checkout', e);
-    return NextResponse.json({ error: 'No pudimos iniciar el pago con ' + (provider === 'paypal' ? 'PayPal' : 'Mercado Pago') + '. Probá de nuevo en unos minutos.' }, { status: 502 });
+    return NextResponse.json({ error: 'No pudimos iniciar el pago con ' + ({ paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'tarjeta' }[provider]) + '. Probá de nuevo en unos minutos.' }, { status: 502 });
   }
 }

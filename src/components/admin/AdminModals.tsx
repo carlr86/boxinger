@@ -15,7 +15,7 @@ import type { Client, ClientDetail, Prices } from './types';
 
 const iso = (d: Date) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const tomorrow = () => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 1); return d; };
-const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', manual: 'Manual' };
+const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Lemon Squeezy', manual: 'Manual' };
 const card = (on: boolean): React.CSSProperties => ({ border: on ? '2px solid #059669' : '1px solid #d9d9d9', background: on ? '#d1fae5' : '#fff', borderRadius: 8, padding: '10px 12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left' });
 const activationLink = (t: string) => `${SITE_URL}/app/activar/${t}`;
 
@@ -227,7 +227,7 @@ export function SchedulePriceModal({ open, currency, prices, onClose, onDone }: 
   return (
     <Modal open={open} onCancel={onClose} footer={null} title={`Programar nuevo precio Pro (${currency})`} width={520} destroyOnHidden>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
-        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Precio vigente: {money(currency, cur)} / mes · {currency === 'USD' ? 'PayPal' : 'Mercado Pago'}.</span>
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Precio vigente: {money(currency, cur)} / mes · {currency === 'USD' ? 'Lemon Squeezy' : 'Mercado Pago'}.</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Field label={`Nuevo precio (${currency} / mes)`} error={tried ? errs.price : ''}><input className="bx-input" type="number" min="1" step={currency === 'USD' ? '0.01' : '1'} placeholder={currency === 'USD' ? 'Ej: 12' : 'Ej: 17999'} value={price} onChange={(x) => setPrice(x.target.value)} /></Field>
           <Field label="Vigente desde" error={tried ? errs.from : ''}><input className="bx-input" type="date" min={iso(tomorrow())} value={from} onChange={(x) => setFrom(x.target.value)} /></Field>

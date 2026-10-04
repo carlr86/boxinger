@@ -105,6 +105,18 @@ Sin SMTP usa Resend si está configurado.
 
 Cómo funciona: *Pasar a Pro* crea la suscripción en PayPal y redirige a aprobarla. Al volver (`/api/billing/paypal/return`) y con el webhook `ACTIVATED`, la cuenta pasa a Pro. Los precios especiales y los cambios de precio se aplican a cada suscripción con `PATCH /v1/billing/subscriptions/{id}` desde el próximo cobro.
 
+## 3b. Lemon Squeezy (USD, pagos internacionales)
+
+Reemplaza a PayPal (la cuenta de PayPal fue cerrada). Lemon Squeezy actúa como *merchant of record*: cobra con tarjeta o PayPal en cualquier país, resuelve impuestos y factura al cliente; paga a tu banco argentino dos veces por mes.
+
+1. Creá la cuenta en app.lemonsqueezy.com, una tienda y el producto **Boxinger Pro** con una variante de **suscripción mensual de USD 9,99**.
+2. *Settings › API* → creá una API key → `LEMONSQUEEZY_API_KEY`.
+3. `LEMONSQUEEZY_STORE_ID` y `LEMONSQUEEZY_VARIANT_ID` salen de la API (`/v1/stores`, `/v1/variants`).
+4. Webhook (*Settings › Webhooks*) a `https://boxinger.com/api/billing/lemonsqueezy/webhook` con los eventos `subscription_created`, `subscription_updated`, `subscription_cancelled`, `subscription_resumed`, `subscription_expired`, `subscription_payment_success`, `subscription_payment_failed`, `subscription_payment_refunded`. Su *signing secret* → `LEMONSQUEEZY_WEBHOOK_SECRET`.
+5. `NEXT_PUBLIC_LEMONSQUEEZY_ENABLED=1` muestra la opción "Tarjeta internacional" (se lee al compilar: después de cambiarla, Redeploy).
+
+Notas: los precios especiales se aplican al iniciar la suscripción (`custom_price`); Lemon Squeezy no permite cambiar el precio de una suscripción en curso, así que los cambios de precio de lista no se trasladan a suscriptores existentes de Lemon Squeezy.
+
 ## 4. Mercado Pago (ARS, Argentina)
 
 1. mercadopago.com.ar/developers › *Tus integraciones › Crear aplicación* (producto: Suscripciones). Copiá el *Access Token* (primero el de prueba, `TEST-…`) → `MP_ACCESS_TOKEN`.

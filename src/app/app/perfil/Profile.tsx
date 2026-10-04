@@ -7,7 +7,7 @@ import { Avatar, Note, PageHead, Seg, Tag } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { rpc } from '@/lib/rpc';
 import { dlong, isEmail, money } from '@/lib/format';
-import { ENTERPRISE_TAG, PAYPAL_ENABLED } from '@/lib/constants';
+import { ENTERPRISE_TAG, LEMON_ENABLED, PAYPAL_ENABLED } from '@/lib/constants';
 import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
@@ -178,7 +178,7 @@ function Notifs() {
 const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
 const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Funciones con IA (próximamente)', 'Alta y facturación a medida'];
 const PRO_ITEMS = ['Todo lo de Free', 'Equipos ilimitados', 'Buzones ilimitados por equipo', 'Hasta 4 miembros por equipo', 'Acceso por buzón para cada miembro', 'Buzones privados', 'Acceso por dominio de email', 'Matriz de esfuerzo e impacto', 'Roadmap de las ideas', 'Status de las ideas'];
-const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', manual: 'Asignado por Boxinger' };
+const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Tarjeta internacional (Lemon Squeezy)', manual: 'Asignado por Boxinger' };
 
 function Subscription() {
   const toast = useToast();
@@ -200,11 +200,16 @@ function Subscription() {
   const checkout = sp.get('checkout');
 
   useEffect(() => {
-    if (checkout === 'ok') { toast.ok('¡Gracias! Estamos confirmando tu pago. Pro se activa en unos segundos.'); const t = setTimeout(refresh, 4000); return () => clearTimeout(t); }
+    if (checkout === 'ok') {
+      // The provider confirms by webhook: check back a few times until Pro shows up.
+      toast.ok('¡Gracias! Estamos confirmando tu pago. Pro se activa en unos segundos.');
+      const ts = [3000, 8000, 15000, 30000].map((ms) => setTimeout(refresh, ms));
+      return () => ts.forEach(clearTimeout);
+    }
     if (checkout === 'cancel') toast.info('No se completó el pago. Podés intentarlo de nuevo cuando quieras.');
   }, [checkout]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function start(provider: 'paypal' | 'mercadopago') {
+  async function start(provider: 'paypal' | 'mercadopago' | 'lemonsqueezy') {
     setBusy(true);
     try {
       const r = await fetch('/api/billing/checkout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ provider, payer_email: provider === 'mercadopago' ? mpEmail.trim() : undefined }) });
@@ -263,7 +268,7 @@ function Subscription() {
             ? <button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => setPick(true)}>Pasar a Pro</button>
             : <><button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>Crear mi buzón</button>
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Para pasar a Pro primero creá tu equipo y tu buzón.</span></>)}
-          {isPro && s && (s.provider === 'paypal' || s.provider === 'mercadopago') && !s.cancel_at_period_end && (
+          {isPro && s && ['paypal', 'mercadopago', 'lemonsqueezy'].includes(s.provider || '') && !s.cancel_at_period_end && (
             <Popconfirm title="¿Cancelar la suscripción Pro?" description="Seguís con Pro hasta el fin del período pagado. Después tu cuenta pasa a Free." okText="Cancelar suscripción" cancelText="Volver" okButtonProps={{ danger: true }} onConfirm={cancel}>
               <button type="button" className="bx-btn" disabled={busy}>Cancelar suscripción</button>
             </Popconfirm>
@@ -293,9 +298,11 @@ function Subscription() {
       <Modal open={pick} onCancel={closePick} footer={null} title="Pasar a Pro" width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.</span>
-          {PAYPAL_ENABLED
-            ? <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
-            : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El pago con PayPal vuelve pronto. Si estás fuera de Argentina, escribinos a hola@boxinger.com.</span>}
+          {LEMON_ENABLED
+            ? <PayOption title="Tarjeta internacional" sub="Visa, Mastercard, Amex o PayPal · cualquier país · en dólares" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('lemonsqueezy')} />
+            : PAYPAL_ENABLED
+              ? <PayOption title="PayPal" sub="Tarjeta o saldo PayPal · cualquier país" price={money('USD', Number(prices.USD)) + ' / mes'} disabled={busy} onClick={() => start('paypal')} />
+              : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>El pago internacional vuelve pronto. Si estás fuera de Argentina, escribinos a hola@boxinger.com.</span>}
           <PayOption title="Mercado Pago" sub="Tarjetas argentinas · se cobra en pesos" price={money('ARS', Number(prices.ARS)) + ' / mes'} disabled={busy} selected={mpOpen} onClick={() => setMpOpen((v) => !v)} />
           {mpOpen && (
             <form style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 2px 0' }}

@@ -88,6 +88,8 @@ export const GROWTH_KEYS = ['adquisicion', 'activacion', 'retencion', 'monetizac
 
 /** PayPal checkout on/off. Off while PayPal reviews the merchant account (limited since 2026-09-30). */
 export const PAYPAL_ENABLED = false;
+/** International card checkout (Lemon Squeezy). On when NEXT_PUBLIC_LEMONSQUEEZY_ENABLED=1 at build time. */
+export const LEMON_ENABLED = process.env.NEXT_PUBLIC_LEMONSQUEEZY_ENABLED === '1';
 
 /** Board visibility, in the order it is offered. */
 export const VISIBILITY: Record<import('./types').Visibility, { l: string; d: string; short: string }> = {

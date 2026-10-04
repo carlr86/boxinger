@@ -20,7 +20,7 @@ export default function Privacidad() {
         <li><b>Cuenta:</b> nombre, email, contraseña (guardada cifrada; no la podemos ver) y, si entrás con Google, tu nombre, email y foto de perfil de Google.</li>
         <li><b>Perfil y preferencias:</b> foto o logo que subas y tus preferencias de notificaciones.</li>
         <li><b>Contenido y actividad:</b> ideas, votos, comentarios, reacciones, buzones y equipos que creás o a los que te sumás, invitaciones que enviás (email del invitado) y fechas de actividad.</li>
-        <li><b>Suscripción:</b> plan, estado, importes, fechas de cobro y los identificadores de la suscripción en PayPal o Mercado Pago, incluido el email de la cuenta de Mercado Pago que indicás al pagar. Los datos de tu tarjeta los procesan PayPal o Mercado Pago y nunca llegan a Boxinger.</li>
+        <li><b>Suscripción:</b> plan, estado, importes, fechas de cobro y los identificadores de la suscripción en Lemon Squeezy o Mercado Pago, incluido el email de la cuenta de Mercado Pago que indicás al pagar. Los datos de tu tarjeta los procesan Lemon Squeezy o Mercado Pago y nunca llegan a Boxinger.</li>
         <li><b>Contacto:</b> lo que nos escribís por el formulario de contacto o el botón de arrepentimiento (nombre, email, empresa, mensaje).</li>
         <li><b>Datos técnicos:</b> los necesarios para mantener tu sesión y proteger el servicio. De los formularios públicos guardamos solo un identificador cifrado de la conexión para evitar abusos, nunca tu dirección IP.</li>
       </ul>
@@ -49,7 +49,7 @@ export default function Privacidad() {
         <li><b>Supabase:</b> base de datos, autenticación y archivos, con servidores en Estados Unidos.</li>
         <li><b>Hostinger:</b> alojamiento de la web y envío de emails.</li>
         <li><b>Google:</b> inicio de sesión con Google, si lo elegís.</li>
-        <li><b>PayPal y Mercado Pago:</b> procesamiento de pagos, según sus propias políticas de privacidad.</li>
+        <li><b>Lemon Squeezy y Mercado Pago:</b> procesamiento de pagos, según sus propias políticas de privacidad. Lemon Squeezy (empresa de Stripe, en Estados Unidos) actúa como revendedor en los pagos en dólares.</li>
       </ul>
       <p>Algunos de estos proveedores guardan los datos fuera de Argentina, en países que pueden no tener un nivel de protección equivalente. Al usar Boxinger prestás tu consentimiento para esa transferencia, que se limita a lo necesario para prestar el servicio. También podemos revelar datos si lo exige una autoridad competente conforme a la ley.</p>
 

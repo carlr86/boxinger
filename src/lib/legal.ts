@@ -4,5 +4,5 @@ export const LEGAL = {
   cuit: '27-32532146-1',
   address: 'La Pampa 1175, Belgrano, Ciudad Autónoma de Buenos Aires, Argentina',
   email: 'hola@boxinger.com',
-  updated: '30 de septiembre de 2026',
+  updated: '3 de octubre de 2026',
 };
