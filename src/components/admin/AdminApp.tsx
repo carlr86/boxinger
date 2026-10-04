@@ -8,7 +8,7 @@ import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Seg, Tag } from '@/components/ui';
 import { useGridCols } from '@/components/board/IdeaGrid';
-import { BAD, ENTERPRISE_ARS, ENTERPRISE_USD, OK, PRO_TAG, planTone, type Tone } from '@/lib/constants';
+import { BAD, OK, PRO_TAG, planTone, type Tone } from '@/lib/constants';
 import { ddmmyyyy, money, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
@@ -17,7 +17,7 @@ import { Dashboard } from './Dashboard';
 import { ErrorsPage, type ErrorsData } from './Errors';
 import { AiUsagePage, LimitsModal } from './AiUsage';
 import { AdminBoardDrawer, ClientDrawer, EditSubscriptionModal, NewClientModal, SchedulePriceModal } from './AdminModals';
-import type { AdminBoard, AdminUser, Client, Prices } from './types';
+import type { AdminBoard, AdminUser, Client, PlanPrices, Prices } from './types';
 
 type Tab = 'dashboard' | 'clientes' | 'boards' | 'suscripciones' | 'usuarios' | 'ia' | 'errores' | 'perfil';
 const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Clientes'], ['boards', 'Buzones'], ['suscripciones', 'Suscripciones'], ['usuarios', 'Usuarios'], ['ia', 'Consumo IA'], ['errores', 'Errores']];
@@ -47,7 +47,7 @@ export function AdminApp() {
   const [boardId, setBoardId] = useState<string | null>(null);
   const [editSub, setEditSub] = useState<Client | null>(null);
   const [newClient, setNewClient] = useState(false);
-  const [pp, setPp] = useState<'USD' | 'ARS' | null>(null);
+  const [pp, setPp] = useState<{ cur: 'USD' | 'ARS'; plan: 'pro' | 'enterprise' } | null>(null);
   const [limitsFor, setLimitsFor] = useState<string | null>(null);
 
   const load = useCallback(async (t: Tab) => {
@@ -80,7 +80,7 @@ export function AdminApp() {
     return <Tag tone={OK}>Activa</Tag>;
   };
   const paidEnt = (c: Client) => c.plan === 'Enterprise' && ['creem', 'mercadopago'].includes(c.provider || '');
-  const priceCell = (c: Client) => paidEnt(c) ? <span style={{ color: '#4338ca' }}>{money(c.currency, c.currency === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS)}</span> : c.plan === 'Enterprise' ? <span style={{ color: '#4338ca' }}>A medida</span> : c.plan !== 'Pro' ? '—' : <span style={{ color: c.deal_type ? '#d46b08' : undefined }}>{money(c.currency, Number(c.amount))}{c.deal_type ? (c.deal_type === 'fixed' ? ' · exclusivo' : ' · −' + c.deal_value + '%') : ''}</span>;
+  const priceCell = (c: Client) => paidEnt(c) ? <span style={{ color: '#4338ca' }}>{money(c.currency, Number(c.amount))}</span> : c.plan === 'Enterprise' ? <span style={{ color: '#4338ca' }}>A medida</span> : c.plan !== 'Pro' ? '—' : <span style={{ color: c.deal_type ? '#d46b08' : undefined }}>{money(c.currency, Number(c.amount))}{c.deal_type ? (c.deal_type === 'fixed' ? ' · exclusivo' : ' · −' + c.deal_value + '%') : ''}</span>;
 
   const clientCols: Col<Client>[] = [
     { key: 'name', title: 'Nombre', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
@@ -229,7 +229,7 @@ export function AdminApp() {
             <>
               {prices && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,420px),1fr))', gap: 16, alignItems: 'start' }}>
-                  {(['USD', 'ARS'] as const).map((cur) => <PriceCard key={cur} cur={cur} prices={prices} onNew={() => setPp(cur)} onCancel={(id) => act(rpc('admin_cancel_price', { p_id: id }), 'Cambio de precio cancelado')} />)}
+                  {(['USD', 'ARS'] as const).map((cur) => <PriceCard key={cur} cur={cur} prices={prices} onNew={(plan) => setPp({ cur, plan })} onCancel={(id) => act(rpc('admin_cancel_price', { p_id: id }), 'Cambio de precio cancelado')} />)}
                 </div>
               )}
               {clients ? <Table cols={subCols} rows={clients.filter((c) => match(c.name, c.email, c.plan))} rowKey={(c) => c.account_id} menu={subMenu} minWidth={1080} /> : <Loading />}
@@ -247,7 +247,7 @@ export function AdminApp() {
       {boardId && <AdminBoardDrawer boardId={boardId} onClose={() => setBoardId(null)} onChanged={reloadAll} openClient={(id) => { setBoardId(null); setClientId(id); }} />}
       <EditSubscriptionModal client={editSub} onClose={() => setEditSub(null)} onDone={() => { reloadAll(); if (clientId) { const id = clientId; setClientId(null); setTimeout(() => setClientId(id)); } }} />
       <NewClientModal open={newClient} onClose={() => setNewClient(false)} onDone={reloadAll} prices={{ USD: Number(prices?.current.USD || ctx?.prices.USD || 0) }} />
-      <SchedulePriceModal open={!!pp} currency={pp || 'USD'} prices={prices} onClose={() => setPp(null)} onDone={reloadAll} />
+      <SchedulePriceModal open={!!pp} currency={pp?.cur || 'USD'} plan={pp?.plan || 'pro'} prices={pp?.plan === 'enterprise' ? prices?.enterprise || null : prices} onClose={() => setPp(null)} onDone={reloadAll} />
     </div>
   );
 }
@@ -255,13 +255,7 @@ export function AdminApp() {
 const Loading = () => <div style={{ color: sec, fontSize: 14 }}>Cargando…</div>;
 
 /** One card per payment provider (Creem in USD, Mercado Pago in ARS) with both paid plans: Pro and Enterprise. */
-function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; prices: Prices; onNew: () => void; onCancel: (id: string) => void }) {
-  const rows = prices.rows.filter((r) => r.currency === cur);
-  const n = prices.pro_count[cur];
-  const ne = prices.enterprise_count?.[cur] ?? 0;
-  const subs = (k: number) => `${k} ${k === 1 ? 'suscripción activa' : 'suscripciones activas'}`;
-  const ST: Record<string, Tone> = { current: OK, scheduled: { l: 'Programado', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' }, previous: { l: 'Anterior', bg: '#fafafa', bd: '#d9d9d9', fg: sec } };
-  const big = (v: number) => <span style={{ fontSize: 28, fontWeight: 600 }}>{money(cur, v)}<span style={{ fontSize: 14, fontWeight: 400, color: sec }}> / mes</span></span>;
+function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; prices: Prices; onNew: (plan: 'pro' | 'enterprise') => void; onCancel: (id: string) => void }) {
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '14px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 600 }}>
@@ -269,12 +263,30 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
           ? <><img src="/pay/creem.svg" alt="Creem" style={{ height: 16, width: 'auto' }} /><span style={{ color: sec, fontWeight: 400 }}>Tarjeta internacional · USD</span></>
           : <><img src="/pay/mercadopago.svg" alt="" width={20} height={20} />Mercado Pago<span style={{ color: sec, fontWeight: 400 }}>· Argentina · ARS</span></>}
       </div>
+      <PlanPrice plan="Pro" cur={cur} p={prices} onNew={() => onNew('pro')} onCancel={onCancel} />
+      {prices.enterprise && (
+        <div style={{ borderTop: '1px solid #f0f0f0' }}>
+          <PlanPrice plan="Enterprise" cur={cur} p={prices.enterprise} onNew={() => onNew('enterprise')} onCancel={onCancel}
+            note={`Contratadas en la web${cur === 'USD' ? ' (cada precio en dólares tiene su producto en Creem, que se crea solo)' : ''}. Los Enterprise a medida se asignan desde Clientes y no siguen este precio.`} />
+        </div>
+      )}
+    </div>
+  );
+}
 
+/** A plan's current price in one currency, its scheduled changes and history. */
+function PlanPrice({ plan, cur, p, onNew, onCancel, note }: { plan: 'Pro' | 'Enterprise'; cur: 'USD' | 'ARS'; p: PlanPrices; onNew: () => void; onCancel: (id: string) => void; note?: string }) {
+  const rows = p.rows.filter((r) => r.currency === cur);
+  const n = p.pro_count[cur];
+  const ST: Record<string, Tone> = { current: OK, scheduled: { l: 'Programado', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' }, previous: { l: 'Anterior', bg: '#fafafa', bd: '#d9d9d9', fg: sec } };
+  return (
+    <>
       <div style={{ padding: '18px 24px', display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ alignSelf: 'flex-start' }}><Tag tone={planTone('Pro')}>Pro</Tag></span>
-          {big(Number(prices.current[cur]))}
-          <span style={{ fontSize: 12, color: sec }}>Vigente desde el {ddmmyyyy(prices.current_since[cur])} · {subs(n)}</span>
+        <div style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <span style={{ alignSelf: 'flex-start' }}><Tag tone={planTone(plan)}>{plan}</Tag></span>
+          <span style={{ fontSize: 28, fontWeight: 600 }}>{p.current[cur] != null ? money(cur, Number(p.current[cur])) : '—'}<span style={{ fontSize: 14, fontWeight: 400, color: sec }}> / mes</span></span>
+          <span style={{ fontSize: 12, color: sec }}>{p.current_since[cur] ? `Vigente desde el ${ddmmyyyy(p.current_since[cur])} · ` : ''}{n} {n === 1 ? 'suscripción activa' : 'suscripciones activas'}</span>
+          {note && <span style={{ fontSize: 12, color: sec }}>{note}</span>}
         </div>
         <button type="button" className="bx-btn" onClick={onNew}>Programar nuevo precio</button>
       </div>
@@ -282,7 +294,7 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
         <div style={{ borderTop: '1px solid #f0f0f0', overflowX: 'auto' }}>
           <div style={{ minWidth: 520 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1.3fr 110px 80px', background: '#fafafa', borderBottom: '1px solid #f0f0f0', fontSize: 13, fontWeight: 600 }}>
-              {['Precio Pro', 'Desde', 'Aplica a', 'Estado', ''].map((h, k) => <div key={k} style={{ padding: '10px 16px' }}>{h}</div>)}
+              {['Precio ' + plan, 'Desde', 'Aplica a', 'Estado', ''].map((h, k) => <div key={k} style={{ padding: '10px 16px' }}>{h}</div>)}
             </div>
             {rows.map((r) => (
               <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1fr 110px 1.3fr 110px 80px', borderBottom: '1px solid #f0f0f0', fontSize: 13, alignItems: 'center' }}>
@@ -300,15 +312,7 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
           </div>
         </div>
       )}
-
-      <div style={{ padding: '18px 24px', borderTop: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <span style={{ alignSelf: 'flex-start' }}><Tag tone={planTone('Enterprise')}>Enterprise</Tag></span>
-        {big(cur === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS)}
-        <span style={{ fontSize: 12, color: sec }}>
-          Precio de lista fijo · {subs(ne)} contratadas en la web{cur === 'USD' ? ' (producto «Enterprise Plan» en Creem)' : ''}. Los Enterprise a medida se asignan desde Clientes y no se cobran acá.
-        </span>
-      </div>
-    </div>
+    </>
   );
 }
 

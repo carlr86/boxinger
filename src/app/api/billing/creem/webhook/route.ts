@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import * as creem from '@/lib/billing/creem';
+import { planOfProduct } from '@/lib/billing/creem-products';
 import { activate, addMonth, applyRefund, cancelled, claimEvent, expired, findAccount, finishEvent, paymentFailed, planPrice, recordPayment } from '@/lib/billing/service';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { reportError } from '@/lib/alerts';
@@ -12,9 +13,9 @@ const idOf = (v: unknown): string | null => (typeof v === 'string' ? v : v && ty
  * Pro or Enterprise, from the product on the event (checkout, its subscription or order, or the subscription itself),
  * else the plan Boxinger put in the checkout metadata; undefined = keep what the account already has.
  */
-function planOf(o: Obj): 'pro' | 'enterprise' | undefined {
-  const product = idOf(o.product) || idOf(o.subscription?.product) || idOf(o.order?.product);
-  if (product) return creem.planOfProduct(product);
+async function planOf(o: Obj): Promise<'pro' | 'enterprise' | undefined> {
+  const fromProduct = await planOfProduct(idOf(o.product) || idOf(o.subscription?.product) || idOf(o.order?.product));
+  if (fromProduct) return fromProduct;
   const m = o.metadata?.plan || o.subscription?.metadata?.plan;
   return m === 'enterprise' || m === 'pro' ? m : undefined;
 }
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
   if (!(await claimEvent('creem', eventId, type, body))) return NextResponse.json({ ok: true, duplicate: true });
 
   try {
-    const plan = planOf(o);
+    const plan = await planOf(o);
     const list = () => planPrice(plan || 'pro', 'USD');
     if (type === 'checkout.completed') {
       // The checkout carries the subscription and our account (metadata / request_id).

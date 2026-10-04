@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { ENTERPRISE_USD } from '@/lib/constants';
 import s from './landing.module.css';
-import { getPublicProPrice } from '@/lib/pricing';
+import { getPublicEnterprisePrice, getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
 import ContactForm from '@/components/ContactForm';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
@@ -46,7 +45,7 @@ function Check() {
 }
 
 export default async function Landing() {
-  const [usd, { t, locale }] = await Promise.all([getPublicProPrice(), getT()]);
+  const [usd, entUsd, { t, locale }] = await Promise.all([getPublicProPrice(), getPublicEnterprisePrice(), getT()]);
   const plans = [
     {
       name: 'Free', price: 'USD 0', per: 'para siempre', bd: '#f0f0f0',
@@ -59,7 +58,7 @@ export default async function Landing() {
       cta: 'Crear cuenta', ctaBg: '#059669', ctaFg: '#fff', ctaBd: '#059669',
     },
     {
-      name: 'Enterprise', price: 'USD ' + fmtPrice(ENTERPRISE_USD, locale), per: '/ mes', bd: '#c7d2fe', badge: 'Con IA',
+      name: 'Enterprise', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', bd: '#c7d2fe', badge: 'Con IA',
       items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'],
       note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', noteHref: '#contacto-enterprise',
       cta: 'Contratar Enterprise', ctaBg: '#4338ca', ctaFg: '#fff', ctaBd: '#4338ca', href: '/app/perfil?tab=sub&contratar=enterprise',

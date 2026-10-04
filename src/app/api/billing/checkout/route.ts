@@ -7,6 +7,7 @@ import { CREEM_ENABLED, PAYPAL_ENABLED } from '@/lib/constants';
 import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
 import * as creem from '@/lib/billing/creem';
+import { creemProductFor } from '@/lib/billing/creem-products';
 import { currentPrice, effectiveAmount, planPrice, type SubRow } from '@/lib/billing/service';
 import { reportError } from '@/lib/alerts';
 
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
         returnUrl: `${SITE_URL}/api/billing/paypal/return`, cancelUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=cancel`,
       });
     } else if (provider === 'creem') {
-      const c = await creem.createCheckout({ accountId: acc.id, email: owner.email, successUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=ok${plan === 'enterprise' ? '&plan=enterprise' : ''}`, plan });
+      const c = await creem.createCheckout({ accountId: acc.id, email: owner.email, successUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=ok${plan === 'enterprise' ? '&plan=enterprise' : ''}`, plan, productId: await creemProductFor(plan) });
       r = { id: c.id, url: c.url };
     } else {
       const payer = typeof body.payer_email === 'string' && isEmail(body.payer_email) ? body.payer_email : owner.email;

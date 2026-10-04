@@ -1,7 +1,7 @@
 // Enterprise bought on the web follows the paid-plan rules; Enterprise assigned by the platform admin stays on.
 import { setup } from './harness.mjs';
 
-const { db, rpc, ok, eq, done } = await setup();
+const { db, rpc, ok, err, eq, done } = await setup();
 const mk = async (email) => (await db.query(`insert into auth.users (email, raw_user_meta_data) values ($1, '{"name":"X"}') returning id`, [email])).rows[0].id;
 const owner = await mk('ana@acme.com');
 await rpc(owner, 'onboard', ['Acme', 'Principal', 'public', '']);
@@ -32,6 +32,39 @@ await ok('Pro rules unchanged', async () => {
   eq((await plan()).p, 'pro');
   await set(`current_period_end = now() - interval '1 day'`);
   eq((await plan()).p, 'free');
+});
+
+
+console.log('\n# Enterprise price schedule');
+const root = await mk('admin@boxinger.com');
+await db.query(`update public.profiles set is_super_admin = true where id = $1`, [root]);
+const tomorrow = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
+await ok('current prices: Pro and Enterprise apart', async () => {
+  const pr = await rpc(root, 'admin_prices');
+  eq(Number(pr.enterprise.current.USD), 19.99); eq(Number(pr.enterprise.current.ARS), 29999);
+  eq(pr.rows.every((r) => r.state), true);
+  eq((await db.query(`select public.current_price('USD') p`)).rows[0].p !== null, true);
+});
+await ok('schedule a new Enterprise price: only Enterprise subscribers get the notice', async () => {
+  await set(`plan = 'enterprise', status = 'active', provider = 'mercadopago', currency = 'ARS', current_period_end = now() + interval '30 days', deal_type = null`);
+  const other = await mk('pro@x.com'); await rpc(other, 'onboard', ['P', 'Uno', 'public', '']);
+  await db.query(`update public.subscriptions set plan = 'pro', status = 'active', provider = 'mercadopago', currency = 'ARS' where account_id = (select id from public.accounts where owner_id = $1)`, [other]);
+  const id = await rpc(root, 'admin_schedule_price', ['ARS', 34999, tomorrow, 'all', true, 'enterprise']);
+  const to = (await db.query(`select to_email from public.email_outbox where dedupe_key like 'price:' || $1 || ':%'`, [id])).rows.map((r) => r.to_email);
+  eq(to, ['ana@acme.com']);
+  const pr = await rpc(root, 'admin_prices');
+  eq(pr.enterprise.rows.find((r) => r.id === id).state, 'scheduled'); eq(pr.rows.some((r) => r.id === id), false);
+});
+await ok('a Pro price change does not notify Enterprise subscribers', async () => {
+  const id = await rpc(root, 'admin_schedule_price', ['ARS', 16999, tomorrow, 'all', true, 'pro']);
+  const to = (await db.query(`select to_email from public.email_outbox where dedupe_key like 'price:' || $1 || ':%'`, [id])).rows.map((r) => r.to_email);
+  eq(to, ['pro@x.com']);
+});
+await err('same day twice for the same plan', () => rpc(root, 'admin_schedule_price', ['ARS', 35999, tomorrow, 'all', false, 'enterprise']), 'ese día');
+await ok('once it starts, it is the Enterprise price', async () => {
+  await db.query(`update public.price_schedule set effective_from = now() - interval '1 second' where plan = 'enterprise' and amount = 34999`);
+  eq(Number((await db.query(`select public.current_plan_price('enterprise', 'ARS') p`)).rows[0].p), 34999);
+  eq(Number((await db.query(`select public.current_plan_price('enterprise', 'USD') p`)).rows[0].p), 19.99);
 });
 
 await done();

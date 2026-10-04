@@ -11,7 +11,7 @@ const VIS_L: Record<string, string> = { public: 'Público', invite: 'Solo invita
 import { SITE_URL, boardUrl, displayUrl } from '@/lib/env';
 import { ddmmyyyy, dlong, fmtPrice, isEmail, money, plural, rel } from '@/lib/format';
 import { adminCreateClient, adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
-import type { Client, ClientDetail, Prices } from './types';
+import type { Client, ClientDetail, PlanPrices } from './types';
 
 const iso = (d: Date) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const tomorrow = () => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 1); return d; };
@@ -194,7 +194,7 @@ export function EditSubscriptionModal({ client: c, onClose, onDone }: { client: 
 }
 
 // ───────────────────────── Programar precio ─────────────────────────
-export function SchedulePriceModal({ open, currency, prices, onClose, onDone }: { open: boolean; currency: 'USD' | 'ARS'; prices: Prices | null; onClose: () => void; onDone: () => void }) {
+export function SchedulePriceModal({ open, currency, plan = 'pro', prices, onClose, onDone }: { open: boolean; currency: 'USD' | 'ARS'; plan?: 'pro' | 'enterprise'; prices: PlanPrices | null; onClose: () => void; onDone: () => void }) {
   const toast = useToast();
   const [price, setPrice] = useState('');
   const [from, setFrom] = useState(iso(tomorrow()));
@@ -217,7 +217,7 @@ export function SchedulePriceModal({ open, currency, prices, onClose, onDone }: 
     if (errs.price || errs.from) return;
     setBusy(true);
     try {
-      await rpc('admin_schedule_price', { p_currency: currency, p_amount: pv, p_from: from, p_scope: scope, p_notify: notify });
+      await rpc('admin_schedule_price', { p_currency: currency, p_amount: pv, p_from: from, p_scope: scope, p_notify: notify, p_plan: plan });
       fetch('/api/outbox', { method: 'POST' }).catch(() => {});
       toast.ok(`Precio ${money(currency, pv)} programado desde el ${ddmmyyyy(fromTs)}${notify && scope === 'all' ? ' · aviso enviado' : ''}`);
       onDone(); onClose();
@@ -225,7 +225,7 @@ export function SchedulePriceModal({ open, currency, prices, onClose, onDone }: 
   }
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} title={`Programar nuevo precio Pro (${currency})`} width={520} destroyOnHidden>
+    <Modal open={open} onCancel={onClose} footer={null} title={`Programar nuevo precio ${plan === 'enterprise' ? 'Enterprise' : 'Pro'} (${currency})`} width={520} destroyOnHidden>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Precio vigente: {money(currency, cur)} / mes · {currency === 'USD' ? 'Creem' : 'Mercado Pago'}.</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -233,14 +233,14 @@ export function SchedulePriceModal({ open, currency, prices, onClose, onDone }: 
           <Field label="Vigente desde" error={tried ? errs.from : ''}><input className="bx-input" type="date" min={iso(tomorrow())} value={from} onChange={(x) => setFrom(x.target.value)} /></Field>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Aplica a
-          {([['all', 'Todas las suscripciones', 'Las activas pasan al nuevo precio en su próxima renovación desde esa fecha.'], ['new', 'Solo nuevas suscripciones', `Las ${nPro} activas mantienen ${money(currency, cur)}.`]] as const).map(([k, l, d]) => (
+          {([['all', 'Todas las suscripciones', currency === 'USD' ? 'Creem no permite cambiar el precio de una suscripción en curso: el nuevo precio aplica a las nuevas contrataciones y las activas siguen como están.' : 'Las activas pasan al nuevo precio en su próxima renovación desde esa fecha.'], ['new', 'Solo nuevas suscripciones', `Las ${nPro} activas mantienen ${money(currency, cur)}.`]] as const).map(([k, l, d]) => (
             <div key={k} style={card(scope === k)} onClick={() => setScope(k)}><span style={{ fontWeight: 600 }}>{l}</span><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{d}</span></div>
           ))}
         </div>
         <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, cursor: 'pointer' }}>
           <input type="checkbox" checked={notify} onChange={(x) => setNotify(x.target.checked)} style={{ width: 16, height: 16, marginTop: 2, accentColor: '#059669' }} />
           <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span>Avisar por email a los clientes Pro</span>
+            <span>Avisar por email a los clientes {plan === 'enterprise' ? 'Enterprise' : 'Pro'}</span>
             <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{!notify ? 'No se envía ningún aviso.' : scope === 'new' ? 'Solo aplica a nuevas suscripciones: no hace falta avisar.' : 'Se envía hoy un email con el nuevo precio y la fecha' + (days > 0 && days < 30 ? '. Se recomienda avisar con al menos 30 días.' : '.')}</span>
           </span>
         </label>

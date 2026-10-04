@@ -16,9 +16,12 @@ export async function GET(req: NextRequest) {
   const { data: due } = await admin.from('price_schedule').select('*').is('applied_at', null).is('cancelled_at', null).lte('effective_from', now.toISOString());
   for (const p of due || []) {
     if (p.scope === 'all') {
-      const { data: subs } = await admin.from('subscriptions').update({ list_amount: p.amount, updated_at: now.toISOString() }).eq('currency', p.currency).eq('plan', 'pro').select('account_id');
+      // Subscriptions of that plan (Enterprise assigned by Boxinger is billed outside, so it doesn't follow it).
+      let q = admin.from('subscriptions').update({ list_amount: p.amount, updated_at: now.toISOString() }).eq('currency', p.currency).eq('plan', p.plan || 'pro');
+      if (p.plan === 'enterprise') q = q.in('provider', ['creem', 'mercadopago']);
+      const { data: subs } = await q.select('account_id');
       for (const s of subs || []) await syncAmount(s.account_id).catch((e) => reportError('cron-precios', e, { account: s.account_id }));
-      log['price_' + p.currency] = subs?.length || 0;
+      log['price_' + (p.plan || 'pro') + '_' + p.currency] = subs?.length || 0;
     }
     await admin.from('price_schedule').update({ applied_at: now.toISOString() }).eq('id', p.id);
   }

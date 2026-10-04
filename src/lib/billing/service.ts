@@ -1,7 +1,6 @@
 import 'server-only';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendNow } from '@/lib/email/outbox';
-import { ENTERPRISE_ARS, ENTERPRISE_USD } from '@/lib/constants';
 
 export type SubRow = {
   account_id: string; plan: 'free' | 'pro' | 'enterprise'; status: string; provider: string | null; provider_subscription_id: string | null;
@@ -10,13 +9,14 @@ export type SubRow = {
   deal_type: 'pct' | 'fixed' | null; deal_value: number | null; deal_until: string | null;
 };
 
-export type PriceRow = { id: string; currency: 'USD' | 'ARS'; amount: number; paypal_plan_id: string | null; effective_from: string };
+export type PriceRow = { id: string; plan: 'pro' | 'enterprise'; currency: 'USD' | 'ARS'; amount: number; paypal_plan_id: string | null; creem_product_id: string | null; effective_from: string };
 
-export async function currentPrice(currency: 'USD' | 'ARS'): Promise<PriceRow> {
-  const { data, error } = await supabaseAdmin().from('price_schedule').select('id, currency, amount, paypal_plan_id, effective_from')
-    .eq('currency', currency).is('cancelled_at', null).lte('effective_from', new Date().toISOString())
+/** Current list price of a plan (Pro by default) from the price schedule. */
+export async function currentPrice(currency: 'USD' | 'ARS', plan: 'pro' | 'enterprise' = 'pro'): Promise<PriceRow> {
+  const { data, error } = await supabaseAdmin().from('price_schedule').select('id, plan, currency, amount, paypal_plan_id, creem_product_id, effective_from')
+    .eq('plan', plan).eq('currency', currency).is('cancelled_at', null).lte('effective_from', new Date().toISOString())
     .order('effective_from', { ascending: false }).order('created_at', { ascending: false }).limit(1).single();
-  if (error || !data) throw new Error('No hay precio vigente en ' + currency);
+  if (error || !data) throw new Error(`No hay precio vigente de ${plan} en ${currency}`);
   return { ...data, amount: Number(data.amount) } as PriceRow;
 }
 
@@ -24,8 +24,8 @@ const dealActive = (s: SubRow) => !!s.deal_type && (!s.deal_until || new Date(s.
 
 /** Same rule as public.effective_amount(): deal if active, otherwise the list price the subscription follows. */
 export async function effectiveAmount(s: SubRow, list?: number): Promise<number> {
-  const base = list ?? (s.list_amount != null ? Number(s.list_amount) : (await currentPrice(s.currency)).amount);
-  if (!dealActive(s)) return base;
+  const base = list ?? (s.list_amount != null ? Number(s.list_amount) : (await currentPrice(s.currency, s.plan === 'enterprise' ? 'enterprise' : 'pro')).amount);
+  if (s.plan === 'enterprise' || !dealActive(s)) return base;
   return s.deal_type === 'fixed' ? Number(s.deal_value) : Math.round(base * (1 - Number(s.deal_value) / 100) * 100) / 100;
 }
 
@@ -49,10 +49,9 @@ export async function findAccount(provider: string, subId: string | null, ref?: 
   return null;
 }
 
-/** List price of a plan in a currency (Pro follows the price schedule; Enterprise is fixed). */
+/** List price of a plan in a currency (both follow the price schedule). */
 export async function planPrice(plan: 'pro' | 'enterprise', currency: 'USD' | 'ARS'): Promise<number> {
-  if (plan === 'enterprise') return currency === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS;
-  return (await currentPrice(currency)).amount;
+  return (await currentPrice(currency, plan)).amount;
 }
 
 const PAID = ['pro', 'enterprise'];

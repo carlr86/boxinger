@@ -111,6 +111,13 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
           { label: t('Activar mi cuenta'), url: `${SITE_URL}/app/activar/${s(p.token)}` }, t('Si no esperabas este email, escribinos a hola@boxinger.com.')),
       };
     case 'price_change':
+      if (p.plan === 'enterprise')
+        return {
+          subject: t('Cambio en el precio del plan Enterprise'),
+          html: layout(t('Actualizamos el precio de Enterprise'),
+            t('Desde el {date} el plan Enterprise pasa de {old} a {new} por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.', { date: date(p.from), old: money(p.currency, p.old), new: `<b>${money(p.currency, p.new)}</b>` }),
+            { label: t('Ver mi suscripción'), url: `${SITE_URL}/app/perfil?tab=sub` }),
+        };
       return {
         subject: t('Cambio en el precio del plan Pro'),
         html: layout(t('Actualizamos el precio de Pro'),

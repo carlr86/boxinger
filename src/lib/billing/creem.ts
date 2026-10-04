@@ -7,12 +7,9 @@ import { cleanEnv, requireEnv } from '@/lib/env';
 const base = () => (requireEnv('CREEM_API_KEY').startsWith('creem_test_') ? 'https://test-api.creem.io/v1' : 'https://api.creem.io/v1');
 
 export const creemConfigured = () => !!(cleanEnv(process.env.CREEM_API_KEY) && cleanEnv(process.env.CREEM_PRODUCT_ID));
-/** Creem product of each plan. Enterprise defaults to the live "Enterprise Plan" product (USD 19.99 a month). */
-export const productFor = (plan: 'pro' | 'enterprise') =>
+/** The first Creem product of each plan (later prices get their own product, see creem-products.ts). */
+export const baseProduct = (plan: 'pro' | 'enterprise') =>
   plan === 'enterprise' ? cleanEnv(process.env.CREEM_ENTERPRISE_PRODUCT_ID) || 'prod_5vBg7bDxuY1x7J7TZ8c3ql' : requireEnv('CREEM_PRODUCT_ID');
-/** Which plan a Creem product id is (anything that isn't Enterprise is Pro). */
-export const planOfProduct = (productId: string | null | undefined): 'pro' | 'enterprise' =>
-  productId && productId === productFor('enterprise') ? 'enterprise' : 'pro';
 
 async function cr<T = any>(method: string, path: string, body?: unknown): Promise<T> { // eslint-disable-line @typescript-eslint/no-explicit-any
   const r = await fetch(base() + path, {
@@ -27,9 +24,9 @@ async function cr<T = any>(method: string, path: string, body?: unknown): Promis
 }
 
 /** Hosted checkout for Boxinger Pro or Enterprise. The account travels as metadata and as request_id. */
-export async function createCheckout(o: { accountId: string; email: string; successUrl: string; plan?: 'pro' | 'enterprise' }) {
+export async function createCheckout(o: { accountId: string; email: string; successUrl: string; plan?: 'pro' | 'enterprise'; productId: string }) {
   const r = await cr('POST', '/checkouts', {
-    product_id: productFor(o.plan || 'pro'),
+    product_id: o.productId,
     request_id: o.accountId,
     customer: { email: o.email },
     success_url: o.successUrl,
@@ -55,3 +52,16 @@ export function verifyWebhook(raw: string, signature: string | null): boolean {
   const digest = crypto.createHmac('sha256', secret).update(raw).digest('hex');
   try { return crypto.timingSafeEqual(Buffer.from(digest, 'hex'), Buffer.from(signature, 'hex')); } catch { return false; }
 }
+
+export type CreemProduct = { id: string; name: string; description: string; price: number; currency: string; billing_type: string; billing_period: string; tax_mode?: string; tax_category?: string };
+export const getProduct = (id: string) => cr<CreemProduct>('GET', '/products?product_id=' + encodeURIComponent(id));
+/** A monthly product like `base` but with another price (Creem can't change a product's or a subscription's price). */
+export async function cloneProductWithPrice(base: CreemProduct, amount: number): Promise<string> {
+  const p = await cr<{ id: string }>('POST', '/products', {
+    name: base.name, description: base.description || base.name, price: Math.round(amount * 100), currency: 'USD',
+    billing_type: 'recurring', billing_period: base.billing_period || 'every-month',
+    ...(base.tax_mode ? { tax_mode: base.tax_mode } : {}), ...(base.tax_category ? { tax_category: base.tax_category } : {}),
+  });
+  return p.id;
+}
+

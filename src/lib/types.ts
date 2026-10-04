@@ -120,4 +120,5 @@ export interface MyContext {
   teams: TeamCtx[];
   guest_boards: BoardCard[];
   prices: { USD: number; ARS: number };
+  enterprise_prices?: { USD: number | null; ARS: number | null };
 }

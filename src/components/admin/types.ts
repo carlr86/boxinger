@@ -25,7 +25,8 @@ export type Overview = {
   recent_boards: { board_id: string; name: string; slug: string; account_id: string; plan: string; ideas: number; last_activity_at: string }[];
   pro: Client[]; enterprise: number; prices: { USD: number; ARS: number };
 };
-export type Prices = {
-  current: { USD: number; ARS: number }; current_since: { USD: string; ARS: string }; pro_count: { USD: number; ARS: number }; enterprise_count?: { USD: number; ARS: number };
+export type PlanPrices = {
+  current: { USD: number; ARS: number }; current_since: { USD: string; ARS: string }; pro_count: { USD: number; ARS: number };
   rows: { id: string; currency: 'USD' | 'ARS'; amount: number; effective_from: string; scope: 'all' | 'new'; notify: boolean; applied_at: string | null; state: 'current' | 'scheduled' | 'previous' }[];
 };
+export type Prices = PlanPrices & { enterprise?: PlanPrices };

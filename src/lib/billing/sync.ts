@@ -20,7 +20,7 @@ export async function cancelProviderSubscription(provider: Provider, id: string)
 export async function syncAmount(accountId: string, force = false): Promise<void> {
   const admin = supabaseAdmin();
   const { data: s } = await admin.from('subscriptions').select('*').eq('account_id', accountId).maybeSingle();
-  if (!s || s.plan !== 'pro' || !s.provider_subscription_id) return;
+  if (!s || !['pro', 'enterprise'].includes(s.plan) || !s.provider_subscription_id || s.provider === 'manual') return;
   if (!['active', 'past_due'].includes(s.status)) return;
   const value = await effectiveAmount(s);
   if (!value || (!force && Math.abs(value - Number(s.charged_amount || 0)) < 0.001)) return;

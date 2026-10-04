@@ -221,6 +221,7 @@ function Subscription() {
   const isPro = plan === 'pro';
   const paidEnt = isEnt && !!s && ['mercadopago', 'creem'].includes(s.provider || ''); // bought on the web (not assigned by Boxinger)
   const prices = ctx!.prices;
+  const entPrice = (c: 'USD' | 'ARS') => Number(ctx!.enterprise_prices?.[c] ?? (c === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS));
   const checkout = sp.get('checkout');
 
   useEffect(() => {
@@ -288,7 +289,7 @@ function Subscription() {
   }
 
   const perMonth = ' / ' + t('mes');
-  const priceL = paidEnt ? money(s!.currency, Number(s!.list_amount || (s!.currency === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS))) + perMonth : isEnt ? t('Precio acordado') : !isPro || !s ? t('Sin costo') : money(s.currency, Number(s.effective_amount)) + perMonth;
+  const priceL = paidEnt ? money(s!.currency, Number(s!.list_amount || entPrice(s!.currency))) + perMonth : isEnt ? t('Precio acordado') : !isPro || !s ? t('Sin costo') : money(s.currency, Number(s.effective_amount)) + perMonth;
   const since = (isPro || isEnt) && s?.pro_since ? s.pro_since : s?.free_since || ctx!.me.created_at;
   const box = (on: boolean): React.CSSProperties => ({ background: '#fff', borderRadius: 8, border: on ? '2px solid #059669' : '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 });
   const mine = <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #a9cbc2', background: '#d1fae5', color: '#059669' }}>{t('Tu plan')}</span>;
@@ -362,7 +363,7 @@ function Subscription() {
           {/* Clients already on Enterprise keep the price and limits they agreed with Boxinger. */}
           <div>
             {isEnt ? <span style={{ fontSize: 20, fontWeight: 600 }}>{t('Precio acordado')}</span>
-              : <><span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', ENTERPRISE_USD)}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></>}
+              : <><span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', entPrice('USD'))}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>
             {ENTERPRISE_ITEMS.map((x) => <span key={x}>{t(isEnt && x === 'Hasta 20 miembros por equipo' ? (acc?.member_limit == null ? 'Miembros ilimitados por equipo' : x) : x)}</span>)}
@@ -403,11 +404,11 @@ function Subscription() {
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.')}</span>
           {paidUntil && <Note tone="success">{t('Ya pagaste hasta el {date}: el primer cobro de la nueva suscripción es ese día.', { date: dlong(paidUntil) })}</Note>}
           {paidUntil ? null : CREEM_ENABLED
-            ? <PayOption title={t('Tarjeta internacional')} sub={t('Visa, Mastercard, Amex, Apple Pay o Google Pay · cualquier país · en dólares')} price={money('USD', payPlan === 'enterprise' ? ENTERPRISE_USD : Number(prices.USD)) + perMonth} disabled={busy} loading={going === 'creem'} onClick={() => start('creem')} />
+            ? <PayOption title={t('Tarjeta internacional')} sub={t('Visa, Mastercard, Amex, Apple Pay o Google Pay · cualquier país · en dólares')} price={money('USD', payPlan === 'enterprise' ? entPrice('USD') : Number(prices.USD)) + perMonth} disabled={busy} loading={going === 'creem'} onClick={() => start('creem')} />
             : PAYPAL_ENABLED && payPlan === 'pro'
               ? <PayOption title="PayPal" sub={t('Tarjeta o saldo PayPal · cualquier país')} price={money('USD', Number(prices.USD)) + perMonth} disabled={busy} loading={going === 'paypal'} onClick={() => start('paypal')} />
               : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('El pago internacional vuelve pronto. Si estás fuera de Argentina, escribinos a hola@boxinger.com.')}</span>}
-          <PayOption title="Mercado Pago" sub={t('Tarjetas argentinas · se cobra en pesos')} price={money('ARS', payPlan === 'enterprise' ? ENTERPRISE_ARS : Number(prices.ARS)) + perMonth} disabled={busy} selected={mpOpen} onClick={() => setMpOpen((v) => !v)} />
+          <PayOption title="Mercado Pago" sub={t('Tarjetas argentinas · se cobra en pesos')} price={money('ARS', payPlan === 'enterprise' ? entPrice('ARS') : Number(prices.ARS)) + perMonth} disabled={busy} selected={mpOpen} onClick={() => setMpOpen((v) => !v)} />
           {mpOpen && (
             <form style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 2px 0' }}
               onSubmit={(e) => { e.preventDefault(); if (isEmail(mpEmail.trim())) start('mercadopago'); }}>

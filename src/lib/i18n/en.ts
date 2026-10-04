@@ -1279,6 +1279,9 @@ export const EN: Record<string, string> = {
   "Para pagos internacionales, en dólares, desde cualquier país.": "For international payments, in US dollars, from any country.",
   "Todas las tarjetas de crédito, Apple Pay y Google Pay.": "All credit cards, Apple Pay and Google Pay.",
   "Pago mensual recurrente: se cobra solo cada mes y podés cancelar cuando quieras desde Mi perfil, sin costo.": "Recurring monthly payment: it's charged automatically every month and you can cancel anytime from My profile, at no cost.",
+  "Cambio en el precio del plan Enterprise": "Enterprise plan price change",
+  "Actualizamos el precio de Enterprise": "We're updating the Enterprise price",
+  "Desde el {date} el plan Enterprise pasa de {old} a {new} por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.": "From {date} the Enterprise plan goes from {old} to {new} per month. The change applies on your next renewal from that date. You can cancel anytime from your profile.",
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",
