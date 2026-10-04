@@ -1,0 +1,26 @@
+# Checks every push and pull request: types, missing English texts and the database tests.
+# GitHub emails the author of the push when it fails.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Types
+        run: npx tsc --noEmit
+      - name: English texts
+        run: npm run i18n
+      - name: Database tests (all migrations on PGlite)
+        run: npm run test:db

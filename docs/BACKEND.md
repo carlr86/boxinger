@@ -122,4 +122,6 @@ Las funciones de Postgres encolan emails en `email_outbox` respetando las prefer
 
 ## Pruebas
 
-Las reglas de negocio de las migraciones se probaron con 84 casos en Postgres (PGlite): permisos por rol, votos, ranking, estados, comentarios, planes y límites, miembros e invitaciones, roadmap, bajada a Free, panel de Admin y jobs.
+`npm run test:db` corre todas las migraciones en un Postgres en memoria (PGlite) y prueba las reglas de negocio (unos 260 casos en `supabase/tests/`): permisos por rol, votos, ranking, estados, comentarios, planes y límites, miembros e invitaciones, buzones solo para invitados, dominios, solicitudes de acceso, notificaciones, roadmap, bajada a Free, panel de Admin, jobs e idioma. `npm run test:db -- access` corre solo los archivos que contienen ese nombre.
+
+Cada push a `main` corre en GitHub Actions (`.github/workflows/ci.yml`) los tipos (`tsc`), los textos sin inglés (`npm run i18n`) y estas pruebas. Al agregar una migración, sumá sus casos en el archivo de pruebas que corresponda.
