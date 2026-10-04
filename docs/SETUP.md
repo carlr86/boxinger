@@ -117,6 +117,12 @@ Reemplaza a PayPal (la cuenta de PayPal fue cerrada). Creem es *merchant of reco
 
 Notas: Creem no permite precios especiales por cliente en suscripciones ni cambiar el precio de una suscripción en curso; para un precio especial usá un código de descuento de Creem.
 
+## 3c. Asistente IA (plan Enterprise)
+
+1. En console.anthropic.com creá la organización, cargá crédito (*Billing*) y poné un límite de gasto mensual (*Limits*).
+2. *API Keys › Create Key* → `ANTHROPIC_API_KEY` en `.env.local` y en Hostinger, y Redeploy.
+3. Opcional: `ANTHROPIC_MODEL` (por defecto `claude-sonnet-5-5`) y `AI_PRICE_IN_USD` / `AI_PRICE_OUT_USD` con el precio por millón de tokens de ese modelo, para que el costo en Admin sea exacto.
+
 ## 4. Mercado Pago (ARS, Argentina)
 
 1. mercadopago.com.ar/developers › *Tus integraciones › Crear aplicación* (producto: Suscripciones). Copiá el *Access Token* (primero el de prueba, `TEST-…`) → `MP_ACCESS_TOKEN`.

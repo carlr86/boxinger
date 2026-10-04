@@ -261,8 +261,9 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
   const toast = useToast();
   const { isMobile } = useGridCols();
   const [c, setC] = useState<ClientDetail | null>(null);
+  const [ai, setAi] = useState<{ month: string; runs: number; suggest: number; rank: number; cost_usd: number }[]>([]);
   const load = () => rpc<ClientDetail>('admin_client_detail', { p_account: accountId }).then(setC).catch((e) => toast.err(e));
-  useEffect(() => { load(); }, [accountId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); rpc<typeof ai>('admin_ai_usage', { p_account: accountId }).then(setAi).catch(() => setAi([])); }, [accountId]); // eslint-disable-line react-hooks/exhaustive-deps
   const d = c ? Math.floor((Date.now() - +new Date(c.last_activity_at)) / 864e5) : 0;
   const risk = !c || c.plan !== 'Pro' ? '—' : d >= 14 ? 'Alto' : d >= 7 ? 'Medio' : 'Bajo';
 
@@ -328,6 +329,13 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
               </div>
             ))}
           </div>
+          {(c.plan === 'Enterprise' || ai.length > 0) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Asistente IA</span>
+              {ai.length ? <Rows rows={ai.map((r) => ({ l: r.month.slice(5) + '/' + r.month.slice(0, 4), v: `${r.rank} análisis · ${r.suggest} sugerencias · USD ${Number(r.cost_usd).toFixed(2)}` }))} />
+                : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Todavía no lo usó.</span>}
+            </div>
+          )}
           {c.payments.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>Pagos</span>

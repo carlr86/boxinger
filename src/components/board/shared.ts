@@ -1,6 +1,8 @@
 'use client';
 import type { BoardData, Category, Idea } from '@/lib/types';
 
+export type IdeaDraft = { title: string; description: string; category_id: string };
+
 export type View = 'buzon' | 'ranking' | 'backlog' | 'matriz' | 'roadmap' | 'status' | 'config';
 
 export interface BoardApi {
@@ -21,6 +23,8 @@ export interface BoardApi {
   goPro: () => void;
   setView: (v: View) => void;
   openNew: () => void;
+  /** New idea form filled in (AI suggestions); onDone runs once it is published. */
+  openNewWith: (draft: IdeaDraft, onDone?: () => void) => void;
   openEdit: (i: Idea) => void;
   askReject: (id: number) => void;
   setStatus: (id: number, st: string) => void;

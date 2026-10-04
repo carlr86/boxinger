@@ -56,6 +56,7 @@ export default async function Privacidad() {
         <li><b>Supabase:</b> base de datos, autenticación y archivos, con servidores en Estados Unidos.</li>
         <li><b>Hostinger:</b> alojamiento de la web y envío de emails.</li>
         <li><b>Google:</b> inicio de sesión con Google, si lo elegís.</li>
+        <li><b>Anthropic:</b> en el plan Enterprise, cuando el Equipo usa el asistente de IA, procesa la descripción del producto y el texto de las ideas del buzón, con sus votos y comentarios contados (sin nombres ni emails), para devolver sugerencias. Anthropic no usa estos datos para entrenar sus modelos.</li>
         <li><b>Creem y Mercado Pago:</b> procesamiento de pagos, según sus propias políticas de privacidad. Creem actúa como revendedor en los pagos en dólares.</li>
       </ul>
       <p>Algunos de estos proveedores guardan los datos fuera de Argentina, en países que pueden no tener un nivel de protección equivalente. Al usar Boxinger prestás tu consentimiento para esa transferencia, que se limita a lo necesario para prestar el servicio. También podemos revelar datos si lo exige una autoridad competente conforme a la ley.</p>

@@ -5,8 +5,8 @@ import { Choice, Field } from '@/components/ui';
 import type { Category, Idea } from '@/lib/types';
 import { useI18n } from '@/lib/i18n/client';
 
-export function IdeaForm({ open, idea, cats, isTeam, onClose, onSubmit, isMobile }: {
-  open: boolean; idea: Idea | null; cats: Category[]; isTeam: boolean; isMobile: boolean;
+export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, isMobile }: {
+  open: boolean; idea: Idea | null; draft?: { title: string; description: string; category_id: string }; cats: Category[]; isTeam: boolean; isMobile: boolean;
   onClose: () => void; onSubmit: (v: { title: string; description: string; category_id: string }) => Promise<boolean>;
 }) {
   const { t } = useI18n();
@@ -15,10 +15,10 @@ export function IdeaForm({ open, idea, cats, isTeam, onClose, onSubmit, isMobile
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (open) {
-      setF(idea ? { title: idea.title, description: idea.description, category_id: idea.category_id } : { title: '', description: '', category_id: '' });
+      setF(idea ? { title: idea.title, description: idea.description, category_id: idea.category_id } : draft ? { ...draft } : { title: '', description: '', category_id: '' });
       setTried(false);
     }
-  }, [open, idea]);
+  }, [open, idea, draft]);
 
   const tl = f.title.trim().length, d = f.description.trim().length;
   const e = {

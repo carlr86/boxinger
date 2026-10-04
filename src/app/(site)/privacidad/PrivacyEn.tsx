@@ -45,6 +45,7 @@ export function PrivacyEn() {
         <li><b>Supabase:</b> database, authentication and files, with servers in the United States.</li>
         <li><b>Hostinger:</b> website hosting and email delivery.</li>
         <li><b>Google:</b> sign-in with Google, if you choose it.</li>
+        <li><b>Anthropic:</b> on the Enterprise plan, when the Team uses the AI assistant, it processes the product description and the text of the board's ideas, with their vote and comment counts (no names or emails), to return suggestions. Anthropic does not use this data to train its models.</li>
         <li><b>Creem and Mercado Pago:</b> payment processing, under their own privacy policies. Creem acts as reseller for payments in US dollars.</li>
       </ul>
       <p>Some of these providers store data outside Argentina, in countries that may not have an equivalent level of protection. By using Boxinger you consent to that transfer, which is limited to what is needed to provide the service. We may also disclose data if a competent authority requires it under the law.</p>

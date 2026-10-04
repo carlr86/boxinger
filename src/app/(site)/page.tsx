@@ -59,7 +59,7 @@ export default async function Landing() {
     },
     {
       name: 'Enterprise', price: 'A medida', per: '', bd: '#c7d2fe', badge: 'Exclusivo',
-      items: ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Funciones con IA (próximamente)', 'Alta y acompañamiento dedicados'],
+      items: ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Asistente IA: sugiere ideas y cuáles aprobar', 'Alta y acompañamiento dedicados'],
       cta: 'Contactanos', ctaBg: '#fff', ctaFg: '#4338ca', ctaBd: '#4338ca', href: '#contacto-enterprise',
     },
   ];

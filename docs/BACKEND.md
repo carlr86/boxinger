@@ -119,6 +119,14 @@ Las funciones de Postgres encolan emails en `email_outbox` respetando las prefer
 
 Lo usan: errores no atrapados del servidor (`src/instrumentation.ts`), los webhooks de Creem, Mercado Pago y PayPal, el checkout y la cancelación, el proceso diario, los emails que fallan 5 veces y los errores del navegador (`ErrorReporter`, `app/error.tsx` y `global-error.tsx` → `/api/client-error`). En desarrollo solo se loguean, salvo con `REPORT_ERRORS=1`.
 
+## Asistente IA (Enterprise)
+
+En el Buzón, el Equipo abre *Asistente IA*. El Admin describe el producto (`boards.ai_context`, `set_ai_context`) y con eso la IA:
+- **Mejores para el Backlog:** lee las ideas pendientes y en revisión (hasta 300, con votos, comentarios, impacto y esfuerzo) y propone hasta 5 para aprobar, con el motivo, la confianza e ideas repetidas.
+- **Sugerir ideas:** propone 5 ideas nuevas, distintas de las del buzón y con una de sus categorías; "Agregar al buzón" abre el formulario ya completo.
+
+`/api/ai` → `ai_begin` (plan Enterprise, rol del Equipo, descripción, topes) → Claude (`src/lib/ai/claude.ts`, respuesta forzada por *tool use*; instrucciones en `src/lib/ai/prompts.ts`) → `ai_finish` guarda tokens, costo y resultado en `ai_runs`. Topes en `ai_limits()`: 30 sugerencias y 15 análisis por buzón por mes, 500 usos por día en toda la plataforma. Un error no consume el cupo y va a `reportError('asistente-ia')`. A la IA no le llegan nombres ni emails. El uso y el costo por cliente se ven en Admin › detalle del cliente (`admin_ai_usage`).
+
 ## Idioma (español e inglés)
 
 - **Textos:** el español del código es la fuente y la clave: `t('Guardar')` devuelve "Save" en inglés. Las traducciones están en `src/lib/i18n/en.ts`; si falta una, se ve el español. `npm run i18n` lista las que faltan (y `-- --loose` los textos sin envolver).

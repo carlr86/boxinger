@@ -6,6 +6,7 @@ import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE_KEYS, statusTon
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
+import { AiButton, AiPanel } from './AiPanel';
 
 const PAGE = 20;
 const LAYOUT_KEY = 'bx-ideas-layout';
@@ -67,6 +68,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   const [fSt, setFSt] = useState('all');
   const [sort, setSort] = useState<'recent' | 'votes' | 'comments'>('recent');
   const [limit, setLimit] = useState(PAGE);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const list = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -94,6 +96,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         sub={backlog ? t('Ideas aprobadas por el Equipo, candidatas para el roadmap.') : t('Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.')}
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {!backlog && api.isTeam && <AiButton onClick={() => setAiOpen(true)} />}
             <LayoutToggle value={layout} onChange={setLayout} />
             {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ {t('Nueva idea')}</button>}
           </div>
@@ -179,6 +182,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           {t('Ver más ideas ({n})', { n: list.length - limit })}
         </button>
       )}
+      {api.isTeam && <AiPanel api={api} open={aiOpen} onClose={() => setAiOpen(false)} isMobile={isMobile} />}
     </>
   );
 }

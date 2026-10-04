@@ -14,7 +14,7 @@ import { IdeaForm, RejectModal } from './Modals';
 import { Roadmap } from './Roadmap';
 import { Matrix, Status } from './Insights';
 import { BoardConfig } from './BoardConfig';
-import type { BoardApi, View } from './shared';
+import type { BoardApi, IdeaDraft, View } from './shared';
 import { useI18n } from '@/lib/i18n/client';
 
 const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'matriz', 'roadmap', 'status', 'config'];
@@ -39,7 +39,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const [selId, setSelId] = useState<number | null>(first.idea);
   // A link to another view of this same board (e.g. from a notification) re-renders the page with a new path.
   useEffect(() => { const p = parse(path); setViewState(p.view); setSelId(p.idea); }, [path]);
-  const [form, setForm] = useState<{ open: boolean; idea: Idea | null }>({ open: false, idea: null });
+  const [form, setForm] = useState<{ open: boolean; idea: Idea | null; draft?: IdeaDraft; onDone?: () => void }>({ open: false, idea: null });
   const [rejectFor, setRejectFor] = useState<number | null>(null);
   const version = useRef(initial.board.version);
   const b = data.board;
@@ -116,6 +116,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
     goPro: () => router.push('/app/perfil?tab=sub'),
     setView,
     openNew: () => (!data.me ? goLogin(true) : !(canWrite && (data.perms ? data.perms.can_create_ideas : true)) ? toast.info(isTeam ? 'En este buzón el Admin no habilitó la carga de ideas para los miembros.' : 'En este buzón solo el Equipo carga ideas. Podés votar y comentar.') : setForm({ open: true, idea: null })),
+    openNewWith: (draft, onDone) => setForm({ open: true, idea: null, draft, onDone }),
     openEdit: (i) => setForm({ open: true, idea: i }),
     askReject: (id) => setRejectFor(id),
     setStatus: async (id, st) => {
@@ -170,7 +171,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
 
       {selId != null && <IdeaDrawer key={selId} api={api} id={selId} onClose={closeIdea} />}
 
-      <IdeaForm open={form.open} idea={form.idea} cats={cats} isTeam={isTeam} isMobile={isMobile}
+      <IdeaForm open={form.open} idea={form.idea} draft={form.draft} cats={cats} isTeam={isTeam} isMobile={isMobile}
         onClose={() => setForm({ open: false, idea: null })}
         onSubmit={async (v) => {
           if (!canWrite) { toast.info('Este buzón está en solo lectura.'); return false; }
@@ -181,9 +182,10 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
           }
           const id = await run(rpc<number>('create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea publicada · Pendiente de revisión');
           if (id === undefined) return false;
+          form.onDone?.();
           await reload();
           if (!role) refreshCtx();
-          if (view !== 'buzon') setView('buzon');
+          if (view !== 'buzon' && !form.draft) setView('buzon');
           return true;
         }} />
 

@@ -193,7 +193,7 @@ function Notifs() {
 }
 
 const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
-const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Funciones con IA (próximamente)', 'Alta y facturación a medida'];
+const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Miembros ilimitados por equipo', 'Asistente IA: sugiere ideas y cuáles aprobar', 'Alta y facturación a medida'];
 const PRO_ITEMS = ['Todo lo de Free', 'Equipos ilimitados', 'Buzones ilimitados por equipo', 'Hasta 4 miembros por equipo', 'Acceso por buzón para cada miembro', 'Buzones privados', 'Acceso por dominio de email', 'Matriz de esfuerzo e impacto', 'Roadmap de las ideas', 'Status de las ideas'];
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', creem: 'Tarjeta internacional (Creem)', manual: 'Asignado por Boxinger' };
 

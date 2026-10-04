@@ -1,0 +1,52 @@
+import 'server-only';
+import { cleanEnv, requireEnv } from '@/lib/env';
+
+// Claude (Anthropic) for the Enterprise AI assistant. Docs: docs.anthropic.com/en/api/messages
+// The key lives in ANTHROPIC_API_KEY; the model and its price per million tokens can be changed by env
+// without touching code (check anthropic.com/pricing when changing the model).
+export const aiConfigured = () => !!cleanEnv(process.env.ANTHROPIC_API_KEY);
+export const AI_MODEL = () => cleanEnv(process.env.ANTHROPIC_MODEL) || 'claude-sonnet-5-5';
+const PRICE_IN = () => Number(cleanEnv(process.env.AI_PRICE_IN_USD) || 3); // per million input tokens
+const PRICE_OUT = () => Number(cleanEnv(process.env.AI_PRICE_OUT_USD) || 15); // per million output tokens
+
+export type Tool = { name: string; description: string; input_schema: Record<string, unknown> };
+export type AiResult<T> = { data: T; model: string; inputTokens: number; outputTokens: number; costUsd: number };
+
+/**
+ * One call that must answer through `tool` (so the reply is always JSON with that shape).
+ * Waits up to 60 s and retries once when Anthropic is busy.
+ */
+export async function askWithTool<T>(o: { system: string; user: string; tool: Tool; maxTokens?: number }): Promise<AiResult<T>> {
+  const model = AI_MODEL();
+  const body = JSON.stringify({
+    model,
+    max_tokens: o.maxTokens ?? 4000,
+    system: o.system,
+    messages: [{ role: 'user', content: o.user }],
+    tools: [o.tool],
+    tool_choice: { type: 'tool', name: o.tool.name },
+  });
+  let last = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 2000));
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': requireEnv('ANTHROPIC_API_KEY'), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(60_000),
+    });
+    const text = await r.text();
+    if (r.status === 429 || r.status === 529 || r.status >= 500) { last = `Anthropic ${r.status} ${text.slice(0, 300)}`; continue; }
+    if (!r.ok) throw new Error(`Anthropic ${r.status} ${text.slice(0, 300)}`);
+    const j = JSON.parse(text);
+    const use = (j.content || []).find((c: { type: string; name?: string }) => c.type === 'tool_use' && c.name === o.tool.name);
+    if (!use) throw new Error(`Anthropic: la respuesta no trajo ${o.tool.name} (stop_reason ${j.stop_reason})`);
+    const inputTokens = Number(j.usage?.input_tokens || 0), outputTokens = Number(j.usage?.output_tokens || 0);
+    return {
+      data: use.input as T, model: j.model || model, inputTokens, outputTokens,
+      costUsd: Math.round(((inputTokens * PRICE_IN() + outputTokens * PRICE_OUT()) / 1e6) * 1e5) / 1e5,
+    };
+  }
+  throw new Error(last || 'Anthropic no respondió');
+}
