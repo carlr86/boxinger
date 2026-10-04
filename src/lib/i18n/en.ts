@@ -1175,6 +1175,13 @@ export const EN: Record<string, string> = {
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",
   "Reintentar": "Retry",
+  // ── Suscripción cancelada ──
+  "Cancelaste tu suscripción Pro. Seguís con Pro hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.": "You canceled your Pro subscription. You keep Pro until {date}; then your account moves to Free and boards over the plan become read-only.",
+  "Cancelaste tu suscripción Pro. Seguís con Pro hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.": "You canceled your Pro subscription. You keep Pro until the end of the paid period; then your account moves to Free and boards over the plan become read-only.",
+  "Ver suscripción": "View subscription",
+  "Cancelaste tu suscripción: no se hacen más cobros. Seguís con Pro hasta el {date} y después tu cuenta pasa a Free.": "You canceled your subscription: no more charges. You keep Pro until {date} and then your account moves to Free.",
+  "Cancelaste tu suscripción: no se hacen más cobros. Seguís con Pro hasta el fin del período pagado y después tu cuenta pasa a Free.": "You canceled your subscription: no more charges. You keep Pro until the end of the paid period and then your account moves to Free.",
+  "hasta el {date}": "until {date}",
 };
 
 /** Database messages with values inside: regex on the Spanish text → English with $1, $2… */

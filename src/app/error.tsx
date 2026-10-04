@@ -1,12 +1,12 @@
 'use client';
 import { useEffect } from 'react';
-import { sendClientError } from '@/components/ErrorReporter';
+import { reloadIfStale, sendClientError } from '@/components/ErrorReporter';
 import { useI18n } from '@/lib/i18n/client';
 
 // A screen crashed while rendering: report it and offer to retry instead of a blank page.
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const { t } = useI18n();
-  useEffect(() => { sendClientError({ message: error.message || 'Render error', stack: error.stack, digest: error.digest, kind: 'render' }); }, [error]);
+  useEffect(() => { if (!reloadIfStale(error.message || '', error.stack)) sendClientError({ message: error.message || 'Render error', stack: error.stack, digest: error.digest, kind: 'render' }); }, [error]);
   return (
     <div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', padding: 24 }}>
       <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 32, maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 12 }}>

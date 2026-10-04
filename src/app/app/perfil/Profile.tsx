@@ -275,6 +275,13 @@ function Subscription() {
         {isPro && s?.provider && <KV l={t('Medio de pago')} v={t(PROVIDER_L[s.provider])} />}
         {isPro && s?.current_period_end && <KV l={s.cancel_at_period_end ? t('Pro hasta') : t('Próxima renovación')} v={dlong(s.current_period_end)} />}
       </div>
+      {isPro && s?.cancel_at_period_end && (
+        <Note tone="warn">
+          {s.current_period_end
+            ? t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Pro hasta el {date} y después tu cuenta pasa a Free.', { date: dlong(s.current_period_end) })
+            : t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Pro hasta el fin del período pagado y después tu cuenta pasa a Free.')}
+        </Note>
+      )}
       {isPro && s?.deal_type && (
         <Note tone="success">{s.deal_until ? t('Tenés un precio especial hasta el {date}. Después vuelve al precio de lista.', { date: dlong(s.deal_until) }) : t('Tenés un precio especial. Después vuelve al precio de lista.')}</Note>
       )}

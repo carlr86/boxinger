@@ -17,6 +17,21 @@ export function sendClientError(e: { message: string; stack?: string; digest?: s
 // Noise from browsers and extensions, not from Boxinger.
 const IGNORE = /ResizeObserver loop|^Script error\.?$|Non-Error promise rejection|AbortError|Load failed|Failed to fetch|NetworkError|chrome-extension:|moz-extension:/i;
 
+// A new version was deployed while this tab was open: its Server Action ids no longer exist.
+const STALE = /UnrecognizedActionError|Server Action "[^"]*" was not found on the server/i;
+
+/** Loads the new version (at most once a minute, so a real bug can't loop) instead of reporting. */
+export function reloadIfStale(msg: string, stack = '') {
+  if (!STALE.test(msg) && !STALE.test(stack)) return false;
+  try {
+    const last = Number(sessionStorage.getItem('bx-stale-reload') || 0);
+    if (Date.now() - last < 60_000) return false;
+    sessionStorage.setItem('bx-stale-reload', String(Date.now()));
+  } catch {}
+  location.reload();
+  return true;
+}
+
 /** Catches errors outside React (event handlers, promises) and reports them. */
 export function ErrorReporter() {
   useEffect(() => {
@@ -24,11 +39,13 @@ export function ErrorReporter() {
       if (ev.filename && !ev.filename.startsWith(location.origin)) return;
       const msg = ev.error?.message || ev.message || '';
       if (!msg || IGNORE.test(msg) || IGNORE.test(ev.error?.stack || '')) return;
+      if (reloadIfStale(msg, ev.error?.stack)) { ev.preventDefault(); return; }
       sendClientError({ message: msg, stack: ev.error?.stack, kind: 'error' });
     };
     const onRejection = (ev: PromiseRejectionEvent) => {
       const r = ev.reason, msg = r instanceof Error ? r.message : typeof r === 'string' ? r : '';
       if (!msg || IGNORE.test(msg) || IGNORE.test(r?.stack || '')) return;
+      if (reloadIfStale(msg, r?.stack)) { ev.preventDefault(); return; }
       sendClientError({ message: msg, stack: r?.stack, kind: 'promise' });
     };
     window.addEventListener('error', onError);

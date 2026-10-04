@@ -1,10 +1,10 @@
 'use client';
 import { useEffect } from 'react';
-import { sendClientError } from '@/components/ErrorReporter';
+import { reloadIfStale, sendClientError } from '@/components/ErrorReporter';
 
 // Last resort when even the root layout fails (no translations here: shown in both languages).
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => { sendClientError({ message: error.message || 'Root error', stack: error.stack, digest: error.digest, kind: 'root' }); }, [error]);
+  useEffect(() => { if (!reloadIfStale(error.message || '', error.stack)) sendClientError({ message: error.message || 'Root error', stack: error.stack, digest: error.digest, kind: 'root' }); }, [error]);
   return (
     <html lang="es">
       <body style={{ margin: 0, fontFamily: '-apple-system,Segoe UI,Arial,sans-serif', background: '#f5f5f5', minHeight: '100vh', display: 'grid', placeItems: 'center' }}>

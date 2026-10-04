@@ -39,7 +39,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
 }) {
   const router = useRouter();
   const toast = useToast();
-  const { t, locale } = useI18n();
+  const { t, locale, dshort } = useI18n();
   const { ctx, setCtx } = useSession();
   const me = ctx?.me;
   const isPro = !!ctx?.account?.pro;
@@ -110,7 +110,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
                   <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 14, fontWeight: 600 }}>{me.name}</span>
                     <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.email}</span>
-                    {(() => { const p = planTone(ctx?.account?.plan); return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + p.bd, background: p.bg, color: p.fg }}>{t('Plan {plan}', { plan: p.l })}</span>; })()}
+                    {(() => { const p = planTone(ctx?.account?.plan); const sub = ctx?.account?.subscription; const ending = ctx?.account?.plan === 'pro' && sub?.cancel_at_period_end && sub.current_period_end; return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + p.bd, background: p.bg, color: p.fg }}>{t('Plan {plan}', { plan: p.l })}{ending ? ' · ' + t('hasta el {date}', { date: dshort(sub.current_period_end!) }) : ''}</span>; })()}
                   </div>
                 </div>
                 {hasBoards && <Link className="bx-item" style={menuLink} href="/app/buzones"><InboxOutlined style={menuIcon} />{t('Mis Buzones')}</Link>}

@@ -35,7 +35,7 @@ export function BoardsPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const toast = useToast();
-  const { t, plural, rel } = useI18n();
+  const { t, plural, rel, dlong } = useI18n();
   const { ctx, refresh } = useSession();
   const { cols, isMobile } = useGridCols();
   const [q, setQ] = useState('');
@@ -146,6 +146,18 @@ export function BoardsPage() {
           ) : (
             <button type="button" className="bx-btn-primary" onClick={() => router.push('/app/onboarding')}>+ {t('Crear mi buzón')}</button>
           )} />
+        {(() => {
+          const sub = ctx.account?.subscription;
+          if (!ctx.account || ctx.account.plan !== 'pro' || !sub?.cancel_at_period_end) return null;
+          return (
+            <Note tone="warn">
+              {sub.current_period_end
+                ? t('Cancelaste tu suscripción Pro. Seguís con Pro hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.', { date: dlong(sub.current_period_end) })
+                : t('Cancelaste tu suscripción Pro. Seguís con Pro hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.')}{' '}
+              <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Ver suscripción')}</a>
+            </Note>
+          );
+        })()}
         {ctx.account && !isPro && (
           <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 16px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 14 }}>
             <span style={{ flex: 1, minWidth: 240, color: 'rgba(0,0,0,0.65)' }}>{t('Tu plan Free incluye 1 equipo con 1 buzón, solo para vos. Con Pro tenés equipos y buzones ilimitados, y hasta 4 miembros por equipo.')}</span>
