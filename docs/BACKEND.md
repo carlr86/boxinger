@@ -110,6 +110,16 @@ Límites anti-bots dentro de las funciones: 5 ideas cada 10 minutos, 30 votos y 
 
 Las funciones de Postgres encolan emails en `email_outbox` respetando las preferencias del usuario. La app los envía por Resend enseguida (`/api/outbox`) y el job diario reintenta los que fallaron. Los emails de Auth (verificación, recuperar contraseña) los manda Supabase por SMTP de Resend.
 
+## Idioma (español e inglés)
+
+- **Textos:** el español del código es la fuente y la clave: `t('Guardar')` devuelve "Save" en inglés. Las traducciones están en `src/lib/i18n/en.ts`; si falta una, se ve el español. `npm run i18n` lista las que faltan (y `-- --loose` los textos sin envolver).
+- **Dónde se usa:** en componentes de cliente, `useI18n()` (`t`, fechas y montos ya en el idioma); en páginas de servidor, `getT()` (`src/lib/i18n/server.ts`). Los toasts traducen solos lo que reciben, incluidos los errores de la base (`EN_PATTERNS` cubre los que llevan valores).
+- **Idioma de cada persona:** cookie `bx_locale` en el navegador y `profiles.locale` en la base (`set_locale`, que también lo copia a `user_metadata.locale` para los emails de Supabase Auth). Sin cookie, se usa el idioma del navegador.
+- **Emails:** cada email sale en el idioma del destinatario (su perfil; en invitaciones, el de quien invita: `sender_locale`). Los avisos al Admin de plataforma quedan en español.
+- **Legales:** la versión en inglés (`TermsEn.tsx`, `PrivacyEn.tsx`) es una traducción de cortesía; rige la española. Mantenerlas iguales al cambiar una.
+- **Interruptor:** `I18N_LIVE` en `src/lib/i18n/index.ts`. Apagado, solo el Super Admin ve el selector y se ignora el idioma del navegador.
+- **Panel de Admin:** solo en español.
+
 ## Pruebas
 
 Las reglas de negocio de las migraciones se probaron con 84 casos en Postgres (PGlite): permisos por rol, votos, ranking, estados, comentarios, planes y límites, miembros e invitaciones, roadmap, bajada a Free, panel de Admin y jobs.

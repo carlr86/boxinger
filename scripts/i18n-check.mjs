@@ -6,7 +6,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SKIP = [/src\/components\/admin\//, /src\/app\/app\/admin\//, /src\/lib\/i18n\//, /src\/app\/api\//, /src\/lib\/billing\//, /\.d\.ts$/];
+// Admin panel: Spanish only. Legal pages: the Spanish body is the source and *En.tsx the translation.
+const SKIP = [/src\/components\/admin\//, /src\/app\/app\/admin\//, /src\/lib\/i18n\//, /src\/app\/api\//, /src\/lib\/billing\//, /\.d\.ts$/,
+  /\(site\)\/(terminos|privacidad|arrepentimiento)\/page\.tsx$/, /src\/lib\/legal\.ts$/];
 
 const enSrc = fs.readFileSync(path.join(ROOT, 'src/lib/i18n/en.ts'), 'utf8').split('export const EN_PATTERNS')[0];
 const keys = new Set();

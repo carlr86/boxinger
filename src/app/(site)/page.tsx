@@ -4,8 +4,9 @@ import { getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
 import ContactForm from '@/components/ContactForm';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { getT } from '@/lib/i18n/server';
 
-export const revalidate = 3600;
+// Texts below are the Spanish source; the page shows them through t() (src/lib/i18n).
 
 const ST = {
   ok: { bd: '#b7eb8f', bg: '#f6ffed', fg: '#389e0d' },
@@ -44,7 +45,7 @@ function Check() {
 }
 
 export default async function Landing() {
-  const usd = await getPublicProPrice();
+  const [usd, { t, locale }] = await Promise.all([getPublicProPrice(), getT()]);
   const plans = [
     {
       name: 'Free', price: 'USD 0', per: 'para siempre', bd: '#f0f0f0',
@@ -52,7 +53,7 @@ export default async function Landing() {
       cta: 'Empezar gratis', ctaBg: '#fff', ctaFg: 'rgba(0,0,0,0.88)', ctaBd: '#d9d9d9',
     },
     {
-      name: 'Pro', price: 'USD ' + fmtPrice(usd), per: '/ mes', bd: '#059669',
+      name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', bd: '#059669',
       items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status'],
       cta: 'Crear cuenta', ctaBg: '#059669', ctaFg: '#fff', ctaBd: '#059669',
     },
@@ -72,14 +73,14 @@ export default async function Landing() {
             <span className={s.brandName}>Boxinger</span>
           </a>
           <nav className={s.nav}>
-            <a href="#como" className={s.navLink}>Cómo funciona</a>
-            <a href="#funciones" className={s.navLink}>Funciones</a>
-            <a href="#planes" className={s.navLink}>Planes</a>
-            <a href="#contacto" className={s.navLink}>Contacto</a>
+            <a href="#como" className={s.navLink}>{t('Cómo funciona')}</a>
+            <a href="#funciones" className={s.navLink}>{t('Funciones')}</a>
+            <a href="#planes" className={s.navLink}>{t('Planes')}</a>
+            <a href="#contacto" className={s.navLink}>{t('Contacto')}</a>
           </nav>
           <div className={s.headerCtas}>
-            <Link href="/app/ingresar" className={s.btnSm}>Ingresar</Link>
-            <Link href="/app/registro" className={s.btnSmPrimary}>Crear cuenta</Link>
+            <Link href="/app/ingresar" className={s.btnSm}>{t('Ingresar')}</Link>
+            <Link href="/app/registro" className={s.btnSmPrimary}>{t('Crear cuenta')}</Link>
           </div>
         </div>
       </header>
@@ -88,15 +89,15 @@ export default async function Landing() {
         <div className={s.heroIn}>
           <div className={s.heroText}>
             <span className={s.eyebrow}>PRODUCT DISCOVERY</span>
-            <h1 className={s.h1}>Las ideas de tus usuarios, ordenadas en un solo buzón.</h1>
+            <h1 className={s.h1}>{t('Las ideas de tus usuarios, ordenadas en un solo buzón.')}</h1>
             <p className={s.lead}>
-              Boxinger reúne las propuestas de tu comunidad y de tu equipo. La comunidad vota, el equipo revisa y las ideas aprobadas pasan al backlog, la matriz de esfuerzo e impacto y el roadmap.
+              {t('Boxinger reúne las propuestas de tu comunidad y de tu equipo. La comunidad vota, el equipo revisa y las ideas aprobadas pasan al backlog, la matriz de esfuerzo e impacto y el roadmap.')}
             </p>
             <div className={s.ctaRow}>
-              <Link href="/app/registro" className={s.btnLgPrimary}>Crear cuenta gratis</Link>
-              <Link href="/app/ingresar" className={s.btnLg}>Ya tengo cuenta</Link>
+              <Link href="/app/registro" className={s.btnLgPrimary}>{t('Crear cuenta gratis')}</Link>
+              <Link href="/app/ingresar" className={s.btnLg}>{t('Ya tengo cuenta')}</Link>
             </div>
-            <span className={s.note}>Plan Free sin tarjeta de crédito.</span>
+            <span className={s.note}>{t('Plan Free sin tarjeta de crédito.')}</span>
           </div>
 
           <div className={s.mock} aria-hidden>
@@ -104,7 +105,7 @@ export default async function Landing() {
               <span className={s.mockLogo}>PP</span>
               <span className={s.mockName}>Pampa Pagos</span>
               <div className={s.mockTabs}>
-                <span className={s.mockTabActive}>Buzón</span><span>Ranking</span><span>Backlog</span><span>Roadmap</span>
+                <span className={s.mockTabActive}>{t('Buzón')}</span><span>{t('Ranking')}</span><span>{t('Backlog')}</span><span>{t('Roadmap')}</span>
               </div>
             </div>
             <div className={s.mockList}>
@@ -115,13 +116,13 @@ export default async function Landing() {
                     <span className={s.voteN}>{d.votes}</span>
                   </div>
                   <div className={s.mockBody}>
-                    <span className={s.mockTitle}>{d.title}</span>
+                    <span className={s.mockTitle}>{t(d.title)}</span>
                     <div className={s.tags}>
-                      <span className={s.tag}>{d.cat}</span>
-                      <span className={s.tag} style={{ borderColor: d.st.bd, background: d.st.bg, color: d.st.fg }}>{d.status}</span>
+                      <span className={s.tag}>{t(d.cat)}</span>
+                      <span className={s.tag} style={{ borderColor: d.st.bd, background: d.st.bg, color: d.st.fg }}>{t(d.status)}</span>
                     </div>
                   </div>
-                  <span className={s.mockComments}>{d.comments} comentarios</span>
+                  <span className={s.mockComments}>{t('{n} comentarios', { n: d.comments })}</span>
                 </div>
               ))}
             </div>
@@ -131,15 +132,15 @@ export default async function Landing() {
 
       <section id="como" className={s.section}>
         <div className={s.sectionHead}>
-          <h2 className={s.h2}>Cómo funciona</h2>
-          <p className={s.sub}>Cada idea sigue el mismo recorrido, desde que alguien la propone hasta que se lanza.</p>
+          <h2 className={s.h2}>{t('Cómo funciona')}</h2>
+          <p className={s.sub}>{t('Cada idea sigue el mismo recorrido, desde que alguien la propone hasta que se lanza.')}</p>
         </div>
         <div className={s.steps}>
           {STEPS.map((st) => (
             <div key={st.n} className={s.step}>
               <span className={s.stepN}>{st.n}</span>
-              <span className={s.stepT}>{st.t}</span>
-              <p className={s.stepD}>{st.d}</p>
+              <span className={s.stepT}>{t(st.t)}</span>
+              <p className={s.stepD}>{t(st.d)}</p>
             </div>
           ))}
         </div>
@@ -148,17 +149,17 @@ export default async function Landing() {
       <section id="funciones" className={s.dark}>
         <div className={s.section} style={{ maxWidth: 1120 }}>
           <div className={s.sectionHead}>
-            <h2 className={s.h2}>Todo el recorrido en un lugar</h2>
-            <p className={s.subDark}>Cada buzón tiene seis secciones. La comunidad participa en las tres primeras y el equipo gestiona el resto.</p>
+            <h2 className={s.h2}>{t('Todo el recorrido en un lugar')}</h2>
+            <p className={s.subDark}>{t('Cada buzón tiene seis secciones. La comunidad participa en las tres primeras y el equipo gestiona el resto.')}</p>
           </div>
           <div className={s.features}>
             {FEATURES.map((f) => (
               <div key={f.t} className={s.feature}>
                 <div className={s.featureHead}>
-                  <span className={s.featureT}>{f.t}</span>
+                  <span className={s.featureT}>{t(f.t)}</span>
                   {f.pro && <span className={s.pro}>PRO</span>}
                 </div>
-                <p className={s.featureD}>{f.d}</p>
+                <p className={s.featureD}>{t(f.d)}</p>
               </div>
             ))}
           </div>
@@ -167,24 +168,24 @@ export default async function Landing() {
 
       <section id="planes" className={s.section}>
         <div className={s.sectionHead}>
-          <h2 className={s.h2}>Planes</h2>
-          <p className={s.sub}>Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o hablemos de Enterprise si necesitás más.</p>
+          <h2 className={s.h2}>{t('Planes')}</h2>
+          <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o hablemos de Enterprise si necesitás más.')}</p>
         </div>
         <div className={s.plans}>
           {plans.map((p) => (
             <div key={p.name} className={s.plan} style={{ border: '1px solid ' + p.bd }}>
               <div className={s.planHead}>
-                <span className={s.planName} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{p.name}{'badge' in p && p.badge && <span className={s.enterpriseBadge}>{p.badge}</span>}</span>
-                <div className={s.priceRow}><span className={s.price}>{p.price}</span><span className={s.per}>{p.per}</span></div>
+                <span className={s.planName} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{p.name}{'badge' in p && p.badge && <span className={s.enterpriseBadge}>{t(p.badge)}</span>}</span>
+                <div className={s.priceRow}><span className={s.price}>{t(p.price)}</span><span className={s.per}>{p.per && t(p.per)}</span></div>
               </div>
               <div className={s.items}>
                 {p.items.map((it) => (
-                  <div key={it} className={s.item}><Check /><span>{it}</span></div>
+                  <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>
                 ))}
               </div>
               {'href' in p && p.href
-                ? <a href={p.href} className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{p.cta}</a>
-                : <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{p.cta}</Link>}
+                ? <a href={p.href} className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</a>
+                : <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</Link>}
             </div>
           ))}
         </div>
@@ -194,10 +195,10 @@ export default async function Landing() {
         <div className={s.contactIn}>
           <div className={s.contactText}>
             <span id="contacto-enterprise" className={s.anchor} />
-            <h2 className={s.h2}>Hablemos</h2>
-            <p className={s.sub}>¿Tenés una duda, necesitás ayuda o querés conocer el plan Enterprise para tu empresa? Escribinos y te respondemos por email.</p>
+            <h2 className={s.h2}>{t('Hablemos')}</h2>
+            <p className={s.sub}>{t('¿Tenés una duda, necesitás ayuda o querés conocer el plan Enterprise para tu empresa? Escribinos y te respondemos por email.')}</p>
             <div className={s.contactAlt}>
-              <span>También podés escribirnos a</span>
+              <span>{t('También podés escribirnos a')}</span>
               <a href="mailto:hola@boxinger.com">hola@boxinger.com</a>
             </div>
           </div>
@@ -209,10 +210,10 @@ export default async function Landing() {
 
       <section className={s.band}>
         <div className={s.bandIn}>
-          <h2 className={s.bandH}>Abrí tu primer buzón hoy.</h2>
+          <h2 className={s.bandH}>{t('Abrí tu primer buzón hoy.')}</h2>
           <div className={s.ctaRow}>
-            <Link href="/app/registro" className={s.btnLgPrimary}>Crear cuenta gratis</Link>
-            <Link href="/app/ingresar" className={s.btnLg}>Ingresar</Link>
+            <Link href="/app/registro" className={s.btnLgPrimary}>{t('Crear cuenta gratis')}</Link>
+            <Link href="/app/ingresar" className={s.btnLg}>{t('Ingresar')}</Link>
           </div>
         </div>
       </section>
@@ -221,10 +222,10 @@ export default async function Landing() {
         <div className={s.footerIn}>
           <span style={{ flex: 1 }}>© 2026 Boxinger · www.boxinger.com</span>
           <div className={s.footerLinks}>
-            <Link href="/terminos" className={s.footerLink}>Términos</Link>
-            <Link href="/privacidad" className={s.footerLink}>Privacidad</Link>
-            <a href="#contacto" className={s.footerLink}>Contacto</a>
-            <Link href="/arrepentimiento" className={s.footerLink}>Botón de arrepentimiento</Link>
+            <Link href="/terminos" className={s.footerLink}>{t('Términos')}</Link>
+            <Link href="/privacidad" className={s.footerLink}>{t('Privacidad')}</Link>
+            <a href="#contacto" className={s.footerLink}>{t('Contacto')}</a>
+            <Link href="/arrepentimiento" className={s.footerLink}>{t('Botón de arrepentimiento')}</Link>
             <LanguageSwitch />
           </div>
         </div>

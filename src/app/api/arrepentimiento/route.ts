@@ -12,6 +12,7 @@ const Body = z.object({
   account_email: z.string().trim().toLowerCase().max(120).optional().default(''),
   message: z.string().trim().max(2000).optional().default(''),
   website: z.string().optional(), // honeypot
+  locale: z.enum(['es', 'en']).optional().default('es'), // language of the confirmation email
 });
 
 const err = (error: string, status = 400) => NextResponse.json({ error }, { status });
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     return err('No pudimos registrar tu solicitud. Escribinos a hola@boxinger.com.', 500);
   }
   await deliverContact(row as ContactRow);
-  const ack = render('arrepentimiento_ack', row);
+  const ack = render('arrepentimiento_ack', row, b.locale);
   await sendDirect({ to: b.email, subject: ack.subject, html: ack.html, key: 'arrepentimiento-ack-' + row.id }).catch((e) => console.error('arrepentimiento ack', e));
   return NextResponse.json({ ok: true, code: withdrawalCode(row.id) });
 }

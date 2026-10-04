@@ -1,12 +1,19 @@
 import Link from 'next/link';
 import { LegalPage } from '../LegalPage';
 import { LEGAL } from '@/lib/legal';
+import { getT } from '@/lib/i18n/server';
+import { PrivacyEn } from './PrivacyEn';
 
-export const metadata = { title: 'Privacidad · Boxinger' };
+export async function generateMetadata() {
+  const { t } = await getT();
+  return { title: t('Privacidad') + ' · Boxinger' };
+}
 
 // Texto adaptado a la Ley 25.326 de Protección de los Datos Personales (Argentina).
 // Revisalo con un profesional antes de publicar cambios importantes.
-export default function Privacidad() {
+export default async function Privacidad() {
+  const { t, locale } = await getT();
+  if (locale === 'en') return <LegalPage title={t('Política de privacidad')} updated={LEGAL.updated}><PrivacyEn /></LegalPage>;
   const mail = <a href={'mailto:' + LEGAL.email}>{LEGAL.email}</a>;
   return (
     <LegalPage title="Política de privacidad" updated={LEGAL.updated}>
@@ -18,7 +25,7 @@ export default function Privacidad() {
       <h2>2. Qué datos tratamos</h2>
       <ul>
         <li><b>Cuenta:</b> nombre, email, contraseña (guardada cifrada; no la podemos ver) y, si entrás con Google, tu nombre, email y foto de perfil de Google.</li>
-        <li><b>Perfil y preferencias:</b> foto o logo que subas y tus preferencias de notificaciones.</li>
+        <li><b>Perfil y preferencias:</b> foto o logo que subas, tus preferencias de notificaciones y el idioma de la interfaz.</li>
         <li><b>Contenido y actividad:</b> ideas, votos, comentarios, reacciones, buzones y equipos que creás o a los que te sumás, invitaciones que enviás (email del invitado) y fechas de actividad.</li>
         <li><b>Suscripción:</b> plan, estado, importes, fechas de cobro y los identificadores de la suscripción en Creem o Mercado Pago, incluido el email de la cuenta de Mercado Pago que indicás al pagar. Los datos de tu tarjeta los procesan Creem o Mercado Pago y nunca llegan a Boxinger.</li>
         <li><b>Contacto:</b> lo que nos escribís por el formulario de contacto o el botón de arrepentimiento (nombre, email, empresa, mensaje).</li>
@@ -54,7 +61,7 @@ export default function Privacidad() {
       <p>Algunos de estos proveedores guardan los datos fuera de Argentina, en países que pueden no tener un nivel de protección equivalente. Al usar Boxinger prestás tu consentimiento para esa transferencia, que se limita a lo necesario para prestar el servicio. También podemos revelar datos si lo exige una autoridad competente conforme a la ley.</p>
 
       <h2>6. Cookies y almacenamiento local</h2>
-      <p>Usamos cookies esenciales para mantener tu sesión iniciada y almacenamiento local del navegador para recordar preferencias de la interfaz. No usamos cookies de publicidad ni herramientas de analítica de terceros. Si las bloqueás, no vas a poder iniciar sesión.</p>
+      <p>Usamos cookies esenciales para mantener tu sesión iniciada y recordar tu idioma, y almacenamiento local del navegador para recordar preferencias de la interfaz. No usamos cookies de publicidad ni herramientas de analítica de terceros. Si las bloqueás, no vas a poder iniciar sesión.</p>
 
       <h2>7. Cuánto tiempo los guardamos</h2>
       <p>Guardamos tus datos mientras tengas la cuenta activa. Si la borrás desde Mi perfil, eliminamos tu perfil y tus datos de acceso. Las ideas y comentarios que publicaste en buzones de otros equipos se conservan como de un &quot;Usuario eliminado&quot;, sin tu nombre ni tu email. Si sos dueño de una cuenta, se borran tus equipos y buzones con todo su contenido. Los registros de pagos se conservan el tiempo que exija la normativa fiscal y contable.</p>

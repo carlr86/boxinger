@@ -1,12 +1,19 @@
 import Link from 'next/link';
 import { LegalPage } from '../LegalPage';
 import { LEGAL } from '@/lib/legal';
+import { getT } from '@/lib/i18n/server';
+import { TermsEn } from './TermsEn';
 
-export const metadata = { title: 'Términos · Boxinger' };
+export async function generateMetadata() {
+  const { t } = await getT();
+  return { title: t('Términos') + ' · Boxinger' };
+}
 
 // Texto adaptado a la normativa argentina (Ley 24.240 de Defensa del Consumidor, Res. 424/2020).
 // Revisalo con un profesional antes de publicar cambios importantes.
-export default function Terminos() {
+export default async function Terminos() {
+  const { t, locale } = await getT();
+  if (locale === 'en') return <LegalPage title={t('Términos y condiciones')} updated={LEGAL.updated}><TermsEn /></LegalPage>;
   const mail = <a href={'mailto:' + LEGAL.email}>{LEGAL.email}</a>;
   return (
     <LegalPage title="Términos y condiciones" updated={LEGAL.updated}>
