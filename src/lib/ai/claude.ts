@@ -6,8 +6,9 @@ import { cleanEnv, requireEnv } from '@/lib/env';
 // without touching code (check anthropic.com/pricing when changing the model).
 export const aiConfigured = () => !!cleanEnv(process.env.ANTHROPIC_API_KEY);
 export const AI_MODEL = () => cleanEnv(process.env.ANTHROPIC_MODEL) || 'claude-sonnet-5-5';
-const PRICE_IN = () => Number(cleanEnv(process.env.AI_PRICE_IN_USD) || 3); // per million input tokens
-const PRICE_OUT = () => Number(cleanEnv(process.env.AI_PRICE_OUT_USD) || 15); // per million output tokens
+// Sonnet 5.5 list price (claude.com/pricing, Oct 2026): USD 2 in / USD 10 out per million tokens.
+const PRICE_IN = () => Number(cleanEnv(process.env.AI_PRICE_IN_USD) || 2); // per million input tokens
+const PRICE_OUT = () => Number(cleanEnv(process.env.AI_PRICE_OUT_USD) || 10); // per million output tokens
 
 export type Schema = Record<string, unknown>;
 export type AiResult<T> = { data: T; model: string; inputTokens: number; outputTokens: number; costUsd: number };

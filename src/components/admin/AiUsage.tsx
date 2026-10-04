@@ -60,7 +60,7 @@ export function AiUsagePage({ openClient, openBoard }: { openClient: (id: string
           {d.months.map((m) => <option key={m.month} value={m.month}>{monthL(m.month)}</option>)}
         </select>
         <span style={{ fontSize: 13, color: sec }}>
-          El costo es estimado con el precio por token configurado. El saldo real está en <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noreferrer">console.anthropic.com</a>.
+          El costo se calcula con el precio de lista de Claude Sonnet 5.5 (USD 2 / 10 por millón de tokens de entrada / salida). El saldo real está en <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noreferrer">console.anthropic.com</a>.
         </span>
       </div>
 
