@@ -4,6 +4,8 @@ import type { Locale } from '@/lib/i18n';
 
 const DAY = 864e5;
 const tag = (l: Locale) => (l === 'en' ? 'en-US' : 'es-AR');
+// Fixed time zone: the server (UTC) and the browser must print the same day, or React rejects the page.
+const TZ = 'America/Argentina/Buenos_Aires';
 
 export function fmtPrice(v: number, l: Locale = 'es'): string {
   v = Math.round(v * 100) / 100;
@@ -53,12 +55,12 @@ export function relShort(d: string | number | Date, l: Locale = 'es'): string {
 }
 
 export const exact = (d: string | number | Date, l: Locale = 'es') =>
-  new Date(ts(d)).toLocaleString(tag(l), { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-export const dshort = (d: string | number | Date, l: Locale = 'es') => new Date(ts(d)).toLocaleDateString(tag(l), { day: 'numeric', month: 'short' });
+  new Date(ts(d)).toLocaleString(tag(l), { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: TZ });
+export const dshort = (d: string | number | Date, l: Locale = 'es') => new Date(ts(d)).toLocaleDateString(tag(l), { day: 'numeric', month: 'short', timeZone: TZ });
 export const ddmmyyyy = (d: string | number | Date, l: Locale = 'es') =>
-  new Date(ts(d)).toLocaleDateString(tag(l), { day: '2-digit', month: '2-digit', year: 'numeric' });
+  new Date(ts(d)).toLocaleDateString(tag(l), { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TZ });
 export const dlong = (d: string | number | Date, l: Locale = 'es') =>
-  new Date(ts(d)).toLocaleDateString(tag(l), { day: 'numeric', month: 'long', year: 'numeric' });
+  new Date(ts(d)).toLocaleDateString(tag(l), { day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ });
 export const daysSince = (d: string | number | Date) => Math.max(0, Math.floor((Date.now() - ts(d)) / DAY));
 export const daysL = (n: number, l: Locale = 'es') =>
   l === 'en' ? (n === 0 ? 'Today' : n + (n === 1 ? ' day' : ' days')) : n === 0 ? 'Hoy' : n + (n === 1 ? ' día' : ' días');

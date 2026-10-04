@@ -33,7 +33,7 @@ export async function reportError(source: string, error: unknown, detail: Record
   console.error(`[${source}]`, message, detail, e.stack);
   if (process.env.NODE_ENV !== 'production' && !process.env.REPORT_ERRORS) return;
   try {
-    const info = { ...detail, stack: e.stack?.split('\n').slice(0, 8).join('\n') };
+    const info = { ...detail, stack: detail.stack ?? e.stack?.split('\n').slice(0, 8).join('\n') }; // browser errors bring their own stack
     const fp = fingerprint(source, message, where);
     const { data: notify } = await supabaseAdmin().rpc('record_app_error', { p_source: source, p_message: message, p_detail: info, p_fingerprint: fp });
     if (!notify) return;
