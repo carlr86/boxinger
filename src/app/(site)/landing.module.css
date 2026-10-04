@@ -80,7 +80,8 @@
 .payInfo{max-width:1072px;width:100%;margin-top:32px;display:flex;flex-direction:column;gap:16px}
 .payWays{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
 .payWay{background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:4px;font-size:14px;color:rgba(0,0,0,0.65);line-height:1.5}
-.payName{font-size:15px;font-weight:600;color:rgba(0,0,0,0.88)}
+.payName{font-size:15px;font-weight:600;color:rgba(0,0,0,0.88);display:flex;align-items:center;gap:8px;height:24px}
+.payLogo{height:20px;width:auto;margin:2px 0;align-self:flex-start}
 .payCards{color:rgba(0,0,0,0.88)}
 .payNote{margin:0;display:flex;gap:8px;align-items:flex-start;font-size:14px;color:rgba(0,0,0,0.65);line-height:1.5}
 

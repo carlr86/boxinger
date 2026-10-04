@@ -200,7 +200,9 @@ export default async function Landing() {
               ['Creem', 'Para pagos internacionales, en dólares, desde cualquier país.', 'Todas las tarjetas de crédito, Apple Pay y Google Pay.'],
             ].map(([n, d, c]) => (
               <div key={n} className={s.payWay}>
-                <span className={s.payName}>{n}</span>
+                {n === 'Creem'
+                  ? <img src="/pay/creem.svg" alt="Creem" className={s.payLogo} width={93} height={20} />
+                  : <span className={s.payName}><img src="/pay/mercadopago.svg" alt="" width={24} height={24} />{n}</span>}
                 <span>{t(d)}</span>
                 <span className={s.payCards}>{t(c)}</span>
               </div>
