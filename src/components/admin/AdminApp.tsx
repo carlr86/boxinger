@@ -123,7 +123,13 @@ export function AdminApp() {
     { key: 'precio', title: 'Precio', width: '170px', sort: (c) => (c.plan === 'Pro' ? Number(c.amount) * (c.currency === 'ARS' ? 0.001 : 1) : 0), render: priceCell },
     { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' ? PROVIDER_L[c.provider || ''] || '—' : c.plan === 'Enterprise' ? 'A medida' : '—'}</span> },
     { key: 'inicio', title: 'Inicio', width: '110px', sort: (c) => +new Date(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at), render: (c) => ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at) },
-    { key: 'st', title: 'Estado', width: '120px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && c.plan === 'Pro' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Se cancela</Tag> : statusTag(c.status === 'active') },
+    { key: 'st', title: 'Estado', width: '130px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && c.plan === 'Pro' ? (
+      // Cancelled by the customer: keeps Pro until the end of the paid period.
+      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+        <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Cancelado</Tag>
+        {c.current_period_end && <span style={{ fontSize: 12, color: sec, whiteSpace: 'nowrap' }}>Pro hasta {ddmmyyyy(c.current_period_end)}</span>}
+      </span>
+    ) : statusTag(c.status === 'active') },
   ];
   const subMenu = (c: Client): MenuItems => [
     { key: 'd', label: 'Ver detalle', onClick: () => setClientId(c.account_id) },
