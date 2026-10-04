@@ -231,7 +231,7 @@ export function AdminApp() {
           )}
           {tab === 'usuarios' && (users ? <Table cols={userCols} rows={users.filter((u) => match(u.name, u.email, u.role, u.board?.name))} rowKey={(u) => u.user_id} menu={userMenu} minWidth={1000} /> : <Loading />)}
           {tab === 'errores' && <ErrorsPage onCount={setOpenErrors} />}
-          {tab === 'perfil' && <AdminProfile onLogout={logout} />}
+          {tab === 'perfil' && ctx && <AdminProfile onLogout={logout} />}
         </div>
       </div>
 

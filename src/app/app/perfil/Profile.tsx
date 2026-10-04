@@ -24,9 +24,12 @@ export function Profile() {
   const sp = useSearchParams();
   const router = useRouter();
   const { t } = useI18n();
+  const { ctx } = useSession();
   const [tab, setTab] = useState<Tab>((['datos', 'notif', 'sub'].includes(sp.get('tab') || '') ? sp.get('tab') : 'datos') as Tab);
   useEffect(() => { const q = sp.get('tab'); if (q && ['datos', 'notif', 'sub'].includes(q)) setTab(q as Tab); }, [sp]);
   const change = (k: Tab) => { setTab(k); router.replace('/app/perfil' + (k === 'datos' ? '' : '?tab=' + k)); };
+  // Signing out (or deleting the account) clears the session before the navigation lands.
+  if (!ctx) return null;
   return (
     <>
       <PageHead title={t('Mi perfil')} sub={t('Tus datos, notificaciones y suscripción.')} />
