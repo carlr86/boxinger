@@ -142,6 +142,22 @@ export function AdminApp() {
   const userMenu = (u: AdminUser): MenuItems => [
     ...(u.board ? [{ key: 'b', label: 'Ver buzón', onClick: () => setBoardId(u.board!.id) }] : []),
     { key: 'mail', label: <a href={'mailto:' + u.email}>Contactar</a> },
+    ...(u.board && (u.role === 'Miembro' || u.role === 'Invitado') ? [{
+      key: 'role', label: 'Cambiar rol',
+      children: ([['member', 'Miembro', 'Gestiona las ideas del equipo'], ['guest', 'Invitado', 'Propone, vota y comenta']] as const).map(([k, l, d]) => {
+        const cur = u.role === l;
+        return {
+          key: 'role-' + k, disabled: cur,
+          label: (
+            <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.35, padding: '2px 0' }}>
+              <span>{l}{cur ? ' · actual' : ''}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{d}</span>
+            </span>
+          ),
+          onClick: () => act(rpc('admin_set_user_role', { p_user: u.user_id, p_board: u.board!.id, p_role: k }), `${u.name} ahora es ${l} en ${u.board!.name}`),
+        };
+      }),
+    }] : []),
     { type: 'divider' },
     { key: 'st', danger: u.status === 'active', disabled: u.user_id === ctx?.me.id, label: u.status === 'active' ? 'Bloquear usuario' : 'Desbloquear usuario',
       onClick: () => act(rpc('admin_set_user_status', { p_user: u.user_id, p_status: u.status === 'active' ? 'blocked' : 'active' }), u.status === 'active' ? 'Usuario bloqueado' : 'Usuario desbloqueado') },
