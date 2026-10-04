@@ -241,7 +241,7 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ fontSize: 14, color: sec }}>Precio vigente del plan Pro · {cur === 'USD' ? 'PayPal (USD)' : 'Mercado Pago (ARS)'}</span>
+          <span style={{ fontSize: 14, color: sec }}>Precio vigente del plan Pro · {cur === 'USD' ? 'Tarjeta internacional · Creem (USD)' : 'Mercado Pago (ARS)'}</span>
           <span style={{ fontSize: 28, fontWeight: 600 }}>{money(cur, Number(prices.current[cur]))}<span style={{ fontSize: 14, fontWeight: 400, color: sec }}> / mes</span></span>
           <span style={{ fontSize: 12, color: sec }}>Vigente desde el {ddmmyyyy(prices.current_since[cur])} · {n} {n === 1 ? 'suscripción activa' : 'suscripciones activas'}</span>
         </div>

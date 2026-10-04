@@ -54,7 +54,7 @@ export async function adminSendActivation(accountId: string, send: boolean): Pro
   } catch (e) { return fail(e); }
 }
 
-/** Plan and price changes. Updates the provider (PayPal / Mercado Pago) so the next charge matches. */
+/** Plan and price changes. Updates the provider (Mercado Pago) so the next charge matches. */
 export async function adminUpdateSubscription(f: { account: string; plan: 'free' | 'pro' | 'enterprise'; dealType: 'pct' | 'fixed' | null; value: number | null; until: string | null; note: string; notify: boolean }): Promise<Res<{ warning?: string }>> {
   try {
     const { sb } = await requireSuper();
