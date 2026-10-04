@@ -82,7 +82,7 @@ export function AdminApp() {
     { key: 'name', title: 'Nombre', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
     { key: 'email', title: 'Email', width: '1.6fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
     { key: 'alta', title: 'Alta', width: '110px', sort: (c) => +new Date(c.created_at), render: (c) => ddmmyyyy(c.created_at) },
-    { key: 'plan', title: 'Plan', width: '80px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
+    { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
     { key: 'boards', title: 'Buzones', width: '100px', sort: (c) => c.boards, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.boards}</a> },
     { key: 'login', title: 'Acceso', width: '120px', render: (c) => <span style={{ color: sec }}>{c.login}</span> },
     { key: 'act', title: 'Última actividad', width: '150px', sort: (c) => +new Date(c.last_activity_at), render: (c) => <span style={{ color: sec }}>{c.activated ? rel(c.last_activity_at) : 'Sin actividad'}</span> },
@@ -100,7 +100,7 @@ export function AdminApp() {
   const boardCols: Col<AdminBoard>[] = [
     { key: 'name', title: 'Nombre', width: '1.1fr', sort: (b) => b.name, render: (b) => <a onClick={() => setBoardId(b.board_id)}>{b.name}</a> },
     { key: 'owner', title: 'Dueño', width: '1.1fr', sort: (b) => b.owner_name, render: (b) => b.owner_name },
-    { key: 'plan', title: 'Plan', width: '80px', sort: (b) => planRank(b.plan), render: (b) => planTag(b.plan) },
+    { key: 'plan', title: 'Plan', width: '120px', sort: (b) => planRank(b.plan), render: (b) => planTag(b.plan) },
     { key: 'url', title: 'URL', width: '1.4fr', render: (b) => <span style={{ color: sec, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12 }}>/app/b/{b.slug}</span> },
     { key: 'ideas', title: 'Ideas', width: '80px', sort: (b) => b.ideas, render: (b) => b.ideas },
     { key: 'guests', title: 'Miembros', width: '100px', sort: (b) => b.guests, render: (b) => (b.visibility === 'private' ? <span style={{ color: sec }}>Privado</span> : b.guests) },
@@ -119,11 +119,11 @@ export function AdminApp() {
   const subCols: Col<Client>[] = [
     { key: 'name', title: 'Cuenta', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
     { key: 'email', title: 'Email', width: '1.4fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
-    { key: 'plan', title: 'Plan', width: '80px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
+    { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
     { key: 'precio', title: 'Precio', width: '170px', sort: (c) => (c.plan === 'Pro' ? Number(c.amount) * (c.currency === 'ARS' ? 0.001 : 1) : 0), render: priceCell },
     { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' ? PROVIDER_L[c.provider || ''] || '—' : c.plan === 'Enterprise' ? 'A medida' : '—'}</span> },
     { key: 'inicio', title: 'Inicio', width: '110px', sort: (c) => +new Date(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at), render: (c) => ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at) },
-    { key: 'st', title: 'Estado', width: '130px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && c.plan === 'Pro' ? (
+    { key: 'st', title: 'Estado', width: '170px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && c.plan === 'Pro' ? (
       // Cancelled by the customer: keeps Pro until the end of the paid period.
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
         <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Cancelado</Tag>
@@ -217,8 +217,8 @@ export function AdminApp() {
           </div>
 
           {tab === 'dashboard' && <Dashboard period={period} openClient={setClientId} openBoard={setBoardId} />}
-          {tab === 'clientes' && (clients ? <Table cols={clientCols} rows={clients.filter((c) => match(c.name, c.email, c.plan, c.account_name))} rowKey={(c) => c.account_id} menu={clientMenu} minWidth={1060} empty="No hay clientes." /> : <Loading />)}
-          {tab === 'boards' && (boards ? <Table cols={boardCols} rows={boards.filter((b) => match(b.name, b.owner_name, b.plan, b.slug))} rowKey={(b) => b.board_id} menu={boardMenu} minWidth={1080} empty="No hay buzones." /> : <Loading />)}
+          {tab === 'clientes' && (clients ? <Table cols={clientCols} rows={clients.filter((c) => match(c.name, c.email, c.plan, c.account_name))} rowKey={(c) => c.account_id} menu={clientMenu} minWidth={1100} empty="No hay clientes." /> : <Loading />)}
+          {tab === 'boards' && (boards ? <Table cols={boardCols} rows={boards.filter((b) => match(b.name, b.owner_name, b.plan, b.slug))} rowKey={(b) => b.board_id} menu={boardMenu} minWidth={1120} empty="No hay buzones." /> : <Loading />)}
           {tab === 'suscripciones' && (
             <>
               {prices && (
@@ -226,7 +226,7 @@ export function AdminApp() {
                   {(['USD', 'ARS'] as const).map((cur) => <PriceCard key={cur} cur={cur} prices={prices} onNew={() => setPp(cur)} onCancel={(id) => act(rpc('admin_cancel_price', { p_id: id }), 'Cambio de precio cancelado')} />)}
                 </div>
               )}
-              {clients ? <Table cols={subCols} rows={clients.filter((c) => match(c.name, c.email, c.plan))} rowKey={(c) => c.account_id} menu={subMenu} minWidth={1000} /> : <Loading />}
+              {clients ? <Table cols={subCols} rows={clients.filter((c) => match(c.name, c.email, c.plan))} rowKey={(c) => c.account_id} menu={subMenu} minWidth={1080} /> : <Loading />}
             </>
           )}
           {tab === 'usuarios' && (users ? <Table cols={userCols} rows={users.filter((u) => match(u.name, u.email, u.role, u.board?.name))} rowKey={(u) => u.user_id} menu={userMenu} minWidth={1000} /> : <Loading />)}
