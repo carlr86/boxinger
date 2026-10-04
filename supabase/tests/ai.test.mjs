@@ -101,5 +101,24 @@ await ok('usage and cost per client', async () => {
   eq(u[0].suggest, 1); eq(u[1].rank, 15); eq(Number(u[1].cost_usd), 0.09);
 });
 await err('only the platform admin', () => rpc(owner, 'admin_ai_usage', [null]), '');
+await ok('Consumo IA: this month per client and board, totals and 6 months', async () => {
+  const o = await rpc(root, 'admin_ai_overview', [null]);
+  eq(o.months.length, 6); eq(o.totals.runs, 1); eq(o.totals.suggest, 1); eq(o.totals.clients, 1);
+  const c = o.clients.find((x) => x.account_id === acc);
+  eq(c.plan, 'Enterprise'); eq(c.suggest, 1); eq(c.rank, 0); eq(c.boards.length, 1); eq(c.boards[0].name, 'Principal');
+});
+await ok('Consumo IA: last month', async () => {
+  const prev = new Date(); prev.setDate(1); prev.setMonth(prev.getMonth() - 1);
+  const o = await rpc(root, 'admin_ai_overview', [prev.toISOString().slice(0, 7)]);
+  eq(o.totals.rank, 15); eq(Number(o.totals.cost_usd), 0.09); eq(o.months.some((m) => m.runs === 15), true);
+});
+await ok('Consumo IA: Enterprise clients without use appear with zeros', async () => {
+  const o2 = await mk('beto@otro.com');
+  await rpc(o2, 'onboard', ['Otro', 'Uno', 'public', '']);
+  await db.query(`update public.subscriptions set plan = 'enterprise' where account_id = (select id from public.accounts where owner_id = $1)`, [o2]);
+  const c = (await rpc(root, 'admin_ai_overview', [null])).clients.find((x) => x.email === 'beto@otro.com');
+  eq(c.runs, 0); eq(Number(c.cost_usd), 0); eq(c.boards, []);
+});
+await err('Consumo IA: only the platform admin', () => rpc(owner, 'admin_ai_overview', [null]), 'plataforma');
 
 await done();

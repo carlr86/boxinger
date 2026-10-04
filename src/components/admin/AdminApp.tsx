@@ -14,12 +14,13 @@ import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/ac
 import { Table, type Col, type MenuItems } from './Table';
 import { Dashboard } from './Dashboard';
 import { ErrorsPage, type ErrorsData } from './Errors';
+import { AiUsagePage } from './AiUsage';
 import { AdminBoardDrawer, ClientDrawer, EditSubscriptionModal, NewClientModal, SchedulePriceModal } from './AdminModals';
 import type { AdminBoard, AdminUser, Client, Prices } from './types';
 
-type Tab = 'dashboard' | 'clientes' | 'boards' | 'suscripciones' | 'usuarios' | 'errores' | 'perfil';
-const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Clientes'], ['boards', 'Buzones'], ['suscripciones', 'Suscripciones'], ['usuarios', 'Usuarios'], ['errores', 'Errores']];
-const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes', boards: 'Buzones', suscripciones: 'Suscripciones', usuarios: 'Usuarios', errores: 'Errores', perfil: 'Mi perfil' };
+type Tab = 'dashboard' | 'clientes' | 'boards' | 'suscripciones' | 'usuarios' | 'ia' | 'errores' | 'perfil';
+const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Clientes'], ['boards', 'Buzones'], ['suscripciones', 'Suscripciones'], ['usuarios', 'Usuarios'], ['ia', 'Consumo IA'], ['errores', 'Errores']];
+const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes', boards: 'Buzones', suscripciones: 'Suscripciones', usuarios: 'Usuarios', ia: 'Consumo IA', errores: 'Errores', perfil: 'Mi perfil' };
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Lemon Squeezy', creem: 'Creem', manual: 'Manual' };
 const sec = 'rgba(0,0,0,0.45)';
 const planTag = (p: string) => <Tag tone={planTone(p)}>{p}</Tag>;
@@ -230,6 +231,7 @@ export function AdminApp() {
             </>
           )}
           {tab === 'usuarios' && (users ? <Table cols={userCols} rows={users.filter((u) => match(u.name, u.email, u.role, u.board?.name))} rowKey={(u) => u.user_id} menu={userMenu} minWidth={1000} /> : <Loading />)}
+          {tab === 'ia' && <AiUsagePage openClient={setClientId} openBoard={setBoardId} />}
           {tab === 'errores' && <ErrorsPage onCount={setOpenErrors} />}
           {tab === 'perfil' && ctx && <AdminProfile onLogout={logout} />}
         </div>
