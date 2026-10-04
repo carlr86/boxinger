@@ -22,7 +22,7 @@ const Check = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden><path d="M3 8.5l3 3 7-7" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
-export type HeaderBoard = { id: string; name: string; color: string; isTeam: boolean };
+export type HeaderBoard = { id: string; name: string; color: string; isTeam: boolean; logo_url?: string | null };
 export type HeaderTab = { key: string; label: string };
 
 export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, slogan }: {
@@ -72,7 +72,10 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
           <>
             <span style={{ width: 1, height: 20, background: '#f0f0f0' }} />
             {ctx ? <BoardSwitcher current={board} /> : (
-              <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{board.name}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.65)', maxWidth: 240, minWidth: 0 }}>
+                {board.logo_url && <Avatar name={board.name} url={board.logo_url} size={22} square />}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{board.name}</span>
+              </span>
             )}
           </>
         )}
@@ -158,7 +161,7 @@ function BoardSwitcher({ current }: { current: HeaderBoard }) {
                   <div key={b.id} className="bx-item" title={b.locked ? 'Requiere el plan Pro' : ''}
                     onClick={() => (b.locked ? toast.info('Este buzón requiere el plan Pro') : active ? setOpen(false) : go('/app/b/' + b.slug))}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: b.locked ? 'not-allowed' : 'pointer', background: active ? '#d1fae5' : undefined, color: b.locked ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.88)' }}>
-                    <Avatar name={b.name} color={b.color} size={22} square style={{ opacity: b.locked ? 0.45 : 1 }} />
+                    <Avatar name={b.name} color={b.color} url={b.logo_url} size={22} square style={{ opacity: b.locked ? 0.45 : 1 }} />
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.name}</span>
                     {b.locked && <span style={{ fontSize: 11, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid #ffe58f', background: '#fffbe6', color: '#d48806' }}>Pro</span>}
                     {active && <Check />}
@@ -182,7 +185,7 @@ function BoardSwitcher({ current }: { current: HeaderBoard }) {
         </div>
       )}>
       <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 8, height: 32, padding: '0 10px', borderRadius: 6, border: '1px solid ' + (open ? '#059669' : '#d9d9d9'), background: '#fff', cursor: 'pointer', fontSize: 14, color: 'rgba(0,0,0,0.88)', maxWidth: 240, minWidth: 0 }}>
-        <Avatar name={current.name} color={current.color} size={18} square style={{ fontSize: 10 }} />
+        <Avatar name={current.name} color={current.color} url={current.logo_url} size={18} square style={{ fontSize: 10 }} />
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{current.name}</span>
         <Chevron />
       </button>

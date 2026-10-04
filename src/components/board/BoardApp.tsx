@@ -143,7 +143,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   return (
     <>
       <AppHeader
-        board={{ id: b.id, name: b.name, color: b.color, isTeam }}
+        board={{ id: b.id, name: b.name, color: b.color, isTeam, logo_url: b.logo_url }}
         tabs={tabs} view={shownView} onTab={(k) => setView(k as View)}
         onConfig={isTeam ? () => setView('config') : undefined}
         loginNext={base + '?unirme=1'}

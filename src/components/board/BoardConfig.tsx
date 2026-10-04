@@ -8,7 +8,7 @@ import { Avatar, EmailChips, Note, PageHead, ProPill, Seg, ToggleRow } from '@/c
 import { displayUrl, boardUrl } from '@/lib/env';
 import { rel, plural } from '@/lib/format';
 import type { BoardApi } from './shared';
-import { useToast } from '@/components/Providers';
+import { useSession, useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
 import { VISIBILITY, VOTE, VOTE_KEYS, VOTE_LABEL_MAX, VOTE_LABEL_MIN } from '@/lib/constants';
 
@@ -44,6 +44,7 @@ const card: React.CSSProperties = { background: '#fff', borderRadius: 8, border:
 
 function General({ api }: { api: BoardApi }) {
   const toast = useToast();
+  const { refresh: refreshCtx } = useSession();
   const b = api.data.board;
   const [name, setName] = useState(b.name);
   const [desc, setDesc] = useState(b.description);
@@ -65,6 +66,7 @@ function General({ api }: { api: BoardApi }) {
     setLogo(url);
     setBusy(false);
     api.reload();
+    refreshCtx(); // Mis Buzones and the board picker show the new logo
   }
 
   return (
@@ -84,7 +86,7 @@ function General({ api }: { api: BoardApi }) {
             {logo ? <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>+<br />Subir</span>}
             <input type="file" accept="image/png,image/jpeg" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
           </label>
-          {logo && <a className="bx-link-muted" onClick={async () => { await api.run(rpc('update_board', { p_board: b.id, p_clear_logo: true }), 'Logo quitado'); setLogo(null); api.reload(); }}>Quitar logo</a>}
+          {logo && <a className="bx-link-muted" onClick={async () => { await api.run(rpc('update_board', { p_board: b.id, p_clear_logo: true }), 'Logo quitado'); setLogo(null); api.reload(); refreshCtx(); }}>Quitar logo</a>}
         </div>
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>PNG o JPG, hasta 2 MB</span>
       </div>
@@ -94,6 +96,7 @@ function General({ api }: { api: BoardApi }) {
             if (!name.trim()) return toast.err(new Error('El nombre es obligatorio'));
             await api.run(rpc('update_board', { p_board: b.id, p_name: name, p_description: desc }), 'Buzón actualizado');
             api.reload();
+            refreshCtx();
           }}>Guardar cambios</button>
         <button type="button" className="bx-btn" onClick={() => (api.pro ? (window.location.href = '/app/buzones?crear=1') : setPaidNote(true))}>Crear otro buzón</button>
       </div>
