@@ -26,7 +26,7 @@ export function Ranking({ api }: { api: BoardApi }) {
             <div onClick={() => api.openIdea(i.id)} style={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}>
               <span style={{ fontSize: 15, fontWeight: 600 }}>{i.title}</span>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                <OriginTag origin={i.origin} />
+                <OriginTag origin={i.origin} ai={i.ai} />
                 <Tag>{api.catL(i.category_id)}</Tag>
                 <span style={{ marginLeft: 4 }}><AuthorLine i={i} /></span>
               </div>

@@ -6,7 +6,7 @@ import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE_KEYS, statusTon
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
-import { AiButton, AiPanel } from './AiPanel';
+import { AiButton, AiPanel, AiTag } from './AiPanel';
 
 const PAGE = 20;
 const LAYOUT_KEY = 'bx-ideas-layout';
@@ -53,10 +53,10 @@ export function useGridCols() {
   return { w, cols: w < 768 ? 1 : w < 992 ? 2 : 3, isMobile: w < 768, isTablet: w >= 768 && w < 992 };
 }
 
-export function OriginTag({ origin }: { origin: string }) {
+export function OriginTag({ origin, ai }: { origin: string; ai?: boolean }) {
   const { t } = useI18n();
   const o = ORIGIN[origin];
-  return <Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>;
+  return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}</>;
 }
 
 export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean }) {
@@ -96,7 +96,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         sub={backlog ? t('Ideas aprobadas por el Equipo, candidatas para el roadmap.') : t('Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.')}
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {!backlog && api.isTeam && <AiButton onClick={() => setAiOpen(true)} />}
+            {!backlog && api.data.role === 'admin' && <AiButton onClick={() => setAiOpen(true)} />}
             <LayoutToggle value={layout} onChange={setLayout} />
             {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ {t('Nueva idea')}</button>}
           </div>
@@ -182,7 +182,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           {t('Ver más ideas ({n})', { n: list.length - limit })}
         </button>
       )}
-      {api.isTeam && <AiPanel api={api} open={aiOpen} onClose={() => setAiOpen(false)} isMobile={isMobile} />}
+      {api.data.role === 'admin' && <AiPanel api={api} open={aiOpen} onClose={() => setAiOpen(false)} isMobile={isMobile} />}
     </>
   );
 }
@@ -251,7 +251,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
       <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{i.title}</span>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <OriginTag origin={i.origin} />
+          <OriginTag origin={i.origin} ai={i.ai} />
           <Tag>{api.catL(i.category_id)}</Tag>
           <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
           {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
@@ -276,7 +276,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
   return (
     <div className="bx-card" onClick={() => api.openIdea(i.id)} style={{ opacity: i.hidden ? 0.55 : 1 }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <OriginTag origin={i.origin} />
+        <OriginTag origin={i.origin} ai={i.ai} />
         <Tag>{api.catL(i.category_id)}</Tag>
         <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
         {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}

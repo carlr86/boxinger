@@ -180,7 +180,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
             await reload();
             return r !== undefined;
           }
-          const id = await run(rpc<number>('create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea publicada · Pendiente de revisión');
+          const id = await run(rpc<number>(form.draft?.ai ? 'create_ai_idea' : 'create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea publicada · Pendiente de revisión');
           if (id === undefined) return false;
           form.onDone?.();
           await reload();

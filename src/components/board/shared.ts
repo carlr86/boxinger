@@ -1,7 +1,7 @@
 'use client';
 import type { BoardData, Category, Idea } from '@/lib/types';
 
-export type IdeaDraft = { title: string; description: string; category_id: string };
+export type IdeaDraft = { title: string; description: string; category_id: string; ai?: boolean };
 
 export type View = 'buzon' | 'ranking' | 'backlog' | 'matriz' | 'roadmap' | 'status' | 'config';
 

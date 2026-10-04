@@ -35,6 +35,12 @@ export const Sparkle = ({ size = 14 }: { size?: number }) => (
   </svg>
 );
 
+/** Mark on ideas that came from an AI suggestion (the author is whoever added it). */
+export function AiTag() {
+  const { t } = useI18n();
+  return <Tag tone={{ l: '', bg: '#eef2ff', bd: '#c7d2fe', fg: AI }} title={t('Idea sugerida por el Asistente IA')}><Sparkle size={11} />{t('IA')}</Tag>;
+}
+
 export function AiButton({ onClick }: { onClick: () => void }) {
   const { t } = useI18n();
   return (
@@ -141,7 +147,7 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       {added.includes(s.title) ? <span style={{ fontSize: 13, color: '#389e0d' }}>{t('Agregada al buzón')}</span>
                         : api.canCreate ? (
-                          <button type="button" className="bx-btn-primary" onClick={() => api.openNewWith({ title: s.title, description: s.description, category_id: s.category_id }, () => setAdded((a) => [...a, s.title]))}>
+                          <button type="button" className="bx-btn-primary" onClick={() => api.openNewWith({ title: s.title, description: s.description, category_id: s.category_id, ai: true }, () => setAdded((a) => [...a, s.title]))}>
                             {t('Agregar al buzón')}
                           </button>
                         ) : <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('No tenés permiso para cargar ideas en este buzón.')}</span>}

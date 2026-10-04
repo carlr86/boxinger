@@ -38,6 +38,7 @@ export interface Idea {
   dev_status?: 'por_empezar' | 'en_curso' | 'lanzada';
   dev_at?: string | null;
   launched_at?: string | null;
+  ai?: boolean; // added from an AI assistant suggestion
   chk_design?: boolean;
   chk_prd?: boolean;
   growth?: string[];

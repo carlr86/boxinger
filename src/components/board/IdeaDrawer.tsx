@@ -100,7 +100,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
       {i && (
         <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <OriginTag origin={i.origin} />
+            <OriginTag origin={i.origin} ai={i.ai} />
             <Tag>{api.catL(i.category_id)}</Tag>
             <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
             {i.hidden && <Tag>{t('Oculta para la Comunidad')}</Tag>}

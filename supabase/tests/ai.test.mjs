@@ -28,29 +28,30 @@ const finish = (uid, kind) => rpc(null, 'ai_finish', [board, uid, kind, 'test', 
 const CONTEXT = 'Acme es un CRM para inmobiliarias chicas de Argentina. Queremos que los agentes carguen propiedades más rápido.';
 
 console.log('\n# plan and access');
-await ok('status: team sees it, off on Pro', async () => {
-  const s = await rpc(member, 'ai_status', [board]);
-  eq(s.enabled, false); eq(s.can_edit, false); eq(s.limits.rank, 15);
-  eq((await rpc(owner, 'ai_status', [board])).can_edit, true);
+await ok('status: the Admin sees it, off on Pro', async () => {
+  const s = await rpc(owner, 'ai_status', [board]);
+  eq(s.enabled, false); eq(s.can_edit, true); eq(s.limits.rank, 15); eq(s.limits.suggest, 10);
 });
-await err('the Community cannot open it', () => rpc(voter, 'ai_status', [board]), 'Equipo');
-await err('someone else cannot open it', () => rpc(other, 'ai_status', [board]), 'Equipo');
+await err('team members cannot open it', () => rpc(member, 'ai_status', [board]), 'Admin del equipo');
+await err('the Community cannot open it', () => rpc(voter, 'ai_status', [board]), 'Admin del equipo');
+await err('someone else cannot open it', () => rpc(other, 'ai_status', [board]), 'Admin del equipo');
 await err('Pro cannot run it', () => begin(owner, 'rank'), 'Enterprise');
 await db.query(`update public.subscriptions set plan = 'enterprise' where account_id = $1`, [acc]);
-await ok('Enterprise turns it on', async () => eq((await rpc(member, 'ai_status', [board])).enabled, true));
+await ok('Enterprise turns it on', async () => eq((await rpc(owner, 'ai_status', [board])).enabled, true));
 
 console.log('\n# product description');
 await err('needs a description first', () => begin(owner, 'suggest'), 'producto');
-await err('members cannot edit it', () => rpc(member, 'set_ai_context', [board, CONTEXT]), 'Admin');
+await err('members cannot edit it', () => rpc(member, 'set_ai_context', [board, CONTEXT]), 'Admin del equipo');
 await err('2.000 characters at most', () => rpc(owner, 'set_ai_context', [board, 'x'.repeat(2001)]), '2.000');
 await ok('the Admin saves it', async () => {
   await rpc(owner, 'set_ai_context', [board, '  ' + CONTEXT + '  ']);
-  eq((await rpc(member, 'ai_status', [board])).context, CONTEXT);
+  eq((await rpc(owner, 'ai_status', [board])).context, CONTEXT);
 });
 
 console.log('\n# what the model reads');
+await err('members cannot run it through the server', () => begin(member, 'rank'), 'Admin del equipo');
 await ok('rank: only open ideas, with votes, no personal data', async () => {
-  const s = await begin(member, 'rank');
+  const s = await begin(owner, 'rank');
   eq(s.context, CONTEXT); eq(s.account_id, acc);
   eq(s.ideas.map((i) => i.id).sort(), [i1, i2].sort());
   const dark = s.ideas.find((i) => i.id === i2);
@@ -61,8 +62,20 @@ await ok('suggest: every idea title, and the categories to choose from', async (
   const s = await begin(owner, 'suggest');
   eq(s.ideas.length, 3); eq(s.categories.some((c) => c.id === cat), true);
 });
-await err('outsiders cannot run it through the server', () => begin(other, 'rank'), 'Equipo');
+await err('outsiders cannot run it through the server', () => begin(other, 'rank'), 'Admin del equipo');
 await err('server-only functions are not public', () => rpc(owner, 'ai_begin', [board, owner, 'rank']), 'permission');
+
+console.log('\n# ideas from a suggestion');
+await ok('the Admin adds it: authored by them and marked as AI', async () => {
+  const id = await rpc(owner, 'create_ai_idea', [board, 'Recibos de sueldo en el celular', 'Que cada empleado vea y descargue su recibo desde el celular.', cat]);
+  const r = (await db.query(`select author_id, origin, ai_generated from public.ideas where id = $1`, [id])).rows[0];
+  eq(r.author_id, owner); eq(r.origin, 'equipo'); eq(r.ai_generated, true);
+  const slug = (await db.query(`select slug from public.boards where id = $1`, [board])).rows[0].slug;
+  const b = await rpc(owner, 'get_board', [slug]);
+  eq(b.ideas.find((i) => i.id === id).ai, true); eq(b.ideas.find((i) => i.id === i1).ai, false);
+});
+await err('members cannot add AI ideas', () => rpc(member, 'create_ai_idea', [board, 'Otra idea de prueba', 'Una descripción suficientemente larga para pasar.', cat]), 'Admin del equipo');
+await ok('regular ideas are not marked', async () => eq((await db.query(`select ai_generated from public.ideas where id = $1`, [i1])).rows[0].ai_generated, false));
 
 console.log('\n# monthly limits');
 await ok('a finished run is stored and counted', async () => {
@@ -82,7 +95,7 @@ await ok('last month does not count', async () => {
 
 console.log('\n# platform admin');
 await ok('usage and cost per client', async () => {
-  await finish(member, 'suggest');
+  await finish(owner, 'suggest');
   const u = await rpc(root, 'admin_ai_usage', [acc]);
   eq(u.length, 2); // this month (1 suggestion) and last month (15 analyses)
   eq(u[0].suggest, 1); eq(u[1].rank, 15); eq(Number(u[1].cost_usd), 0.09);

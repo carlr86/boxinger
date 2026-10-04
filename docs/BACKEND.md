@@ -121,11 +121,11 @@ Lo usan: errores no atrapados del servidor (`src/instrumentation.ts`), los webho
 
 ## Asistente IA (Enterprise)
 
-En el Buzón, el Equipo abre *Asistente IA*. El Admin describe el producto (`boards.ai_context`, `set_ai_context`) y con eso la IA:
+En el Buzón, el Admin del equipo (solo ese rol) abre *Asistente IA*, describe el producto (`boards.ai_context`, `set_ai_context`) y con eso la IA:
 - **Ideas del Buzón:** lee las ideas pendientes y en revisión (hasta 300, con votos, comentarios, impacto y esfuerzo) y propone hasta 5 para aprobar, con el motivo, la confianza e ideas repetidas.
-- **Sugerir nuevas ideas:** propone 5 ideas nuevas, distintas de las del buzón y con una de sus categorías; "Agregar al buzón" abre el formulario ya completo.
+- **Sugerir nuevas ideas:** propone 5 ideas nuevas, distintas de las del buzón y con una de sus categorías; "Agregar al buzón" abre el formulario ya completo y la idea se crea con `create_ai_idea`: autor = quien la agrega, marca `ideas.ai_generated` (tag «IA»).
 
-`/api/ai` → `ai_begin` (plan Enterprise, rol del Equipo, descripción, topes) → Claude (`src/lib/ai/claude.ts`, respuesta en JSON con esquema fijo (structured outputs); instrucciones en `src/lib/ai/prompts.ts`) → `ai_finish` guarda tokens, costo y resultado en `ai_runs`. Topes en `ai_limits()`: 30 sugerencias y 15 análisis por buzón por mes, 500 usos por día en toda la plataforma. Un error no consume el cupo y va a `reportError('asistente-ia')`. A la IA no le llegan nombres ni emails. El uso y el costo por cliente se ven en Admin › detalle del cliente (`admin_ai_usage`).
+`/api/ai` → `ai_begin` (plan Enterprise, rol del Equipo, descripción, topes) → Claude (`src/lib/ai/claude.ts`, respuesta en JSON con esquema fijo (structured outputs); instrucciones en `src/lib/ai/prompts.ts`) → `ai_finish` guarda tokens, costo y resultado en `ai_runs`. Topes en `ai_limits()`: 10 sugerencias y 15 análisis por buzón por mes, 500 usos por día en toda la plataforma. Un error no consume el cupo y va a `reportError('asistente-ia')`. A la IA no le llegan nombres ni emails. El uso y el costo por cliente se ven en Admin › detalle del cliente (`admin_ai_usage`).
 
 ## Idioma (español e inglés)
 
