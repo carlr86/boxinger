@@ -1,9 +1,11 @@
 import { SITE_URL } from '@/lib/env';
 import { fmtPrice } from '@/lib/format';
 import { CONTACT_TOPICS, type ContactTopic } from '@/lib/constants';
+import { makeT, type Locale, type T } from '@/lib/i18n';
 
-// Transactional emails, in Spanish. Each template gets the outbox payload
-// written by the Postgres functions (see supabase/migrations).
+// Transactional emails, in the recipient's language (Spanish by default; English texts in src/lib/i18n/en.ts).
+// Each template gets the outbox payload written by the Postgres functions (see supabase/migrations).
+// Emails to the platform admin (admin_*, contact, withdrawal notices) stay in Spanish.
 
 type P = Record<string, unknown>;
 const s = (v: unknown) => (v == null ? '' : String(v));
@@ -11,11 +13,17 @@ const esc = (v: unknown) => s(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<'
 const ideaUrl = (p: P) => `${SITE_URL}/app/b/${s(p.slug)}/idea/${s(p.idea_id)}`;
 const boardLink = (p: P) => `${SITE_URL}/app/b/${s(p.slug)}`;
 const STATUS: Record<string, string> = { pendiente: 'Pendiente de revisión', en_revision: 'En revisión', aprobada: 'Aprobada', rechazada: 'Rechazada' };
-const money = (cur: unknown, v: unknown) => `${s(cur) === 'ARS' ? 'ARS' : 'USD'} ${fmtPrice(Number(v))}`;
-const date = (v: unknown) => new Date(s(v)).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' });
+const b = (v: unknown) => `<b>${esc(v)}</b>`;
+
+// Set per email by render(): the helpers below read it.
+let L: Locale = 'es';
+let t: T = makeT('es');
+const money = (cur: unknown, v: unknown) => `${s(cur) === 'ARS' ? 'ARS' : 'USD'} ${fmtPrice(Number(v), L)}`;
+const date = (v: unknown) => new Date(s(v)).toLocaleDateString(L === 'en' ? 'en-US' : 'es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' });
+const profileLink = () => `<a href="${SITE_URL}/app/perfil?tab=notif" style="color:#059669">${t('Mi perfil')}</a>`;
 
 function layout(title: string, body: string, cta?: { label: string; url: string }, foot?: string): string {
-  return `<!doctype html><html lang="es"><body style="margin:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;color:rgba(0,0,0,0.88)">
+  return `<!doctype html><html lang="${L}"><body style="margin:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;color:rgba(0,0,0,0.88)">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border:1px solid #f0f0f0;border-radius:8px">
 <tr><td style="padding:24px 32px;border-bottom:1px solid #f0f0f0"><span style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:6px;background:#059669;color:#fff;font-weight:700">B</span> <span style="font-weight:600;font-size:16px;vertical-align:middle;margin-left:8px">Boxinger</span></td></tr>
@@ -23,120 +31,133 @@ function layout(title: string, body: string, cta?: { label: string; url: string 
 <div style="font-size:15px;line-height:1.6;color:rgba(0,0,0,0.75)">${body}</div>
 ${cta ? `<p style="margin:24px 0 8px"><a href="${cta.url}" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:15px">${cta.label}</a></p>` : ''}
 </td></tr>
-<tr><td style="padding:16px 32px 28px;font-size:12px;color:rgba(0,0,0,0.45);line-height:1.5">${foot || `Recibís este email por tu actividad en Boxinger. Podés cambiar tus notificaciones en <a href="${SITE_URL}/app/perfil?tab=notif" style="color:#059669">Mi perfil</a>.`}</td></tr>
+<tr><td style="padding:16px 32px 28px;font-size:12px;color:rgba(0,0,0,0.45);line-height:1.5">${foot || t('Recibís este email por tu actividad en Boxinger. Podés cambiar tus notificaciones en {link}.', { link: profileLink() })}</td></tr>
 </table></td></tr></table></body></html>`;
 }
 
 export const withdrawalCode = (id: unknown) => 'ARR-' + s(id).padStart(6, '0');
 const quote = (t: unknown) => `<blockquote style="margin:12px 0;padding:10px 14px;background:#fafafa;border-left:3px solid #a9cbc2;border-radius:4px;color:rgba(0,0,0,0.75)">${esc(t)}</blockquote>`;
 
-export function render(template: string, p: P): { subject: string; html: string } {
+export function render(template: string, p: P, locale: Locale = 'es'): { subject: string; html: string } {
+  // Admin notices always go out in Spanish.
+  L = template.startsWith('admin_') || template === 'contact' ? 'es' : locale;
+  t = makeT(L);
+  const st = (k: string) => (STATUS[k] ? t(STATUS[k]) : k);
   switch (template) {
     case 'idea_status': {
       const to = s(p.to);
-      const body = `Tu idea <b>${esc(p.title)}</b> en ${esc(p.board_name)} pasó a <b>${STATUS[to] || to}</b>.` +
-        (to === 'aprobada' ? ' Ahora forma parte del Backlog del equipo.' : '') +
-        (to === 'rechazada' && p.reason ? `<br>Motivo del equipo:${quote(p.reason)}` : '');
-      return { subject: `Tu idea ahora está: ${STATUS[to] || to}`, html: layout('Tu idea cambió de estado', body, { label: 'Ver la idea', url: ideaUrl(p) }) };
+      const body = t('Tu idea {title} en {board} pasó a {status}.', { title: b(p.title), board: esc(p.board_name), status: `<b>${st(to)}</b>` }) +
+        (to === 'aprobada' ? ' ' + t('Ahora forma parte del Backlog del equipo.') : '') +
+        (to === 'rechazada' && p.reason ? `<br>${t('Motivo del equipo:')}${quote(p.reason)}` : '');
+      return { subject: t('Tu idea ahora está: {status}', { status: st(to) }), html: layout(t('Tu idea cambió de estado'), body, { label: t('Ver la idea'), url: ideaUrl(p) }) };
     }
     case 'new_comment':
       return {
-        subject: `Nuevo comentario en "${s(p.title)}"`,
-        html: layout('Comentaron tu idea', `<b>${esc(p.author)}</b> comentó tu idea <b>${esc(p.title)}</b>:${quote(p.excerpt)}`, { label: 'Responder', url: ideaUrl(p) }),
+        subject: t('Nuevo comentario en "{title}"', { title: s(p.title) }),
+        html: layout(t('Comentaron tu idea'), t('{author} comentó tu idea {title}:', { author: b(p.author), title: b(p.title) }) + quote(p.excerpt), { label: t('Responder'), url: ideaUrl(p) }),
       };
     case 'team_reply':
       return {
-        subject: `El Equipo respondió tu comentario en "${s(p.title)}"`,
-        html: layout('El Equipo te respondió', `Comentaste:${quote(p.comment)}Respuesta del Equipo de ${esc(p.board_name)}:${quote(p.reply)}`, { label: 'Ver la conversación', url: ideaUrl(p) }),
+        subject: t('El Equipo respondió tu comentario en "{title}"', { title: s(p.title) }),
+        html: layout(t('El Equipo te respondió'), t('Comentaste:') + quote(p.comment) + t('Respuesta del Equipo de {board}:', { board: esc(p.board_name) }) + quote(p.reply), { label: t('Ver la conversación'), url: ideaUrl(p) }),
       };
     case 'idea_launched':
       return {
-        subject: `¡Se lanzó "${s(p.title)}"!`,
+        subject: t('¡Se lanzó "{title}"!', { title: s(p.title) }),
         html: p.mine
-          ? layout('Tu idea ya está disponible', `El Equipo de ${esc(p.board_name)} lanzó <b>${esc(p.title)}</b>, la idea que propusiste. ¡Gracias por sumarla!`, { label: 'Ver la idea', url: ideaUrl(p) })
-          : layout('Una idea que votaste ya está disponible', `El Equipo de ${esc(p.board_name)} lanzó <b>${esc(p.title)}</b>. Gracias por ayudar a priorizarla.`, { label: 'Ver la idea', url: ideaUrl(p) }),
+          ? layout(t('Tu idea ya está disponible'), t('El Equipo de {board} lanzó {title}, la idea que propusiste. ¡Gracias por sumarla!', { board: esc(p.board_name), title: b(p.title) }), { label: t('Ver la idea'), url: ideaUrl(p) })
+          : layout(t('Una idea que votaste ya está disponible'), t('El Equipo de {board} lanzó {title}. Gracias por ayudar a priorizarla.', { board: esc(p.board_name), title: b(p.title) }), { label: t('Ver la idea'), url: ideaUrl(p) }),
       };
     case 'access_request':
       return {
-        subject: `${s(p.name)} pidió acceso a ${s(p.board_name)}`,
-        html: layout(`Solicitud de acceso a ${esc(p.board_name)}`,
-          `<b>${esc(p.name)}</b> (${esc(p.email)}) quiere sumarse como invitado al buzón <b>${esc(p.board_name)}</b>.` + (p.message ? quote(p.message) : '') +
-          'Si lo aprobás, va a poder ver las ideas, votar y comentar.',
-          { label: 'Revisar solicitud', url: `${boardLink(p)}/config?seccion=comunidad` },
-          `Recibís este email porque administrás ${esc(p.board_name)}. Podés desactivar estos avisos en <a href="${SITE_URL}/app/perfil?tab=notif" style="color:#059669">Mi perfil</a>.`),
+        subject: t('{name} pidió acceso a {board}', { name: s(p.name), board: s(p.board_name) }),
+        html: layout(t('Solicitud de acceso a {board}', { board: esc(p.board_name) }),
+          t('{name} ({email}) quiere sumarse como invitado al buzón {board}.', { name: b(p.name), email: esc(p.email), board: b(p.board_name) }) + (p.message ? quote(p.message) : '') +
+          t('Si lo aprobás, va a poder ver las ideas, votar y comentar.'),
+          { label: t('Revisar solicitud'), url: `${boardLink(p)}/config?seccion=comunidad` },
+          t('Recibís este email porque administrás {board}. Podés desactivar estos avisos en {link}.', { board: esc(p.board_name), link: profileLink() })),
       };
     case 'access_granted':
       return {
-        subject: `Ya tenés acceso a ${s(p.board_name)}`,
-        html: layout(`Ya podés entrar a ${esc(p.board_name)}`,
-          `El equipo aprobó tu solicitud. Ya sos parte de la Comunidad del buzón <b>${esc(p.board_name)}</b>: podés ver las ideas, votar y comentar.`,
-          { label: 'Ir al buzón', url: boardLink(p) }, 'Recibís este email porque pediste acceso a este buzón.'),
+        subject: t('Ya tenés acceso a {board}', { board: s(p.board_name) }),
+        html: layout(t('Ya podés entrar a {board}', { board: esc(p.board_name) }),
+          t('El equipo aprobó tu solicitud. Ya sos parte de la Comunidad del buzón {board}: podés ver las ideas, votar y comentar.', { board: b(p.board_name) }),
+          { label: t('Ir al buzón'), url: boardLink(p) }, t('Recibís este email porque pediste acceso a este buzón.')),
       };
     case 'invite_guest':
       return {
-        subject: `${s(p.inviter) || 'El Equipo'} te invitó a ${s(p.board_name)}`,
-        html: layout(`Te invitaron a ${esc(p.board_name)}`,
-          `${esc(p.inviter) || 'El Equipo'} te invitó a la Comunidad del buzón de ideas <b>${esc(p.board_name)}</b>.` + (p.description ? quote(p.description) : '') + 'Vas a poder votar y comentar las ideas.<br><br>Para entrar, creá tu cuenta o ingresá con <b>este mismo email</b>: el buzón solo se ve con la cuenta invitada.',
-          { label: 'Aceptar invitación', url: `${SITE_URL}/app/invitacion/${s(p.token)}` }, 'Si no esperabas esta invitación, podés ignorar este email.'),
+        subject: t('{inviter} te invitó a {board}', { inviter: s(p.inviter) || t('El Equipo'), board: s(p.board_name) }),
+        html: layout(t('Te invitaron a {board}', { board: esc(p.board_name) }),
+          t('{inviter} te invitó a la Comunidad del buzón de ideas {board}.', { inviter: esc(p.inviter) || t('El Equipo'), board: b(p.board_name) }) + (p.description ? quote(p.description) : '') +
+          t('Vas a poder votar y comentar las ideas.') + '<br><br>' + t('Para entrar, creá tu cuenta o ingresá con {same}: el buzón solo se ve con la cuenta invitada.', { same: `<b>${t('este mismo email')}</b>` }),
+          { label: t('Aceptar invitación'), url: `${SITE_URL}/app/invitacion/${s(p.token)}` }, t('Si no esperabas esta invitación, podés ignorar este email.')),
       };
     case 'invite_team':
       return {
-        subject: `${s(p.inviter) || 'El Admin'} te invitó al equipo ${s(p.team_name)}`,
-        html: layout(`Sumate al equipo ${esc(p.team_name)}`,
-          `${esc(p.inviter) || 'El Admin'} te invitó como Miembro del equipo <b>${esc(p.team_name)}</b>${p.board_name ? ` para el buzón <b>${esc(p.board_name)}</b>` : ''} en Boxinger. Vas a poder cargar ideas del equipo, cambiar estados e invitar a la Comunidad.<br><br>La invitación vence en 7 días.`,
-          { label: 'Aceptar invitación', url: `${SITE_URL}/app/invitacion/${s(p.token)}` }, 'Si no esperabas esta invitación, podés ignorar este email.'),
+        subject: t('{inviter} te invitó al equipo {team}', { inviter: s(p.inviter) || t('El Admin'), team: s(p.team_name) }),
+        html: layout(t('Sumate al equipo {team}', { team: esc(p.team_name) }),
+          (p.board_name
+            ? t('{inviter} te invitó como Miembro del equipo {team} para el buzón {board} en Boxinger.', { inviter: esc(p.inviter) || t('El Admin'), team: b(p.team_name), board: b(p.board_name) })
+            : t('{inviter} te invitó como Miembro del equipo {team} en Boxinger.', { inviter: esc(p.inviter) || t('El Admin'), team: b(p.team_name) })) +
+          ' ' + t('Vas a poder cargar ideas del equipo, cambiar estados e invitar a la Comunidad.') + '<br><br>' + t('La invitación vence en 7 días.'),
+          { label: t('Aceptar invitación'), url: `${SITE_URL}/app/invitacion/${s(p.token)}` }, t('Si no esperabas esta invitación, podés ignorar este email.')),
       };
     case 'client_activation':
       return {
-        subject: 'Tu cuenta de Boxinger está lista',
-        html: layout(`Hola${p.name ? ', ' + esc(s(p.name).split(' ')[0]) : ''}`,
-          `Creamos tu cuenta en Boxinger con el buzón <b>${esc(p.board)}</b>. Activala para empezar a recibir ideas de tu comunidad. Al activarla creás tu contraseña o entrás con Google.<br><br>El link vence en 7 días.`,
-          { label: 'Activar mi cuenta', url: `${SITE_URL}/app/activar/${s(p.token)}` }, 'Si no esperabas este email, escribinos a hola@boxinger.com.'),
+        subject: t('Tu cuenta de Boxinger está lista'),
+        html: layout(p.name ? t('Hola, {name}', { name: esc(s(p.name).split(' ')[0]) }) : t('Hola'),
+          t('Creamos tu cuenta en Boxinger con el buzón {board}. Activala para empezar a recibir ideas de tu comunidad. Al activarla creás tu contraseña o entrás con Google.', { board: b(p.board) }) + '<br><br>' + t('El link vence en 7 días.'),
+          { label: t('Activar mi cuenta'), url: `${SITE_URL}/app/activar/${s(p.token)}` }, t('Si no esperabas este email, escribinos a hola@boxinger.com.')),
       };
     case 'price_change':
       return {
-        subject: 'Cambio en el precio del plan Pro',
-        html: layout('Actualizamos el precio de Pro',
-          `Desde el ${date(p.from)} el plan Pro pasa de ${money(p.currency, p.old)} a <b>${money(p.currency, p.new)}</b> por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.`,
-          { label: 'Ver mi suscripción', url: `${SITE_URL}/app/perfil?tab=sub` }),
+        subject: t('Cambio en el precio del plan Pro'),
+        html: layout(t('Actualizamos el precio de Pro'),
+          t('Desde el {date} el plan Pro pasa de {old} a {new} por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.', { date: date(p.from), old: money(p.currency, p.old), new: `<b>${money(p.currency, p.new)}</b>` }),
+          { label: t('Ver mi suscripción'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     case 'subscription_changed': {
       if (s(p.plan) === 'enterprise')
         return {
-          subject: 'Tu cuenta ahora es Enterprise',
-          html: layout('Bienvenido a Boxinger Enterprise', 'Tu cuenta pasó al plan <b>Enterprise</b>: todo lo de Pro, con miembros ilimitados en tus equipos y acceso anticipado a las nuevas funciones con IA.', { label: 'Ir a mis buzones', url: `${SITE_URL}/app/buzones` }),
+          subject: t('Tu cuenta ahora es Enterprise'),
+          html: layout(t('Bienvenido a Boxinger Enterprise'), t('Tu cuenta pasó al plan Enterprise: todo lo de Pro, con miembros ilimitados en tus equipos y acceso anticipado a las nuevas funciones con IA.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
         };
       const pro = s(p.plan) === 'pro';
-      const deal = pro && p.deal_type ? ` con precio especial${p.deal_until ? ' hasta el ' + date(p.deal_until) : ''}` : '';
+      const amount = money(p.currency, p.amount);
+      const proText = !p.deal_type ? t('Tu plan es Pro: {amount} por mes.', { amount })
+        : p.deal_until ? t('Tu plan es Pro con precio especial hasta el {date}: {amount} por mes.', { date: date(p.deal_until), amount })
+        : t('Tu plan es Pro con precio especial: {amount} por mes.', { amount });
       return {
-        subject: pro ? 'Tu plan Pro fue actualizado' : 'Tu cuenta pasó al plan Free',
-        html: layout(pro ? 'Actualizamos tu suscripción' : 'Tu cuenta ahora es Free',
-          pro ? `Tu plan es <b>Pro</b>${deal}: ${money(p.currency, p.amount)} por mes.` : 'Tu cuenta pasó al plan Free. Tus buzones siguen disponibles; los que superan el límite de Free quedan en solo lectura.',
-          { label: 'Ver mi suscripción', url: `${SITE_URL}/app/perfil?tab=sub` }),
+        subject: pro ? t('Tu plan Pro fue actualizado') : t('Tu cuenta pasó al plan Free'),
+        html: layout(pro ? t('Actualizamos tu suscripción') : t('Tu cuenta ahora es Free'),
+          pro ? proText : t('Tu cuenta pasó al plan Free. Tus buzones siguen disponibles; los que superan el límite de Free quedan en solo lectura.'),
+          { label: t('Ver mi suscripción'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     }
     case 'pro_welcome':
       return {
-        subject: '¡Bienvenido a Boxinger Pro!',
-        html: layout('Ya tenés Pro', 'Tu suscripción está activa. Ahora podés crear equipos y buzones ilimitados, sumar hasta 4 miembros por equipo y usar la Matriz, el Roadmap y Status.', { label: 'Ir a mis buzones', url: `${SITE_URL}/app/buzones` }),
+        subject: t('¡Bienvenido a Boxinger Pro!'),
+        html: layout(t('Ya tenés Pro'), t('Tu suscripción está activa. Ahora podés crear equipos y buzones ilimitados, sumar hasta 4 miembros por equipo y usar la Matriz, el Roadmap y Status.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
       };
     case 'pro_cancelled':
       return {
-        subject: 'Cancelaste tu suscripción Pro',
-        html: layout('Tu suscripción Pro se canceló', `Seguís con Pro hasta el ${p.until ? date(p.until) : 'fin del período pagado'}. Después tu cuenta pasa a Free y los buzones extra quedan en solo lectura.`, { label: 'Volver a Pro', url: `${SITE_URL}/app/perfil?tab=sub` }),
+        subject: t('Cancelaste tu suscripción Pro'),
+        html: layout(t('Tu suscripción Pro se canceló'),
+          (p.until ? t('Seguís con Pro hasta el {date}.', { date: date(p.until) }) : t('Seguís con Pro hasta el fin del período pagado.')) + ' ' + t('Después tu cuenta pasa a Free y los buzones extra quedan en solo lectura.'),
+          { label: t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     case 'payment_failed':
       return {
-        subject: 'No pudimos cobrar tu suscripción Pro',
-        html: layout('Hubo un problema con tu pago', `No pudimos cobrar tu suscripción Pro con ${esc(p.provider)}. Revisá tu medio de pago para no perder las funciones Pro.`, { label: 'Ver mi suscripción', url: `${SITE_URL}/app/perfil?tab=sub` }),
+        subject: t('No pudimos cobrar tu suscripción Pro'),
+        html: layout(t('Hubo un problema con tu pago'), t('No pudimos cobrar tu suscripción Pro con {provider}. Revisá tu medio de pago para no perder las funciones Pro.', { provider: esc(t(s(p.provider))) }), { label: t('Ver mi suscripción'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     case 'digest': {
       const items = (p.comments as { title: string; author: string; excerpt: string; idea_id: number }[] || []).slice(0, 20)
-        .map((c) => `<li style="margin:0 0 10px"><b>${esc(c.author)}</b> en <a href="${SITE_URL}/app/b/${s(p.slug)}/idea/${c.idea_id}" style="color:#059669">${esc(c.title)}</a><br><span style="color:rgba(0,0,0,0.6)">${esc(c.excerpt)}</span></li>`).join('');
+        .map((c) => `<li style="margin:0 0 10px">${t('{author} en {idea}', { author: b(c.author), idea: `<a href="${SITE_URL}/app/b/${s(p.slug)}/idea/${c.idea_id}" style="color:#059669">${esc(c.title)}</a>` })}<br><span style="color:rgba(0,0,0,0.6)">${esc(c.excerpt)}</span></li>`).join('');
       const n = (p.comments as unknown[] || []).length;
       return {
-        subject: `${n} ${n === 1 ? 'comentario nuevo' : 'comentarios nuevos'} en ${s(p.board_name)}`,
-        html: layout(`Resumen diario de ${esc(p.board_name)}`, `<ul style="padding-left:18px;margin:0">${items}</ul>`, { label: 'Ir al buzón', url: boardLink(p) }),
+        subject: t(n === 1 ? '{n} comentario nuevo en {board}' : '{n} comentarios nuevos en {board}', { n, board: s(p.board_name) }),
+        html: layout(t('Resumen diario de {board}', { board: esc(p.board_name) }), `<ul style="padding-left:18px;margin:0">${items}</ul>`, { label: t('Ir al buzón'), url: boardLink(p) }),
       };
     }
     case 'admin_new_client':
@@ -185,10 +206,12 @@ export function render(template: string, p: P): { subject: string; html: string 
     case 'arrepentimiento_ack': {
       const code = withdrawalCode(p.id);
       return {
-        subject: `Recibimos tu solicitud de arrepentimiento (${code})`,
-        html: layout('Recibimos tu solicitud de arrepentimiento',
-          `Hola ${esc(p.name)}, recibimos tu pedido para revocar la contratación del plan Pro de Boxinger.<br><br>Tu código de solicitud es <b>${code}</b>. Guardalo para cualquier consulta.<br><br>Vamos a cancelar la suscripción y hacer el reembolso total por el mismo medio de pago. Te escribimos cuando esté hecho.`,
-          undefined, 'Recibís este email porque usaste el botón de arrepentimiento de boxinger.com. Si no fuiste vos, respondé este email.'),
+        subject: t('Recibimos tu solicitud de arrepentimiento ({code})', { code }),
+        html: layout(t('Recibimos tu solicitud de arrepentimiento'),
+          t('Hola {name}, recibimos tu pedido para revocar la contratación del plan Pro de Boxinger.', { name: esc(p.name) }) + '<br><br>' +
+          t('Tu código de solicitud es {code}. Guardalo para cualquier consulta.', { code: `<b>${code}</b>` }) + '<br><br>' +
+          t('Vamos a cancelar la suscripción y hacer el reembolso total por el mismo medio de pago. Te escribimos cuando esté hecho.'),
+          undefined, t('Recibís este email porque usaste el botón de arrepentimiento de boxinger.com. Si no fuiste vos, respondé este email.')),
       };
     }
     default:

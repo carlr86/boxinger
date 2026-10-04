@@ -16,7 +16,7 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
   mode: Mode; next: string; boardName?: string | null; alert?: boolean; invitedEmail?: string | null; notice?: string | null;
 }) {
   const router = useRouter();
-  const { t, tm } = useI18n();
+  const { t, tm, locale } = useI18n();
   const { refresh } = useSession();
   const [mode, setMode] = useState<Mode>(initial);
   const [f, setF] = useState({ name: '', email: invitedEmail || '', pass: '' });
@@ -57,7 +57,7 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
       } else {
         const { data, error } = await sb.auth.signUp({
           email: f.email.trim(), password: f.pass,
-          options: { data: { name: f.name.trim() }, emailRedirectTo: cb(next) },
+          options: { data: { name: f.name.trim(), locale }, emailRedirectTo: cb(next) },
         });
         if (error) throw error;
         if (data.session) {

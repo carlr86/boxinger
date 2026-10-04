@@ -3,12 +3,24 @@ import { Resend } from 'resend';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { render } from './templates';
 import { sendSmtp, smtpConfigured } from './smtp';
+import { isLocale, type Locale } from '@/lib/i18n';
 
 let resend: Resend | null = null;
 const FROM = process.env.EMAIL_FROM || 'Boxinger <hola@boxinger.com>';
 const REPLY_TO = process.env.EMAIL_REPLY_TO || 'hola@boxinger.com';
 
-type Row = { id: number; to_email: string; template: string; payload: Record<string, unknown>; attempts: number };
+type Row = { id: number; to_email: string; user_id: string | null; template: string; payload: Record<string, unknown>; attempts: number };
+
+/** Each recipient's language: their profile's (by user or email), else the inviter's, else Spanish. */
+async function localesFor(admin: ReturnType<typeof supabaseAdmin>, rows: Row[]): Promise<(r: Row) => Locale> {
+  const emails = [...new Set(rows.map((r) => r.to_email))];
+  const { data } = emails.length ? await admin.from('profiles').select('id, email, locale').in('email', emails) : { data: [] };
+  const byEmail = new Map<string, Locale>(), byId = new Map<string, Locale>();
+  for (const p of (data || []) as { id: string; email: string; locale: string | null }[]) {
+    if (isLocale(p.locale)) { byEmail.set(p.email.toLowerCase(), p.locale); byId.set(p.id, p.locale); }
+  }
+  return (r) => (r.user_id && byId.get(r.user_id)) || byEmail.get(r.to_email.toLowerCase()) || (isLocale(r.payload?.sender_locale) ? r.payload.sender_locale : 'es');
+}
 
 /**
  * Sends pending emails from public.email_outbox. Safe to call concurrently (rows are claimed with SKIP LOCKED).
@@ -27,9 +39,10 @@ export async function dispatchOutbox(limit = 50): Promise<{ sent: number; failed
   let sent = 0, failed = 0;
   const key = process.env.RESEND_API_KEY;
   if (key && !resend) resend = new Resend(key);
+  const localeOf = await localesFor(admin, rows);
 
   for (const r of rows) {
-    const { subject, html } = render(r.template, r.payload || {});
+    const { subject, html } = render(r.template, r.payload || {}, localeOf(r));
     try {
       if (resend) {
         const { error: e } = await resend.emails.send({ from: FROM, to: r.to_email, replyTo: REPLY_TO, subject, html }, { idempotencyKey: 'outbox-' + r.id });
