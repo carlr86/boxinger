@@ -2,9 +2,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { App, ConfigProvider } from 'antd';
 import esES from 'antd/locale/es_ES';
+import enUS from 'antd/locale/en_US';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import type { MyContext } from '@/lib/types';
 import { WelcomeConfetti } from '@/components/WelcomeConfetti';
+import { applyLocale, useI18n } from '@/lib/i18n/client';
 
 const theme = {
   token: {
@@ -27,6 +29,7 @@ export const useSession = () => useContext(SessionContext);
 
 export function Providers({ initialCtx, children }: { initialCtx: MyContext | null; children: React.ReactNode }) {
   const [ctx, setCtx] = useState<MyContext | null>(initialCtx);
+  const { locale } = useI18n();
 
   const refresh = useCallback(async () => {
     const { data } = await supabaseBrowser().rpc('get_my_context');
@@ -42,8 +45,17 @@ export function Providers({ initialCtx, children }: { initialCtx: MyContext | nu
     return () => data.subscription.unsubscribe();
   }, [refresh, initialCtx]);
 
+  // The profile keeps the language (for emails and other devices): record the first choice,
+  // and follow the profile when this browser shows another one.
+  const saved = ctx?.me.locale;
+  useEffect(() => {
+    if (!ctx) return;
+    if (!saved) supabaseBrowser().rpc('set_locale', { p_locale: locale }).then(() => {});
+    else if (saved !== locale) applyLocale(saved);
+  }, [saved, locale]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <ConfigProvider locale={esES} theme={theme}>
+    <ConfigProvider locale={locale === 'en' ? enUS : esES} theme={theme}>
       <App message={{ maxCount: 2, top: 72 }}>
         <SessionContext.Provider value={{ ctx, refresh, setCtx }}>{children}<WelcomeConfetti /></SessionContext.Provider>
       </App>
@@ -54,9 +66,11 @@ export function Providers({ initialCtx, children }: { initialCtx: MyContext | nu
 /** Toast helper matching the prototype's "✓ …" feedback. */
 export function useToast() {
   const { message } = App.useApp();
+  const { tm } = useI18n();
+  // Texts pass through the translation, so callers can hand the Spanish source (or a database error) as is.
   return {
-    ok: (t: string) => message.success(t),
-    err: (e: unknown) => message.error(e instanceof Error ? e.message : String(e)),
-    info: (t: string) => message.info(t),
+    ok: (t: string) => message.success(tm(t)),
+    err: (e: unknown) => message.error(tm(e instanceof Error ? e.message : String(e))),
+    info: (t: string) => message.info(tm(t)),
   };
 }

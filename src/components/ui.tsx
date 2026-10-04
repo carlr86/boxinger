@@ -2,6 +2,7 @@
 import React from 'react';
 import { Tooltip } from 'antd';
 import { ini, avatarColor } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import { RATE_C, type Tone, TEXT3, TEXT2, BORDER } from '@/lib/constants';
 
 export function Tag({ tone, children, style, title }: { tone?: Tone; children: React.ReactNode; style?: React.CSSProperties; title?: string }) {
@@ -206,12 +207,13 @@ export function Bar({ pct, color, h = 8, track = '#f5f5f5' }: { pct: string; col
 export function EmailChips({ value, onChange, placeholder = 'email@ejemplo.com y Enter', onInvalid }: {
   value: string[]; onChange: (v: string[]) => void; placeholder?: string; onInvalid?: (e: string) => void;
 }) {
+  const { t } = useI18n();
   const [text, setText] = React.useState('');
   const add = () => {
     const parts = text.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean);
     if (!parts.length) return;
     const bad = parts.find((p) => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p));
-    if (bad) { onInvalid ? onInvalid(bad) : alert('Email inválido: ' + bad); return; }
+    if (bad) { onInvalid ? onInvalid(bad) : alert(t('Email inválido: {email}', { email: bad })); return; }
     onChange(Array.from(new Set(value.concat(parts))));
     setText('');
   };
@@ -222,7 +224,7 @@ export function EmailChips({ value, onChange, placeholder = 'email@ejemplo.com y
           {em}<a onClick={() => onChange(value.filter((x) => x !== em))} style={{ color: TEXT3, fontSize: 14, lineHeight: 1 }}>×</a>
         </span>
       ))}
-      <input value={text} onChange={(e) => setText(e.target.value)} placeholder={value.length ? '' : placeholder}
+      <input value={text} onChange={(e) => setText(e.target.value)} placeholder={value.length ? '' : t(placeholder)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); add(); } if (e.key === 'Backspace' && !text && value.length) onChange(value.slice(0, -1)); }}
         onBlur={add}
         style={{ flex: 1, minWidth: 160, border: 0, outline: 'none', fontSize: 14, height: 24, background: 'transparent' }} />
@@ -255,9 +257,10 @@ export function ToggleRow({ label, desc, on, onChange, disabled }: { label: Reac
 
 /** Small "?" that explains a number or setting (hover on desktop, tap on phones). */
 export function Help({ children, label = 'Cómo se calcula' }: { children: React.ReactNode; label?: string }) {
+  const { t } = useI18n();
   return (
     <Tooltip title={<div style={{ fontSize: 13, lineHeight: 1.5 }}>{children}</div>} trigger={['hover', 'click']} styles={{ root: { maxWidth: 300 } }}>
-      <span role="button" tabIndex={0} aria-label={label} onClick={(e) => e.stopPropagation()}
+      <span role="button" tabIndex={0} aria-label={t(label)} onClick={(e) => e.stopPropagation()}
         style={{ display: 'inline-grid', placeItems: 'center', width: 16, height: 16, borderRadius: '50%', border: '1px solid rgba(0,0,0,0.25)', color: 'rgba(0,0,0,0.45)', fontSize: 11, fontWeight: 600, lineHeight: 1, cursor: 'help', flex: 'none', verticalAlign: 'middle' }}>?</span>
     </Tooltip>
   );

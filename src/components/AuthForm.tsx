@@ -8,6 +8,7 @@ import { signInWithGoogle } from '@/lib/oauth';
 import { isEmail } from '@/lib/format';
 import { Field, Note } from '@/components/ui';
 import { useSession } from '@/components/Providers';
+import { useI18n } from '@/lib/i18n/client';
 
 type Mode = 'login' | 'registro';
 
@@ -15,6 +16,7 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
   mode: Mode; next: string; boardName?: string | null; alert?: boolean; invitedEmail?: string | null; notice?: string | null;
 }) {
   const router = useRouter();
+  const { t, tm } = useI18n();
   const { refresh } = useSession();
   const [mode, setMode] = useState<Mode>(initial);
   const [f, setF] = useState({ name: '', email: invitedEmail || '', pass: '' });
@@ -25,9 +27,9 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
   const lm = mode === 'login';
 
   const errs = {
-    name: !lm && !f.name.trim() ? 'Ingresá tu nombre' : '',
-    email: !isEmail(f.email.trim()) ? 'Ingresá un email válido' : '',
-    pass: lm ? (f.pass ? '' : 'Ingresá tu contraseña') : passwordError(f.pass),
+    name: !lm && !f.name.trim() ? t('Ingresá tu nombre') : '',
+    email: !isEmail(f.email.trim()) ? t('Ingresá un email válido') : '',
+    pass: lm ? (f.pass ? '' : t('Ingresá tu contraseña')) : t(passwordError(f.pass)),
   };
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const cb = (path: string) => `${origin}/app/auth/callback?next=${encodeURIComponent(path)}`;
@@ -90,23 +92,23 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
     return (
       <div style={card}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>Revisá tu email</h1>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>{t('Revisá tu email')}</h1>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>
             {sent === 'verify'
-              ? <>Te enviamos un link a <b>{f.email.trim()}</b> para verificar tu cuenta. Hasta verificarla podés ver los buzones, pero no votar, comentar ni cargar ideas.</>
-              : <>Te enviamos un link a <b>{f.email.trim()}</b> para crear una nueva contraseña. Vale por 1 hora.</>}
+              ? t('Te enviamos un link a {email} para verificar tu cuenta. Hasta verificarla podés ver los buzones, pero no votar, comentar ni cargar ideas.', { email: f.email.trim() })
+              : t('Te enviamos un link a {email} para crear una nueva contraseña. Vale por 1 hora.', { email: f.email.trim() })}
           </span>
         </div>
-        {sent === 'verify' && <a onClick={resend} style={{ fontSize: 14 }}>Reenviar el email</a>}
-        <a onClick={() => { setSent(''); setMode('login'); }} style={{ fontSize: 14 }}>Volver a ingresar</a>
+        {sent === 'verify' && <a onClick={resend} style={{ fontSize: 14 }}>{t('Reenviar el email')}</a>}
+        <a onClick={() => { setSent(''); setMode('login'); }} style={{ fontSize: 14 }}>{t('Volver a ingresar')}</a>
       </div>
     );
   }
 
-  const title = lm ? 'Iniciá sesión' : boardName ? 'Registrate para participar' : 'Creá tu cuenta';
+  const title = lm ? t('Iniciá sesión') : boardName ? t('Registrate para participar') : t('Creá tu cuenta');
   const sub = lm
-    ? boardName ? `Entrá a ${boardName} en Boxinger.` : 'Entrá a tus buzones de Boxinger.'
-    : boardName ? `Vas a quedar como Comunidad de ${boardName}.` : 'Empezá gratis con un buzón. Sin tarjeta de crédito.';
+    ? boardName ? t('Entrá a {board} en Boxinger.', { board: boardName }) : t('Entrá a tus buzones de Boxinger.')
+    : boardName ? t('Vas a quedar como Comunidad de {board}.', { board: boardName }) : t('Empezá gratis con un buzón. Sin tarjeta de crédito.');
 
   return (
     <form style={card} onSubmit={submit} noValidate>
@@ -114,36 +116,36 @@ export function AuthForm({ mode: initial, next, boardName, alert, invitedEmail, 
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>{title}</h1>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{sub}</span>
       </div>
-      {alert && <Note>Para votar, comentar o cargar ideas necesitás una cuenta.</Note>}
+      {alert && <Note>{t('Para votar, comentar o cargar ideas necesitás una cuenta.')}</Note>}
       {notice && <Note tone="success">{notice}</Note>}
-      {error && <Note tone="error">{error}{/verificaste/.test(error) && <> <a onClick={resend}>Reenviar link</a></>}</Note>}
+      {error && <Note tone="error">{tm(error)}{/verificaste/.test(error) && <> <a onClick={resend}>{t('Reenviar link')}</a></>}</Note>}
       <button type="button" onClick={google} className="bx-btn" style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <GoogleG /> Continuar con Google
+        <GoogleG /> {t('Continuar con Google')}
       </button>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-        <span style={{ flex: 1, height: 1, background: '#f0f0f0' }} />o con tu email<span style={{ flex: 1, height: 1, background: '#f0f0f0' }} />
+        <span style={{ flex: 1, height: 1, background: '#f0f0f0' }}  />{t('o con tu email')}<span style={{ flex: 1, height: 1, background: '#f0f0f0' }} />
       </div>
       {!lm && (
-        <Field label="Nombre" error={tried ? errs.name : ''}>
+        <Field label={t('Nombre')} error={tried ? errs.name : ''}>
           <input className={'bx-input' + (tried && errs.name ? ' err' : '')} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoComplete="name" maxLength={60} />
         </Field>
       )}
-      <Field label="Email" error={tried ? errs.email : ''}>
+      <Field label={t('Email')} error={tried ? errs.email : ''}>
         <input className={'bx-input' + (tried && errs.email ? ' err' : '')} type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} autoComplete="email" />
       </Field>
-      <Field label="Contraseña" error={tried ? errs.pass : ''} hint={lm ? undefined : 'Mínimo 8 caracteres, con al menos 1 letra y 1 número'}>
+      <Field label={t('Contraseña')} error={tried ? errs.pass : ''} hint={lm ? undefined : t('Mínimo 8 caracteres, con al menos 1 letra y 1 número')}>
         <input className={'bx-input' + (tried && errs.pass ? ' err' : '')} type="password" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })} autoComplete={lm ? 'current-password' : 'new-password'} />
       </Field>
-      <button type="submit" className="bx-btn-primary" disabled={busy} style={{ height: 40, fontSize: 15 }}>{busy ? 'Un momento…' : lm ? 'Ingresar' : 'Crear cuenta'}</button>
+      <button type="submit" className="bx-btn-primary" disabled={busy} style={{ height: 40, fontSize: 15 }}>{busy ? t('Un momento…') : lm ? t('Ingresar') : t('Crear cuenta')}</button>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, flexWrap: 'wrap', gap: 8 }}>
         <Link href={(lm ? '/app/registro' : '/app/ingresar') + '?next=' + encodeURIComponent(next)} onClick={(e) => { e.preventDefault(); setMode(lm ? 'registro' : 'login'); setTried(false); setError(''); }}>
-          {lm ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Ingresá'}
+          {lm ? t('¿No tenés cuenta? Registrate') : t('¿Ya tenés cuenta? Ingresá')}
         </Link>
-        {lm && <a onClick={forgot} className="bx-link-muted">¿Olvidaste tu contraseña?</a>}
+        {lm && <a onClick={forgot} className="bx-link-muted">{t('¿Olvidaste tu contraseña?')}</a>}
       </div>
       {!lm && (
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>
-          Al crear tu cuenta aceptás los <Link href="/terminos">Términos</Link> y la <Link href="/privacidad">Política de privacidad</Link>.
+          {t('Al crear tu cuenta aceptás los')} <Link href="/terminos">{t('Términos')}</Link> {t('y la')} <Link href="/privacidad">{t('Política de privacidad')}</Link>.
         </span>
       )}
     </form>

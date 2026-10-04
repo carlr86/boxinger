@@ -1,4 +1,5 @@
 // Labels and colors from the Boxinger prototype (design/Boxinger.dc.html).
+// Labels are the Spanish source: screens show them through t() (src/lib/i18n).
 
 export type Tone = { l: string; bg: string; bd: string; fg: string };
 

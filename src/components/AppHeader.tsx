@@ -9,6 +9,9 @@ import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar } from '@/components/ui';
 import { Logo } from '@/components/SimpleHeader';
 import { NotificationBell } from '@/components/NotificationBell';
+import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { useI18n } from '@/lib/i18n/client';
+import { I18N_LIVE } from '@/lib/i18n';
 import { planTone, SHADOW_POP } from '@/lib/constants';
 import type { BoardCard } from '@/lib/types';
 
@@ -36,6 +39,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
 }) {
   const router = useRouter();
   const toast = useToast();
+  const { t, locale } = useI18n();
   const { ctx, setCtx } = useSession();
   const me = ctx?.me;
   const isPro = !!ctx?.account?.pro;
@@ -61,7 +65,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
   return (
     <header className="bx-appheader" style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', minHeight: 64, position: 'sticky', top: 0, zIndex: 20 }}>
       <div className="bx-ah-brand" style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 64, minWidth: 0 }}>
-        <a onClick={goHome} title={hasBoards ? 'Mis Buzones' : 'Inicio'} style={{ color: 'inherit' }}><Logo compactOnMobile={!!board} /></a>
+        <a onClick={goHome} title={hasBoards ? t('Mis Buzones') : t('Inicio')} style={{ color: 'inherit' }}><Logo compactOnMobile={!!board} /></a>
         {slogan && !board && (
           <span className="bx-hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ width: 1, height: 20, background: '#e8e8e8' }} />
@@ -82,14 +86,14 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
       </div>
       {tabs && tabs.length > 0 ? (
         <nav ref={tabsRef} className="bx-ah-tabs" style={{ display: 'flex', gap: 2, alignSelf: 'stretch', flex: '1 1 auto', minWidth: 'max-content' }}>
-          {tabs.map((t) => (
-            <a key={t.key} onClick={() => onTab?.(t.key)} className={'bx-tab' + (view === t.key ? ' on' : '')}>{t.label}</a>
+          {tabs.map((x) => (
+            <a key={x.key} onClick={() => onTab?.(x.key)} className={'bx-tab' + (view === x.key ? ' on' : '')}>{x.label}</a>
           ))}
         </nav>
       ) : <div style={{ flex: 1 }} />}
       <div className="bx-ah-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', marginLeft: 'auto' }}>
         {onConfig && (
-          <button type="button" onClick={onConfig} title="Configuración del buzón" className="bx-icon-btn"
+          <button type="button" onClick={onConfig} title={t('Configuración del buzón')} className="bx-icon-btn"
             style={{ width: 32, height: 32, color: view === 'config' ? '#059669' : 'rgba(0,0,0,0.65)' }}>
             <Gear />
           </button>
@@ -106,16 +110,20 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
                   <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 14, fontWeight: 600 }}>{me.name}</span>
                     <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.email}</span>
-                    {(() => { const t = planTone(ctx?.account?.plan); return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + t.bd, background: t.bg, color: t.fg }}>Plan {t.l}</span>; })()}
+                    {(() => { const p = planTone(ctx?.account?.plan); return <span style={{ alignSelf: 'flex-start', fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid ' + p.bd, background: p.bg, color: p.fg }}>{t('Plan {plan}', { plan: p.l })}</span>; })()}
                   </div>
                 </div>
-                {hasBoards && <Link className="bx-item" style={menuLink} href="/app/buzones"><InboxOutlined style={menuIcon} />Mis Buzones</Link>}
-                <Link className="bx-item" style={menuLink} href="/app/perfil"><UserOutlined style={menuIcon} />Mi perfil</Link>
-                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=notif"><BellOutlined style={menuIcon} />Notificaciones</Link>
-                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=sub"><CreditCardOutlined style={menuIcon} />Suscripción</Link>
-                {me.is_super_admin && <Link className="bx-item" style={menuLink} href="/app/admin"><DashboardOutlined style={menuIcon} />Panel de Admin</Link>}
+                {hasBoards && <Link className="bx-item" style={menuLink} href="/app/buzones"><InboxOutlined style={menuIcon} />{t('Mis Buzones')}</Link>}
+                <Link className="bx-item" style={menuLink} href="/app/perfil"><UserOutlined style={menuIcon} />{t('Mi perfil')}</Link>
+                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=notif"><BellOutlined style={menuIcon} />{t('Notificaciones')}</Link>
+                <Link className="bx-item" style={menuLink} href="/app/perfil?tab=sub"><CreditCardOutlined style={menuIcon} />{t('Suscripción')}</Link>
+                {me.is_super_admin && <Link className="bx-item" style={menuLink} href="/app/admin"><DashboardOutlined style={menuIcon} />{t('Panel de Admin')}</Link>}
                 <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
-                <div className="bx-item" style={{ ...menuLink, color: '#cf1322' }} onClick={logout}><LogoutOutlined style={menuIcon} />Cerrar sesión</div>
+                {(I18N_LIVE || me.is_super_admin || locale === 'en') && <>
+                  <div style={{ padding: '6px 12px' }}><LanguageSwitch preview /></div>
+                  <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+                </>}
+                <div className="bx-item" style={{ ...menuLink, color: '#cf1322' }} onClick={logout}><LogoutOutlined style={menuIcon} />{t('Cerrar sesión')}</div>
               </div>
             )}
           >
@@ -126,7 +134,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
             </button>
           </Dropdown>
         ) : (
-          <button type="button" className="bx-btn" onClick={() => router.push('/app/ingresar?next=' + encodeURIComponent(loginNext || '/app'))}>Ingresar</button>
+          <button type="button" className="bx-btn" onClick={() => router.push('/app/ingresar?next=' + encodeURIComponent(loginNext || '/app'))}>{t('Ingresar')}</button>
         )}
       </div>
     </header>
@@ -139,12 +147,13 @@ const menuIcon: React.CSSProperties = { fontSize: 15, width: 16, flex: 'none' };
 function BoardSwitcher({ current }: { current: HeaderBoard }) {
   const router = useRouter();
   const toast = useToast();
+  const { t } = useI18n();
   const { ctx } = useSession();
   const [open, setOpen] = useState(false);
   if (!ctx) return null;
   const isPro = !!ctx.account?.pro;
   const groups: { name: string; boards: BoardCard[] }[] = ctx.teams.filter((t) => t.boards.length).map((t) => ({ name: t.name, boards: t.boards }));
-  if (ctx.guest_boards.length) groups.push({ name: 'Invitado', boards: ctx.guest_boards });
+  if (ctx.guest_boards.length) groups.push({ name: t('Invitado'), boards: ctx.guest_boards });
   const unlocked = ctx.teams.flatMap((t) => t.boards).filter((b) => !b.locked);
   const go = (path: string) => { setOpen(false); router.push(path); };
 
@@ -158,7 +167,7 @@ function BoardSwitcher({ current }: { current: HeaderBoard }) {
               {g.boards.map((b) => {
                 const active = b.id === current.id;
                 return (
-                  <div key={b.id} className="bx-item" title={b.locked ? 'Requiere el plan Pro' : ''}
+                  <div key={b.id} className="bx-item" title={b.locked ? t('Requiere el plan Pro') : ''}
                     onClick={() => (b.locked ? toast.info('Este buzón requiere el plan Pro') : active ? setOpen(false) : go('/app/b/' + b.slug))}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: b.locked ? 'not-allowed' : 'pointer', background: active ? '#d1fae5' : undefined, color: b.locked ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.88)' }}>
                     <Avatar name={b.name} color={b.color} url={b.logo_url} size={22} square style={{ opacity: b.locked ? 0.45 : 1 }} />
@@ -173,15 +182,15 @@ function BoardSwitcher({ current }: { current: HeaderBoard }) {
           <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
           {ctx.account && (!isPro && unlocked.length <= 1 ? (
             <div style={{ margin: 4, padding: 12, borderRadius: 6, background: '#d1fae5', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#1f4a41' }}>Creá más buzones <span style={{ fontSize: 11, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid #a9cbc2', background: '#fff', color: '#059669', fontWeight: 400 }}>Pro</span></span>
-              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>Con Pro tenés equipos y buzones ilimitados, y hasta 4 miembros por equipo.</span>
-              <button type="button" className="bx-btn-primary" style={{ height: 28, fontSize: 13 }} onClick={() => go('/app/perfil?tab=sub')}>Pasar a Pro</button>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#1f4a41' }}>{t('Creá más buzones')} <span style={{ fontSize: 11, lineHeight: '18px', padding: '0 6px', borderRadius: 4, border: '1px solid #a9cbc2', background: '#fff', color: '#059669', fontWeight: 400 }}>Pro</span></span>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>{t('Con Pro tenés equipos y buzones ilimitados, y hasta 4 miembros por equipo.')}</span>
+              <button type="button" className="bx-btn-primary" style={{ height: 28, fontSize: 13 }} onClick={() => go('/app/perfil?tab=sub')}>{t('Pasar a Pro')}</button>
             </div>
           ) : (
-            <div className="bx-item" style={{ color: '#059669' }} onClick={() => go('/app/buzones?crear=1')}>+ Crear Buzón</div>
+            <div className="bx-item" style={{ color: '#059669' }} onClick={() => go('/app/buzones?crear=1')}>+ {t('Crear Buzón')}</div>
           ))}
-          {!ctx.account && <div className="bx-item" style={{ color: '#059669' }} onClick={() => go('/app/onboarding')}>+ Crear mi propio buzón</div>}
-          <div className="bx-item" onClick={() => go('/app/buzones')}>Ver todos mis buzones</div>
+          {!ctx.account && <div className="bx-item" style={{ color: '#059669' }} onClick={() => go('/app/onboarding')}>+ {t('Crear mi propio buzón')}</div>}
+          <div className="bx-item" onClick={() => go('/app/buzones')}>{t('Ver todos mis buzones')}</div>
         </div>
       )}>
       <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 8, height: 32, padding: '0 10px', borderRadius: 6, border: '1px solid ' + (open ? '#059669' : '#d9d9d9'), background: '#fff', cursor: 'pointer', fontSize: 14, color: 'rgba(0,0,0,0.88)', maxWidth: 240, minWidth: 0 }}>

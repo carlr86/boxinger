@@ -3,6 +3,7 @@ import { AuthForm } from '@/components/AuthForm';
 import { SimpleHeader } from '@/components/SimpleHeader';
 import { createClient } from '@/lib/supabase/server';
 import { safeNext } from '@/lib/session';
+import { getT } from '@/lib/i18n/server';
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) || null;
@@ -15,6 +16,7 @@ const NOTICES: Record<string, string> = {
 
 export async function AuthPage({ mode, searchParams }: { mode: 'login' | 'registro'; searchParams: SP }) {
   const sp = await searchParams;
+  const { t } = await getT();
   const next = safeNext(one(sp.next));
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
@@ -32,7 +34,7 @@ export async function AuthPage({ mode, searchParams }: { mode: 'login' | 'regist
       <SimpleHeader />
       <main className="bx-main" style={{ paddingBottom: 48 }}>
         <AuthForm mode={mode} next={next} boardName={boardName} alert={one(sp.alerta) === '1'}
-          invitedEmail={one(sp.email)} notice={NOTICES[one(sp.aviso) || ''] || null} />
+          invitedEmail={one(sp.email)} notice={NOTICES[one(sp.aviso) || ''] ? t(NOTICES[one(sp.aviso) || '']) : null} />
       </main>
     </>
   );

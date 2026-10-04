@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import { rpc } from '@/lib/rpc';
 import { Note } from '@/components/ui';
 import { useSession, useToast } from '@/components/Providers';
+import { useI18n } from '@/lib/i18n/client';
 
 export function AcceptInvite({ token }: { token: string }) {
   const router = useRouter();
   const toast = useToast();
+  const { t, tm } = useI18n();
   const { refresh } = useSession();
   const [error, setError] = useState('');
   const once = useRef(false);
@@ -22,6 +24,6 @@ export function AcceptInvite({ token }: { token: string }) {
       })
       .catch((e) => setError((e as Error).message));
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (error) return <Note tone="error">{error}</Note>;
-  return <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Aceptando la invitación…</span>;
+  if (error) return <Note tone="error">{tm(error)}</Note>;
+  return <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Aceptando la invitación…')}</span>;
 }

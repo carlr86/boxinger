@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LanguageSwitch } from '@/components/LanguageSwitch';
 
 export function Logo({ size = 28, compactOnMobile }: { size?: number; compactOnMobile?: boolean }) {
   return (
@@ -15,7 +16,7 @@ export function SimpleHeader({ right }: { right?: React.ReactNode }) {
     <header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, minHeight: 64, position: 'sticky', top: 0, zIndex: 20 }}>
       <Link href="/" style={{ color: 'inherit' }}><Logo /></Link>
       <div style={{ flex: 1 }} />
-      {right}
+      {right ?? <LanguageSwitch />}
     </header>
   );
 }

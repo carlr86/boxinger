@@ -9,7 +9,7 @@ import { Avatar, Choice, EmailChips, Note, PageHead, Seg, Tag, WarnPill, ToggleR
 import { useGridCols } from '@/components/board/IdeaGrid';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { boardUrl, displayUrl } from '@/lib/env';
-import { plural, rel } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import { MAX_MEMBERS, VISIBILITY, VISIBILITY_ORDER } from '@/lib/constants';
 import type { BoardCard, TeamCtx, Visibility } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
@@ -35,6 +35,7 @@ export function BoardsPage() {
   const router = useRouter();
   const sp = useSearchParams();
   const toast = useToast();
+  const { t, plural, rel } = useI18n();
   const { ctx, refresh } = useSession();
   const { cols, isMobile } = useGridCols();
   const [q, setQ] = useState('');
@@ -77,22 +78,22 @@ export function BoardsPage() {
   const copy = (txt: string, msg: string) => { navigator.clipboard?.writeText(txt).catch(() => {}); toast.ok(msg); };
   const fav = async (b: BoardCard) => { await rpc('toggle_favorite', { p_board: b.id }).catch((e) => toast.err(e)); await refresh(); toast.ok(b.fav ? 'Quitado de favoritos' : 'Agregado a favoritos'); };
 
-  const card = (b: BoardCard, t: TeamCtx | null) => {
+  const card = (b: BoardCard, tc: TeamCtx | null) => {
     const priv = b.visibility === 'private';
-    const guestOnly = !t;
-    const admin = !!t?.is_admin;
-    const memberN = t ? t.members.filter((m) => m.role !== 'admin').length : 0;
+    const guestOnly = !tc;
+    const admin = !!tc?.is_admin;
+    const memberN = tc ? tc.members.filter((m) => m.role !== 'admin').length : 0;
     const items = [
-      { key: 'detail', icon: <InfoCircleOutlined />, label: 'Ver detalle del buzón', onClick: () => setDetail(b) },
-      ...(!guestOnly ? [{ key: 'config', icon: <SettingOutlined />, label: 'Configuración del buzón', onClick: () => router.push('/app/b/' + b.slug + '/config') }] : []),
-      ...(admin ? [{ key: 'rename', icon: <EditOutlined />, label: 'Cambiar nombre', onClick: () => setModal({ type: 'rename', board: b }) }] : []),
-      { key: 'url', icon: <LinkOutlined />, label: 'Compartir URL del buzón', onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
-      ...(!guestOnly ? [{ key: 'guests', icon: <UserAddOutlined />, label: b.visibility === 'invite' ? 'Invitar personas' : 'Compartir link a invitados', disabled: priv, title: priv ? 'Los buzones privados no admiten invitados' : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
-      ...(admin ? [{ key: 'vis', icon: <LockOutlined />, label: 'Cambiar visibilidad', onClick: () => (b.locked ? toast.info('Este buzón requiere el plan Pro') : setVisFor(b)) }] : []),
-      ...(admin ? [{ key: 'access', icon: <TeamOutlined />, label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>Acceso de miembros <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: t! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
-      { key: 'fav', icon: b.fav ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />, label: b.fav ? 'Quitar de favoritos' : 'Agregar a favoritos', onClick: () => fav(b) },
-      ...(admin ? [{ type: 'divider' as const }, { key: 'delete', icon: <DeleteOutlined />, label: 'Eliminar buzón', danger: true, onClick: () => setModal({ type: 'delete', board: b }) }] : []),
-      ...(guestOnly ? [{ type: 'divider' as const }, { key: 'leave', icon: <LogoutOutlined />, label: 'Salir del buzón', danger: true, onClick: () => setModal({ type: 'leave', board: b }) }] : []),
+      { key: 'detail', icon: <InfoCircleOutlined />, label: t('Ver detalle del buzón'), onClick: () => setDetail(b) },
+      ...(!guestOnly ? [{ key: 'config', icon: <SettingOutlined />, label: t('Configuración del buzón'), onClick: () => router.push('/app/b/' + b.slug + '/config') }] : []),
+      ...(admin ? [{ key: 'rename', icon: <EditOutlined />, label: t('Cambiar nombre'), onClick: () => setModal({ type: 'rename', board: b }) }] : []),
+      { key: 'url', icon: <LinkOutlined />, label: t('Compartir URL del buzón'), onClick: () => copy(boardUrl(b.slug), 'URL del buzón copiada') },
+      ...(!guestOnly ? [{ key: 'guests', icon: <UserAddOutlined />, label: b.visibility === 'invite' ? t('Invitar personas') : t('Compartir link a invitados'), disabled: priv, title: priv ? t('Los buzones privados no admiten invitados') : '', onClick: () => (priv ? toast.info('Los buzones privados no admiten invitados de la Comunidad') : setModal({ type: 'guests', board: b })) }] : []),
+      ...(admin ? [{ key: 'vis', icon: <LockOutlined />, label: t('Cambiar visibilidad'), onClick: () => (b.locked ? toast.info('Este buzón requiere el plan Pro') : setVisFor(b)) }] : []),
+      ...(admin ? [{ key: 'access', icon: <TeamOutlined />, label: <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>{t('Acceso de miembros')} <Tag tone={{ l: '', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' }} style={{ fontSize: 11, lineHeight: '18px' }}>Pro</Tag></span>, disabled: !isPro, onClick: () => (isPro ? setModal({ type: 'access', board: b, team: tc! }) : toast.info('Sumar miembros al equipo está disponible en Pro')) }] : []),
+      { key: 'fav', icon: b.fav ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />, label: b.fav ? t('Quitar de favoritos') : t('Agregar a favoritos'), onClick: () => fav(b) },
+      ...(admin ? [{ type: 'divider' as const }, { key: 'delete', icon: <DeleteOutlined />, label: t('Eliminar buzón'), danger: true, onClick: () => setModal({ type: 'delete', board: b }) }] : []),
+      ...(guestOnly ? [{ type: 'divider' as const }, { key: 'leave', icon: <LogoutOutlined />, label: t('Salir del buzón'), danger: true, onClick: () => setModal({ type: 'leave', board: b }) }] : []),
     ];
     return (
       <div key={b.id} style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -106,27 +107,27 @@ export function BoardsPage() {
             <span style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>/app/b/{b.slug}</span>
           </div>
           <Dropdown trigger={['click']} placement="bottomRight" menu={{ items }}>
-            <button type="button" title="Acciones" className="bx-icon-btn"><More /></button>
+            <button type="button" title={t('Acciones')} className="bx-icon-btn"><More /></button>
           </Dropdown>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <Tag>{VISIBILITY[b.visibility].l}</Tag>
-          {guestOnly && <Tag tone={{ l: '', bg: '#f9f0ff', bd: '#d3adf7', fg: '#531dab' }}>Invitado</Tag>}
+          <Tag>{t(VISIBILITY[b.visibility].l)}</Tag>
+          {guestOnly && <Tag tone={{ l: '', bg: '#f9f0ff', bd: '#d3adf7', fg: '#531dab' }}>{t('Invitado')}</Tag>}
           {guestOnly && <Tag>{b.team_name}</Tag>}
-          {t && t.pro && memberN > 0 && admin && <Tag title="Miembros del equipo con acceso">Equipo: {memberN + 1} personas</Tag>}
-          {t && !t.own && <Tag tone={{ l: '', bg: '#eff6ff', bd: '#93c5fd', fg: '#3b82f6' }}>Miembro</Tag>}
-          {b.locked && <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Requiere Pro</Tag>}
-          {b.status !== 'active' && <Tag tone={{ l: '', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' }}>Suspendido</Tag>}
+          {tc && tc.pro && memberN > 0 && admin && <Tag title={t('Miembros del equipo con acceso')}>{t('Equipo: {n} personas', { n: memberN + 1 })}</Tag>}
+          {tc && !tc.own && <Tag tone={{ l: '', bg: '#eff6ff', bd: '#93c5fd', fg: '#3b82f6' }}>{t('Miembro')}</Tag>}
+          {b.locked && <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>{t('Requiere Pro')}</Tag>}
+          {b.status !== 'active' && <Tag tone={{ l: '', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' }}>{t('Suspendido')}</Tag>}
         </div>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.57, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 44 }}>{b.description || 'Sin descripción.'}</p>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.57, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 44 }}>{b.description || t('Sin descripción.')}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8, borderTop: '1px solid #f0f0f0', paddingTop: 14 }}>
-          <Num l="Ideas" v={b.ideas} />
-          <Num l="Miembros" v={priv ? 'Solo Equipo' : b.guests} small={priv} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Última actividad</span><span style={{ fontSize: 13, lineHeight: '27px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rel(b.last_activity_at)}</span></div>
+          <Num l={t('Ideas')} v={b.ideas} />
+          <Num l={t('Miembros')} v={priv ? t('Solo Equipo') : b.guests} small={priv} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Última actividad')}</span><span style={{ fontSize: 13, lineHeight: '27px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rel(b.last_activity_at)}</span></div>
         </div>
         <button type="button" disabled={b.locked} onClick={() => router.push('/app/b/' + b.slug)}
           style={{ height: 32, borderRadius: 6, fontSize: 14, cursor: b.locked ? 'not-allowed' : 'pointer', border: '1px solid ' + (b.locked ? '#d9d9d9' : '#0F172A'), background: b.locked ? 'rgba(0,0,0,0.04)' : '#0F172A', color: b.locked ? 'rgba(0,0,0,0.25)' : '#fff' }}>
-          {b.locked ? 'Requiere Pro' : 'Ver Buzón'}
+          {b.locked ? t('Requiere Pro') : t('Ver Buzón')}
         </button>
       </div>
     );
@@ -136,50 +137,50 @@ export function BoardsPage() {
     <>
       <AppHeader slogan="From idea to Product" />
       <main className="bx-main">
-        <PageHead title="Mis Buzones de ideas"
-          sub={<>Elegí un buzón para entrar. {ctx.account ? (ctx.account.plan === 'enterprise' ? 'Plan Enterprise · equipos, buzones y miembros ilimitados.' : isPro ? 'Plan Pro · equipos y buzones ilimitados.' : 'Plan Free · 1 equipo · 1 buzón.') : ''}</>}
+        <PageHead title={t('Mis Buzones de ideas')}
+          sub={<>{t('Elegí un buzón para entrar.')} {ctx.account ? (ctx.account.plan === 'enterprise' ? t('Plan Enterprise · equipos, buzones y miembros ilimitados.') : isPro ? t('Plan Pro · equipos y buzones ilimitados.') : t('Plan Free · 1 equipo · 1 buzón.')) : ''}</>}
           right={ctx.account ? (
             <button type="button" className="bx-btn" onClick={() => (isPro ? setModal({ type: 'createTeam' }) : toast.info('Equipos ilimitados en el plan Pro'))} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              + Crear equipo{!isPro && <WarnPill>Pro</WarnPill>}
+              + {t('Crear equipo')}{!isPro && <WarnPill>Pro</WarnPill>}
             </button>
           ) : (
-            <button type="button" className="bx-btn-primary" onClick={() => router.push('/app/onboarding')}>+ Crear mi buzón</button>
+            <button type="button" className="bx-btn-primary" onClick={() => router.push('/app/onboarding')}>+ {t('Crear mi buzón')}</button>
           )} />
         {ctx.account && !isPro && (
           <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 16px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 14 }}>
-            <span style={{ flex: 1, minWidth: 240, color: 'rgba(0,0,0,0.65)' }}>Tu plan Free incluye 1 equipo con 1 buzón, solo para vos. Con Pro tenés equipos y buzones ilimitados, y hasta 4 miembros por equipo.</span>
-            <a onClick={() => router.push('/app/perfil?tab=sub')}>Ver planes</a>
+            <span style={{ flex: 1, minWidth: 240, color: 'rgba(0,0,0,0.65)' }}>{t('Tu plan Free incluye 1 equipo con 1 buzón, solo para vos. Con Pro tenés equipos y buzones ilimitados, y hasta 4 miembros por equipo.')}</span>
+            <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Ver planes')}</a>
           </div>
         )}
         {!ctx.account && ctx.teams.length === 0 && ctx.guest_boards.length > 0 && (
-          <Note>Estás como Invitado en estos buzones. También podés <a onClick={() => router.push('/app/onboarding')}>crear tu propio buzón gratis</a> y sumar a tu comunidad.</Note>
+          <Note>{t('Estás como Invitado en estos buzones. También podés')} <a onClick={() => router.push('/app/onboarding')}>{t('crear tu propio buzón gratis')}</a> {t('y sumar a tu comunidad.')}</Note>
         )}
         {noBoards && (
           <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
-            <span style={{ fontSize: 18, fontWeight: 600 }}>Todavía no tenés buzones</span>
-            <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', maxWidth: 420 }}>Creá tu primer buzón para recibir ideas de tu comunidad y tu equipo. Si te invitan a un buzón, también va a aparecer acá.</span>
-            <button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>Crear mi primer buzón</button>
+            <span style={{ fontSize: 18, fontWeight: 600 }}>{t('Todavía no tenés buzones')}</span>
+            <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', maxWidth: 420 }}>{t('Creá tu primer buzón para recibir ideas de tu comunidad y tu equipo. Si te invitan a un buzón, también va a aparecer acá.')}</span>
+            <button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>{t('Crear mi primer buzón')}</button>
           </div>
         )}
         {!noBoards && <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar buzón" style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
-          <Seg options={[['all', 'Todos'], ['fav', 'Favoritos']]} value={f} onChange={setF} style={{ alignSelf: 'auto' }} />
+          <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar buzón')} style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
+          <Seg options={[['all', t('Todos')], ['fav', t('Favoritos')]]} value={f} onChange={setF} style={{ alignSelf: 'auto' }} />
         </div>}
         {nothing && !noBoards && (
           <div style={{ background: '#fff', borderRadius: 8, padding: '48px 24px', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>
-            {f === 'fav' ? 'Todavía no marcaste buzones como favoritos.' : bq ? 'No hay buzones con ese nombre.' : 'Todavía no tenés buzones.'}
+            {f === 'fav' ? t('Todavía no marcaste buzones como favoritos.') : bq ? t('No hay buzones con ese nombre.') : t('Todavía no tenés buzones.')}
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-          {teams.map(({ t, shown }) => {
-            const people = [t.owner].concat(t.members);
+          {teams.map(({ t: tc, shown }) => {
+            const people = [tc.owner].concat(tc.members);
             return (
-              <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div key={tc.id} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
-                  <Avatar name={t.name} color={t.color} size={36} square style={{ opacity: t.locked ? 0.45 : 1, fontSize: 13 }} />
+                  <Avatar name={tc.name} color={tc.color} size={36} square style={{ opacity: tc.locked ? 0.45 : 1, fontSize: 13 }} />
                   <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t.own ? 'Equipo' : 'Equipo · sos Miembro'}</span>
-                    <span style={{ fontSize: 16, fontWeight: 600 }}>{t.name}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{tc.own ? t('Equipo') : t('Equipo · sos Miembro')}</span>
+                    <span style={{ fontSize: 16, fontWeight: 600 }}>{tc.name}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 6 }}>
                     {people.slice(0, 5).map((p, k) => (
@@ -188,26 +189,26 @@ export function BoardsPage() {
                       </span>
                     ))}
                   </div>
-                  <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t.pro ? plural(people.length, 'persona', 'personas') : 'Solo vos'}</span>
-                  {t.locked && <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Requiere Pro</Tag>}
-                  {(t.is_admin || t.can_create_boards) && (
+                  <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{tc.pro ? plural(people.length, 'persona', 'personas') : t('Solo vos')}</span>
+                  {tc.locked && <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>{t('Requiere Pro')}</Tag>}
+                  {(tc.is_admin || tc.can_create_boards) && (
                     // Phones: the actions get their own row under the team, so a long member list never pushes them around.
                     <div style={isMobile ? { flexBasis: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' } : { marginLeft: 'auto', display: 'flex', gap: 12 }}>
-                      {t.is_admin && (
-                        <button type="button" className="bx-btn" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTeamId(t.id)}><Users />Gestionar equipo</button>
+                      {tc.is_admin && (
+                        <button type="button" className="bx-btn" style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setTeamId(tc.id)}><Users />{t('Gestionar equipo')}</button>
                       )}
-                      {t.can_create_boards && (
-                        <button type="button" className="bx-btn-primary" onClick={() => (t.locked ? toast.info('Este equipo requiere el plan Pro') : openCreate(t.id))}>+ Crear Buzón</button>
+                      {tc.can_create_boards && (
+                        <button type="button" className="bx-btn-primary" onClick={() => (tc.locked ? toast.info('Este equipo requiere el plan Pro') : openCreate(tc.id))}>+ {t('Crear Buzón')}</button>
                       )}
                     </div>
                   )}
                 </div>
                 {shown.length === 0 && (
                   <div style={{ background: '#fff', borderRadius: 8, padding: '32px 24px', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>
-                    {t.boards.length ? 'Ningún buzón de este equipo coincide con el filtro.' : 'Este equipo todavía no tiene buzones.'}
+                    {tc.boards.length ? t('Ningún buzón de este equipo coincide con el filtro.') : t('Este equipo todavía no tiene buzones.')}
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, gap: 16 }}>{shown.map((b) => card(b, t))}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, gap: 16 }}>{shown.map((b) => card(b, tc))}</div>
               </div>
             );
           })}
@@ -216,10 +217,10 @@ export function BoardsPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingBottom: 12, borderBottom: '1px solid #e8e8e8' }}>
                 <span style={{ width: 36, height: 36, borderRadius: 8, background: '#f9f0ff', color: '#531dab', display: 'grid', placeItems: 'center' }}><Users /></span>
                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Invitado</span>
-                  <span style={{ fontSize: 16, fontWeight: 600 }}>Buzones donde participás</span>
+                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Invitado')}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600 }}>{t('Buzones donde participás')}</span>
                 </div>
-                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Podés proponer ideas, votar y comentar.</span>
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Podés proponer ideas, votar y comentar.')}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols},minmax(0,1fr))`, gap: 16 }}>{guests.map((b) => card(b, null))}</div>
             </div>
@@ -250,6 +251,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
 }) {
   const router = useRouter();
   const toast = useToast();
+  const { t, plural } = useI18n();
   const { ctx, refresh } = useSession();
   const [input, setInput] = useState('');
   const [vis, setVis] = useState<Visibility>('invite');
@@ -275,130 +277,130 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     }
   }, [modal]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const t = modal?.type;
+  const kind = modal?.type;
   const exec = async (fn: () => Promise<unknown>, ok: string, after?: () => void) => {
     setBusy(true);
     try { await fn(); toast.ok(ok); await refresh(); onClose(); after?.(); } catch (e) { toast.err(e); } finally { setBusy(false); }
   };
-  const nameErr = tried && !input.trim() ? 'El nombre es obligatorio' : '';
+  const nameErr = tried && !input.trim() ? t('El nombre es obligatorio') : '';
 
-  let title = '', text: React.ReactNode = '', body: React.ReactNode = null, okL = '', ok: (() => void) | null = null, danger = false, cancelL = 'Cancelar';
-  if (t === 'create') {
+  let title = '', text: React.ReactNode = '', body: React.ReactNode = null, okL = '', ok: (() => void) | null = null, danger = false, cancelL = t('Cancelar');
+  if (kind === 'create') {
     const teamPro = !!ownTeams.find((x) => x.id === team)?.pro;
-    title = 'Crear buzón';
-    text = VISIBILITY[vis].d + ' Todos los miembros del equipo tienen acceso.';
+    title = t('Crear buzón');
+    text = t(VISIBILITY[vis].d) + ' ' + t('Todos los miembros del equipo tienen acceso.');
     body = (
       <>
-        <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del buzón" value={input} onChange={(e) => setInput(e.target.value)} />
-        <Choice options={VISIBILITY_ORDER.map((k) => [k, VISIBILITY[k].l] as [Visibility, string])} value={vis} onChange={(v) => (v === 'private' && !teamPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
+        <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder={t('Nombre del buzón')} value={input} onChange={(e) => setInput(e.target.value)} />
+        <Choice options={VISIBILITY_ORDER.map((k) => [k, t(VISIBILITY[k].l)] as [Visibility, string])} value={vis} onChange={(v) => (v === 'private' && !teamPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Quiénes pueden crear ideas</span>
-            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>El dueño del equipo y vos siempre pueden. Todos pueden votar y comentar.</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Quiénes pueden crear ideas')}</span>
+            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('El dueño del equipo y vos siempre pueden. Todos pueden votar y comentar.')}</span>
           </div>
-          {teamPro && <ToggleRow label="Miembros del equipo" on={membersIdeas} onChange={setMembersIdeas} />}
-          {vis !== 'private' ? <ToggleRow label="Invitados" desc={vis === 'invite' ? 'Las personas que invites a este buzón.' : 'La Comunidad que se suma con el link o por invitación.'} on={guestsIdeas} onChange={setGuestsIdeas} />
-            : <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no admiten invitados.</span>}
-          {!teamPro && vis !== 'private' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Con Pro también podés decidir si tus miembros cargan ideas.</span>}
+          {teamPro && <ToggleRow label={t('Miembros del equipo')} on={membersIdeas} onChange={setMembersIdeas} />}
+          {vis !== 'private' ? <ToggleRow label={t('Invitados')} desc={vis === 'invite' ? t('Las personas que invites a este buzón.') : t('La Comunidad que se suma con el link o por invitación.')} on={guestsIdeas} onChange={setGuestsIdeas} />
+            : <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Los buzones privados no admiten invitados.')}</span>}
+          {!teamPro && vis !== 'private' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Con Pro también podés decidir si tus miembros cargan ideas.')}</span>}
         </div>
         {ownTeams.length > 1 && (
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Equipo
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>{t('Equipo')}
             <select className="bx-select" value={team} onChange={(e) => setTeam(e.target.value)}>{ownTeams.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>
           </label>
         )}
       </>
     );
-    okL = 'Crear buzón';
+    okL = t('Crear buzón');
     ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis, p_members_ideas: membersIdeas, p_guests_ideas: guestsIdeas }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
-  } else if (t === 'createTeam') {
-    title = 'Crear equipo';
-    text = ctx?.account?.plan === 'enterprise' ? 'Cada equipo tiene sus propios buzones y miembros ilimitados.' : `Cada equipo tiene sus propios buzones y hasta ${MAX_MEMBERS} miembros además de vos.`;
+  } else if (kind === 'createTeam') {
+    title = t('Crear equipo');
+    text = ctx?.account?.plan === 'enterprise' ? t('Cada equipo tiene sus propios buzones y miembros ilimitados.') : t('Cada equipo tiene sus propios buzones y hasta {n} miembros además de vos.', { n: MAX_MEMBERS });
     body = (
       <>
-        <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del equipo" value={input} onChange={(e) => setInput(e.target.value)} />
+        <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder={t('Nombre del equipo')} value={input} onChange={(e) => setInput(e.target.value)} />
         <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
-          <ToggleRow label="Los miembros pueden crear buzones" desc="Si lo activás, los miembros que invites pueden crear buzones en este equipo y cargar ideas en ellos." on={memberBoards} onChange={setMemberBoards} />
+          <ToggleRow label={t('Los miembros pueden crear buzones')} desc={t('Si lo activás, los miembros que invites pueden crear buzones en este equipo y cargar ideas en ellos.')} on={memberBoards} onChange={setMemberBoards} />
         </div>
       </>
     );
-    okL = 'Crear equipo';
+    okL = t('Crear equipo');
     ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<string>('create_team', { p_name: input, p_members_create_boards: memberBoards }).then(async (id) => { toast.ok('Equipo creado'); await refresh(); onOpenTeam(id); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
-  } else if (t === 'rename' && modal?.type === 'rename') {
-    title = 'Cambiar nombre';
-    text = 'El nombre se ve en el header del buzón y en las invitaciones. La URL no cambia.';
-    body = <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del buzón" value={input} onChange={(e) => setInput(e.target.value)} />;
-    okL = 'Guardar';
+  } else if (kind === 'rename' && modal?.type === 'rename') {
+    title = t('Cambiar nombre');
+    text = t('El nombre se ve en el header del buzón y en las invitaciones. La URL no cambia.');
+    body = <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder={t('Nombre del buzón')} value={input} onChange={(e) => setInput(e.target.value)} />;
+    okL = t('Guardar');
     ok = () => { setTried(true); if (input.trim()) exec(() => rpc('update_board', { p_board: modal.board.id, p_name: input }), 'Nombre actualizado'); };
-  } else if (t === 'renameTeam' && modal?.type === 'renameTeam') {
-    title = 'Cambiar nombre del equipo';
-    text = 'El nombre del equipo se ve en Mis Buzones y en las invitaciones.';
-    body = <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder="Nombre del equipo" value={input} onChange={(e) => setInput(e.target.value)} />;
-    okL = 'Guardar';
+  } else if (kind === 'renameTeam' && modal?.type === 'renameTeam') {
+    title = t('Cambiar nombre del equipo');
+    text = t('El nombre del equipo se ve en Mis Buzones y en las invitaciones.');
+    body = <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder={t('Nombre del equipo')} value={input} onChange={(e) => setInput(e.target.value)} />;
+    okL = t('Guardar');
     ok = () => { setTried(true); if (input.trim()) exec(() => rpc('rename_team', { p_team: modal.team.id, p_name: input }), 'Nombre del equipo actualizado'); };
-  } else if (t === 'delete' && modal?.type === 'delete') {
+  } else if (kind === 'delete' && modal?.type === 'delete') {
     const b = modal.board, match = input.trim() === b.name;
-    title = 'Eliminar buzón';
-    text = <>Se eliminan {plural(b.ideas, 'idea', 'ideas')} con sus votos y comentarios. Esta acción no se puede deshacer. Escribí &quot;{b.name}&quot; para confirmar.</>;
+    title = t('Eliminar buzón');
+    text = t('Se eliminan {ideas} con sus votos y comentarios. Esta acción no se puede deshacer. Escribí "{name}" para confirmar.', { ideas: plural(b.ideas, 'idea', 'ideas'), name: b.name });
     body = (
       <>
         <input className={'bx-input' + (tried && !match ? ' err' : '')} autoFocus maxLength={60} placeholder={b.name} value={input} onChange={(e) => setInput(e.target.value)} />
-        {tried && !match && <span style={{ fontSize: 13, color: '#ff4d4f' }}>El nombre no coincide</span>}
+        {tried && !match && <span style={{ fontSize: 13, color: '#ff4d4f' }}>{t('El nombre no coincide')}</span>}
       </>
     );
-    okL = 'Eliminar'; danger = true;
+    okL = t('Eliminar'); danger = true;
     ok = () => { setTried(true); if (match) exec(() => rpc('delete_board', { p_board: b.id, p_confirm: input.trim() }), 'Buzón eliminado'); };
-  } else if (t === 'leave' && modal?.type === 'leave') {
+  } else if (kind === 'leave' && modal?.type === 'leave') {
     const b = modal.board;
-    title = 'Salir del buzón';
+    title = t('Salir del buzón');
     text = b.visibility === 'public'
-      ? `Dejás de ser parte de la Comunidad de ${b.name} y deja de aparecer en Mis Buzones. Tus ideas y comentarios quedan publicados. Podés volver a sumarte con el link.`
-      : `Dejás de ver ${b.name} y deja de aparecer en Mis Buzones. Tus ideas y comentarios quedan publicados. Para volver, te tienen que invitar de nuevo o podés pedir acceso.`;
-    okL = 'Salir'; danger = true;
-    ok = () => exec(() => rpc('leave_board', { p_board: b.id }), 'Saliste de ' + b.name);
-  } else if (t === 'guests' && modal?.type === 'guests') {
+      ? t('Dejás de ser parte de la Comunidad de {name} y deja de aparecer en Mis Buzones. Tus ideas y comentarios quedan publicados. Podés volver a sumarte con el link.', { name: b.name })
+      : t('Dejás de ver {name} y deja de aparecer en Mis Buzones. Tus ideas y comentarios quedan publicados. Para volver, te tienen que invitar de nuevo o podés pedir acceso.', { name: b.name });
+    okL = t('Salir'); danger = true;
+    ok = () => exec(() => rpc('leave_board', { p_board: b.id }), t('Saliste de {name}', { name: b.name }));
+  } else if (kind === 'guests' && modal?.type === 'guests') {
     const b = modal.board;
     const inv = b.visibility === 'invite';
-    title = inv ? 'Invitar personas' : 'Compartir link a invitados';
+    title = inv ? t('Invitar personas') : t('Compartir link a invitados');
     text = inv
-      ? `Invitá por email a quienes quieras sumar a ${b.name}. El link solo funciona para las personas invitadas${isPro ? '; quien no lo esté puede solicitar acceso y vos decidís' : ''}.`
-      : `Quien se registre desde este link queda como Comunidad de ${b.name}. También podés enviarlo por email.`;
+      ? (isPro ? t('Invitá por email a quienes quieras sumar a {name}. El link solo funciona para las personas invitadas; quien no lo esté puede solicitar acceso y vos decidís.', { name: b.name }) : t('Invitá por email a quienes quieras sumar a {name}. El link solo funciona para las personas invitadas.', { name: b.name }))
+      : t('Quien se registre desde este link queda como Comunidad de {name}. También podés enviarlo por email.', { name: b.name });
     body = (
       <>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #d9d9d9', borderRadius: 6, padding: '4px 4px 4px 11px', background: '#fafafa' }}>
           <span style={{ flex: 1, minWidth: 0, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayUrl(b.slug)}</span>
-          <a style={{ padding: '4px 10px' }} onClick={() => { navigator.clipboard?.writeText(boardUrl(b.slug) + '?unirme=1').catch(() => {}); toast.ok('Link de invitación copiado'); }}>Copiar</a>
+          <a style={{ padding: '4px 10px' }} onClick={() => { navigator.clipboard?.writeText(boardUrl(b.slug) + '?unirme=1').catch(() => {}); toast.ok('Link de invitación copiado'); }}>{t('Copiar')}</a>
         </div>
-        <EmailChips value={emails} onChange={setEmails} onInvalid={(e) => toast.info('Email inválido: ' + e)} />
+        <EmailChips value={emails} onChange={setEmails} onInvalid={(e) => toast.info(t('Email inválido: {email}', { email: e }))} />
       </>
     );
-    okL = 'Enviar invitaciones';
+    okL = t('Enviar invitaciones');
     ok = () => {
       if (!emails.length) return toast.info('Agregá al menos un email');
-      exec(async () => { await rpc('invite_guests', { p_board: b.id, p_emails: emails }); flushEmails(); }, emails.length === 1 ? 'Invitación enviada' : emails.length + ' invitaciones enviadas');
+      exec(async () => { await rpc('invite_guests', { p_board: b.id, p_emails: emails }); flushEmails(); }, emails.length === 1 ? t('Invitación enviada') : t('{n} invitaciones enviadas', { n: emails.length }));
     };
-  } else if (t === 'access' && modal?.type === 'access') {
+  } else if (kind === 'access' && modal?.type === 'access') {
     const { board: b, team: tm } = modal;
-    title = 'Acceso de miembros';
-    text = `Los miembros de ${tm.name} ven todos los buzones del equipo. Podés quitarle el acceso a ${b.name} a un miembro específico.`;
-    cancelL = 'Listo';
+    title = t('Acceso de miembros');
+    text = t('Los miembros de {team} ven todos los buzones del equipo. Podés quitarle el acceso a {board} a un miembro específico.', { team: tm.name, board: b.name });
+    cancelL = t('Listo');
     body = (
       <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <MemberRow name={tm.owner.name} email={tm.owner.email} id={tm.owner.id} status="Admin" />
+          <MemberRow name={tm.owner.name} email={tm.owner.email} id={tm.owner.id} status={t('Admin')} />
           {tm.members.map((m) => {
             const on = access ? access[m.user_id!] !== false : true;
             return (
-              <MemberRow key={m.user_id} name={m.name} email={m.email} id={m.user_id} status={on ? 'Con acceso' : 'Sin acceso'} warn={!on}
+              <MemberRow key={m.user_id} name={m.name} email={m.email} id={m.user_id} status={on ? t('Con acceso') : t('Sin acceso')} warn={!on}
                 toggle={access ? { on, onClick: async () => {
                   setAccess({ ...access, [m.user_id!]: !on });
-                  try { await rpc('set_board_access', { p_board: b.id, p_user: m.user_id, p_has: !on }); toast.ok(on ? `${m.name} ya no ve ${b.name}` : `${m.name} vuelve a ver ${b.name}`); refresh(); }
+                  try { await rpc('set_board_access', { p_board: b.id, p_user: m.user_id, p_has: !on }); toast.ok(on ? t('{name} ya no ve {board}', { name: m.name, board: b.name }) : t('{name} vuelve a ver {board}', { name: m.name, board: b.name })); refresh(); }
                   catch (e) { setAccess({ ...access }); toast.err(e); }
                 } } : undefined} />
             );
           })}
-          {tm.pending.map((p) => <MemberRow key={p.id} name={p.email} email={p.email} status="Invitación pendiente" warn />)}
+          {tm.pending.map((p) => <MemberRow key={p.id} name={p.email} email={p.email} status={t('Invitación pendiente')} warn />)}
         </div>
-        <a onClick={() => onOpenTeam(tm.id)} style={{ fontSize: 14 }}>{tm.members.length ? 'Gestionar equipo' : 'Invitar miembros al equipo'}</a>
+        <a onClick={() => onOpenTeam(tm.id)} style={{ fontSize: 14 }}>{tm.members.length ? t('Gestionar equipo') : t('Invitar miembros al equipo')}</a>
       </>
     );
   }
@@ -408,7 +410,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>{text}</span>
         {body}
-        {nameErr && t !== 'delete' && <span style={{ fontSize: 13, color: '#ff4d4f' }}>{nameErr}</span>}
+        {nameErr && kind !== 'delete' && <span style={{ fontSize: 13, color: '#ff4d4f' }}>{nameErr}</span>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button type="button" className="bx-btn" onClick={onClose}>{cancelL}</button>
           {ok && <button type="button" className="bx-btn-primary" disabled={busy} style={danger ? { background: '#ff4d4f' } : undefined} onClick={ok}>{okL}</button>}

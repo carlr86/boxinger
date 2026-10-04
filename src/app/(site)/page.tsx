@@ -3,6 +3,7 @@ import s from './landing.module.css';
 import { getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
 import ContactForm from '@/components/ContactForm';
+import { LanguageSwitch } from '@/components/LanguageSwitch';
 
 export const revalidate = 3600;
 
@@ -224,6 +225,7 @@ export default async function Landing() {
             <Link href="/privacidad" className={s.footerLink}>Privacidad</Link>
             <a href="#contacto" className={s.footerLink}>Contacto</a>
             <Link href="/arrepentimiento" className={s.footerLink}>Botón de arrepentimiento</Link>
+            <LanguageSwitch />
           </div>
         </div>
       </footer>

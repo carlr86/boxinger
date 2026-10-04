@@ -1,22 +1,35 @@
-// Formatting helpers shared by server and client. All copy is es-AR.
+// Formatting helpers shared by server and client. Spanish (es-AR) unless a locale is passed;
+// components get them already bound to the interface language from useI18n().
+import type { Locale } from '@/lib/i18n';
 
 const DAY = 864e5;
+const tag = (l: Locale) => (l === 'en' ? 'en-US' : 'es-AR');
 
-export function fmtPrice(v: number): string {
+export function fmtPrice(v: number, l: Locale = 'es'): string {
   v = Math.round(v * 100) / 100;
   return Number.isInteger(v)
-    ? v.toLocaleString('es-AR')
-    : v.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    ? v.toLocaleString(tag(l))
+    : v.toLocaleString(tag(l), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function money(currency: 'USD' | 'ARS', v: number): string {
-  return (currency === 'ARS' ? 'ARS ' : 'USD ') + fmtPrice(v);
+export function money(currency: 'USD' | 'ARS', v: number, l: Locale = 'es'): string {
+  return (currency === 'ARS' ? 'ARS ' : 'USD ') + fmtPrice(v, l);
 }
 
 const ts = (d: string | number | Date) => (d instanceof Date ? d.getTime() : typeof d === 'number' ? d : new Date(d).getTime());
 
-export function rel(d: string | number | Date): string {
+export function rel(d: string | number | Date, l: Locale = 'es'): string {
   const m = (Date.now() - ts(d)) / 6e4;
+  if (l === 'en') {
+    if (m < 1) return 'just now';
+    if (m < 60) return Math.floor(m) + ' min ago';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+    const days = Math.floor(h / 24);
+    if (days < 30) return days + (days === 1 ? ' day ago' : ' days ago');
+    const mo = Math.floor(days / 30);
+    return mo + (mo === 1 ? ' month ago' : ' months ago');
+  }
   if (m < 1) return 'recién';
   if (m < 60) return 'hace ' + Math.floor(m) + ' min';
   const h = m / 60;
@@ -28,26 +41,27 @@ export function rel(d: string | number | Date): string {
 }
 
 /** Compact relative time for tight spots (idea cards): "ahora", "5 min", "3 h", "2 d", "4 mes". */
-export function relShort(d: string | number | Date): string {
+export function relShort(d: string | number | Date, l: Locale = 'es'): string {
   const m = Math.floor((Date.now() - ts(d)) / 6e4);
-  if (m < 1) return 'ahora';
+  if (m < 1) return l === 'en' ? 'now' : 'ahora';
   if (m < 60) return m + ' min';
   const h = Math.floor(m / 60);
   if (h < 24) return h + ' h';
   const days = Math.floor(h / 24);
   if (days < 30) return days + ' d';
-  return Math.floor(days / 30) + ' mes';
+  return Math.floor(days / 30) + (l === 'en' ? ' mo' : ' mes');
 }
 
-export const exact = (d: string | number | Date) =>
-  new Date(ts(d)).toLocaleString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-export const dshort = (d: string | number | Date) => new Date(ts(d)).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
-export const ddmmyyyy = (d: string | number | Date) =>
-  new Date(ts(d)).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-export const dlong = (d: string | number | Date) =>
-  new Date(ts(d)).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+export const exact = (d: string | number | Date, l: Locale = 'es') =>
+  new Date(ts(d)).toLocaleString(tag(l), { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+export const dshort = (d: string | number | Date, l: Locale = 'es') => new Date(ts(d)).toLocaleDateString(tag(l), { day: 'numeric', month: 'short' });
+export const ddmmyyyy = (d: string | number | Date, l: Locale = 'es') =>
+  new Date(ts(d)).toLocaleDateString(tag(l), { day: '2-digit', month: '2-digit', year: 'numeric' });
+export const dlong = (d: string | number | Date, l: Locale = 'es') =>
+  new Date(ts(d)).toLocaleDateString(tag(l), { day: 'numeric', month: 'long', year: 'numeric' });
 export const daysSince = (d: string | number | Date) => Math.max(0, Math.floor((Date.now() - ts(d)) / DAY));
-export const daysL = (n: number) => (n === 0 ? 'Hoy' : n + (n === 1 ? ' día' : ' días'));
+export const daysL = (n: number, l: Locale = 'es') =>
+  l === 'en' ? (n === 0 ? 'Today' : n + (n === 1 ? ' day' : ' days')) : n === 0 ? 'Hoy' : n + (n === 1 ? ' día' : ' días');
 
 export const ini = (n: string) =>
   (n || '?')
