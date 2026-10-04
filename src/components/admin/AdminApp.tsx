@@ -8,7 +8,7 @@ import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Seg, Tag } from '@/components/ui';
 import { useGridCols } from '@/components/board/IdeaGrid';
-import { BAD, OK, PRO_TAG, planTone, type Tone } from '@/lib/constants';
+import { BAD, ENTERPRISE_ARS, ENTERPRISE_USD, OK, PRO_TAG, planTone, type Tone } from '@/lib/constants';
 import { ddmmyyyy, money, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
@@ -79,7 +79,8 @@ export function AdminApp() {
     if (!c.activated) return <Tag tone={c.invite === 'sent' ? ({ l: '', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' } as Tone) : ({ l: '', bg: '#fafafa', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.65)' } as Tone)}>{c.invite === 'sent' ? 'Acceso enviado' : 'Sin acceso'}</Tag>;
     return <Tag tone={OK}>Activa</Tag>;
   };
-  const priceCell = (c: Client) => c.plan === 'Enterprise' ? <span style={{ color: '#4338ca' }}>A medida</span> : c.plan !== 'Pro' ? '—' : <span style={{ color: c.deal_type ? '#d46b08' : undefined }}>{money(c.currency, Number(c.amount))}{c.deal_type ? (c.deal_type === 'fixed' ? ' · exclusivo' : ' · −' + c.deal_value + '%') : ''}</span>;
+  const paidEnt = (c: Client) => c.plan === 'Enterprise' && ['creem', 'mercadopago'].includes(c.provider || '');
+  const priceCell = (c: Client) => paidEnt(c) ? <span style={{ color: '#4338ca' }}>{money(c.currency, c.currency === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS)}</span> : c.plan === 'Enterprise' ? <span style={{ color: '#4338ca' }}>A medida</span> : c.plan !== 'Pro' ? '—' : <span style={{ color: c.deal_type ? '#d46b08' : undefined }}>{money(c.currency, Number(c.amount))}{c.deal_type ? (c.deal_type === 'fixed' ? ' · exclusivo' : ' · −' + c.deal_value + '%') : ''}</span>;
 
   const clientCols: Col<Client>[] = [
     { key: 'name', title: 'Nombre', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
@@ -125,13 +126,13 @@ export function AdminApp() {
     { key: 'email', title: 'Email', width: '1.4fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
     { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
     { key: 'precio', title: 'Precio', width: '170px', sort: (c) => (c.plan === 'Pro' ? Number(c.amount) * (c.currency === 'ARS' ? 0.001 : 1) : 0), render: priceCell },
-    { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' ? PROVIDER_L[c.provider || ''] || '—' : c.plan === 'Enterprise' ? 'A medida' : '—'}</span> },
+    { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' || paidEnt(c) ? PROVIDER_L[c.provider || ''] || '—' : c.plan === 'Enterprise' ? 'A medida' : '—'}</span> },
     { key: 'inicio', title: 'Inicio', width: '110px', sort: (c) => +new Date(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at), render: (c) => ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at) },
-    { key: 'st', title: 'Estado', width: '170px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && c.plan === 'Pro' ? (
-      // Cancelled by the customer: keeps Pro until the end of the paid period.
+    { key: 'st', title: 'Estado', width: '170px', render: (c) => c.sub_status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Pago pendiente</Tag> : c.cancel_at_period_end && (c.plan === 'Pro' || paidEnt(c)) ? (
+      // Cancelled by the customer: keeps the plan until the end of the paid period.
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
         <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>Cancelado</Tag>
-        {c.current_period_end && <span style={{ fontSize: 12, color: sec, whiteSpace: 'nowrap' }}>Pro hasta {ddmmyyyy(c.current_period_end)}</span>}
+        {c.current_period_end && <span style={{ fontSize: 12, color: sec, whiteSpace: 'nowrap' }}>{c.plan} hasta {ddmmyyyy(c.current_period_end)}</span>}
       </span>
     ) : statusTag(c.status === 'active') },
   ];

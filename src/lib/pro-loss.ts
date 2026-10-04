@@ -13,8 +13,9 @@ export type ProUsage = {
 const list = (names: string[]) => (names.length > 3 ? names.slice(0, 3).join(', ') + '…' : names.join(', '));
 
 /** One line per thing that stops working on Free, most important first. */
-export function proLosses(u: ProUsage, t: T): string[] {
+export function proLosses(u: ProUsage, t: T, plan: string = 'pro'): string[] {
   const out: string[] = [];
+  if (plan === 'enterprise') out.push(t('El Asistente IA: ideas nuevas sugeridas para tu producto y el análisis de qué ideas conviene aprobar.'));
   const lb = u.locked_boards;
   if (lb.length) {
     const ideas = lb.reduce((a, b) => a + Number(b.ideas), 0);

@@ -1,6 +1,7 @@
 import 'server-only';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendNow } from '@/lib/email/outbox';
+import { ENTERPRISE_ARS, ENTERPRISE_USD } from '@/lib/constants';
 
 export type SubRow = {
   account_id: string; plan: 'free' | 'pro' | 'enterprise'; status: string; provider: string | null; provider_subscription_id: string | null;
@@ -48,32 +49,46 @@ export async function findAccount(provider: string, subId: string | null, ref?: 
   return null;
 }
 
-/** Provider confirmed the subscription: the account is Pro. */
-export async function activate(accountId: string, o: { provider: 'paypal' | 'mercadopago' | 'creem'; subId: string; currency: 'USD' | 'ARS'; amount: number; periodEnd?: string | null }) {
+/** List price of a plan in a currency (Pro follows the price schedule; Enterprise is fixed). */
+export async function planPrice(plan: 'pro' | 'enterprise', currency: 'USD' | 'ARS'): Promise<number> {
+  if (plan === 'enterprise') return currency === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS;
+  return (await currentPrice(currency)).amount;
+}
+
+const PAID = ['pro', 'enterprise'];
+
+/** Provider confirmed the subscription: the account is Pro or Enterprise (the plan that was bought). */
+export async function activate(accountId: string, o: { provider: 'paypal' | 'mercadopago' | 'creem'; subId: string; currency: 'USD' | 'ARS'; amount: number; periodEnd?: string | null; plan?: 'pro' | 'enterprise' }) {
   const admin = supabaseAdmin();
   const { data: before } = await admin.from('subscriptions').select('*').eq('account_id', accountId).single();
-  const wasPro = before?.plan === 'pro' && ['active', 'past_due'].includes(before.status) && before.provider_subscription_id === o.subId;
-  const list = (await currentPrice(o.currency)).amount;
-  // A different subscription replacing an older one (e.g. switched provider): cancel the old one.
-  if (before?.provider_subscription_id && before.provider_subscription_id !== o.subId && before.plan === 'pro' && ['active', 'past_due'].includes(before.status)) {
+  // Unknown plan on the event: the same subscription keeps its plan; a new one is Pro.
+  const plan = o.plan || (before?.provider_subscription_id === o.subId && before?.plan === 'enterprise' ? 'enterprise' : 'pro');
+  const wasPro = before?.plan === plan && ['active', 'past_due'].includes(before.status) && before.provider_subscription_id === o.subId;
+  const list = await planPrice(plan, o.currency);
+  // A different subscription replacing an older one (switched provider, or Pro → Enterprise): cancel the old one.
+  if (before?.provider_subscription_id && before.provider_subscription_id !== o.subId && PAID.includes(before.plan) && ['active', 'past_due', 'cancelled'].includes(before.status) && before.provider !== 'manual') {
     const { cancelProviderSubscription } = await import('./sync');
     await cancelProviderSubscription(before.provider, before.provider_subscription_id).catch(() => {});
   }
   await admin.from('subscriptions').update({
-    plan: 'pro', status: 'active', provider: o.provider, provider_subscription_id: o.subId, currency: o.currency,
+    plan, status: 'active', provider: o.provider, provider_subscription_id: o.subId, currency: o.currency,
     list_amount: before?.provider_subscription_id === o.subId && before?.list_amount ? before.list_amount : list,
-    charged_amount: o.amount, pro_since: wasPro ? before!.pro_since : before?.pro_since && before.plan === 'pro' ? before.pro_since : new Date().toISOString(),
+    charged_amount: o.amount, pro_since: wasPro ? before!.pro_since : before?.pro_since && before.plan === plan ? before.pro_since : new Date().toISOString(),
+    ...(plan === 'enterprise' ? { deal_type: null, deal_value: null, deal_until: null } : {}),
     current_period_end: o.periodEnd || before?.current_period_end || null, cancel_at_period_end: false, updated_at: new Date().toISOString(),
   }).eq('account_id', accountId);
   if (!wasPro) {
     const owner = await accountOwner(accountId);
-    if (owner.email) await sendNow(owner.email, 'pro_welcome', {}, owner.ownerId, 'welcome:' + o.subId);
+    if (owner.email) {
+      if (plan === 'enterprise') await sendNow(owner.email, 'subscription_changed', { plan: 'enterprise' }, owner.ownerId, 'welcome:' + o.subId);
+      else await sendNow(owner.email, 'pro_welcome', {}, owner.ownerId, 'welcome:' + o.subId);
+    }
   }
 }
 
 export async function setPeriodEnd(accountId: string, periodEnd: string | null) {
   if (!periodEnd) return;
-  await supabaseAdmin().from('subscriptions').update({ current_period_end: periodEnd, status: 'active', updated_at: new Date().toISOString() }).eq('account_id', accountId).eq('plan', 'pro');
+  await supabaseAdmin().from('subscriptions').update({ current_period_end: periodEnd, status: 'active', updated_at: new Date().toISOString() }).eq('account_id', accountId).in('plan', PAID);
 }
 
 /** Cancelled at the provider: stays Pro until the paid period ends (the daily job downgrades). */
@@ -84,7 +99,7 @@ export async function cancelled(accountId: string, subId: string, periodEnd?: st
   const end = periodEnd || s.current_period_end || new Date().toISOString();
   await admin.from('subscriptions').update({ status: 'cancelled', cancel_at_period_end: true, current_period_end: end, updated_at: new Date().toISOString() }).eq('account_id', accountId);
   const owner = await accountOwner(accountId);
-  if (owner.email) await sendNow(owner.email, 'pro_cancelled', { until: end }, owner.ownerId, 'cancel:' + subId);
+  if (owner.email) await sendNow(owner.email, 'pro_cancelled', { until: end, plan: s.plan }, owner.ownerId, 'cancel:' + subId);
 }
 
 export async function expired(accountId: string, subId: string) {
@@ -95,7 +110,7 @@ export async function expired(accountId: string, subId: string) {
 
 export async function paymentFailed(accountId: string, provider: string, subId: string, key: string) {
   const admin = supabaseAdmin();
-  await admin.from('subscriptions').update({ status: 'past_due', updated_at: new Date().toISOString() }).eq('account_id', accountId).eq('provider_subscription_id', subId).eq('plan', 'pro');
+  await admin.from('subscriptions').update({ status: 'past_due', updated_at: new Date().toISOString() }).eq('account_id', accountId).eq('provider_subscription_id', subId).in('plan', PAID);
   const owner = await accountOwner(accountId);
   const name = provider === 'paypal' ? 'PayPal' : provider === 'creem' ? 'tu tarjeta (Creem)' : 'Mercado Pago';
   if (owner.email) await sendNow(owner.email, 'payment_failed', { provider: name }, owner.ownerId, 'payfail:' + key);

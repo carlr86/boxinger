@@ -61,8 +61,8 @@ export default async function Landing() {
     {
       name: 'Enterprise', price: 'USD ' + fmtPrice(ENTERPRISE_USD, locale), per: '/ mes', bd: '#c7d2fe', badge: 'Con IA',
       items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'],
-      note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.',
-      cta: 'Contactanos', ctaBg: '#fff', ctaFg: '#4338ca', ctaBd: '#4338ca', href: '#contacto-enterprise',
+      note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', noteHref: '#contacto-enterprise',
+      cta: 'Contratar Enterprise', ctaBg: '#4338ca', ctaFg: '#fff', ctaBd: '#4338ca', href: '/app/perfil?tab=sub&contratar=enterprise',
     },
   ];
 
@@ -185,7 +185,7 @@ export default async function Landing() {
                   <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>
                 ))}
               </div>
-              {'note' in p && p.note && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', textWrap: 'pretty' }}>{t(p.note)}</span>}
+              {'note' in p && p.note && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', textWrap: 'pretty' }}>{t(p.note)} <a href={p.noteHref} style={{ color: '#4338ca' }}>{t('Contactanos')}</a></span>}
               {'href' in p && p.href
                 ? <a href={p.href} className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</a>
                 : <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</Link>}

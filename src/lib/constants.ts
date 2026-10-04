@@ -78,7 +78,8 @@ export const TEXT3 = 'rgba(0,0,0,0.45)';
 export const BORDER = '#f0f0f0';
 export const MAX_MEMBERS = 4;
 /** Enterprise list price (USD / month) and what it includes; clients can get a custom price or limits. */
-export const ENTERPRISE_USD = 19.9;
+export const ENTERPRISE_USD = 19.99;
+export const ENTERPRISE_ARS = 29999; // Mercado Pago, same exchange as Pro (USD 9.99 ↔ ARS 14.999)
 export const ENTERPRISE_MEMBERS = 20;
 
 export const GROWTH: Record<string, Tone> = {

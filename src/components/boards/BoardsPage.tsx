@@ -149,7 +149,16 @@ export function BoardsPage() {
           )} />
         {(() => {
           const sub = ctx.account?.subscription;
-          if (!ctx.account || ctx.account.plan !== 'pro' || !sub?.cancel_at_period_end) return null;
+          if (!ctx.account || ctx.account.plan === 'free' || !sub?.cancel_at_period_end) return null;
+          if (ctx.account.plan === 'enterprise') return (
+            <Note tone="warn">
+              {sub.current_period_end
+                ? t('Cancelaste tu suscripción Enterprise. Seguís con Enterprise hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.', { date: dlong(sub.current_period_end) })
+                : t('Cancelaste tu suscripción Enterprise. Seguís con Enterprise hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.')}{' '}
+              <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Volver a Enterprise')}</a>
+              <FreeBoardSelect style={{ display: 'flex', marginTop: 8, fontSize: 13 }} />
+            </Note>
+          );
           return (
             <Note tone="warn">
               {sub.current_period_end

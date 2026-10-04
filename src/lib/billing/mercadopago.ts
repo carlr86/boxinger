@@ -18,9 +18,9 @@ async function mp<T = any>(method: string, path: string, body?: unknown, idem?: 
 }
 
 /** `startDate`: first charge later (coming back to Pro before the paid period ends: no double charge). */
-export async function createPreapproval(o: { accountId: string; payerEmail: string; amount: number; backUrl: string; startDate?: string | null }) {
+export async function createPreapproval(o: { accountId: string; payerEmail: string; amount: number; backUrl: string; startDate?: string | null; plan?: 'pro' | 'enterprise' }) {
   const p = await mp('POST', '/preapproval', {
-    reason: 'Boxinger Pro',
+    reason: o.plan === 'enterprise' ? 'Boxinger Enterprise' : 'Boxinger Pro', // the plan is read back from here (planOfPreapproval)
     external_reference: o.accountId,
     payer_email: o.payerEmail,
     back_url: o.backUrl,
@@ -31,6 +31,7 @@ export async function createPreapproval(o: { accountId: string; payerEmail: stri
 }
 
 export const getPreapproval = (id: string) => mp('GET', '/preapproval/' + id);
+export const planOfPreapproval = (p: { reason?: string }): 'pro' | 'enterprise' => (/enterprise/i.test(p.reason || '') ? 'enterprise' : 'pro');
 export const getAuthorizedPayment = (id: string) => mp('GET', '/authorized_payments/' + id);
 export const getPayment = (id: string) => mp('GET', '/v1/payments/' + id);
 

@@ -19,8 +19,8 @@ const X = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden sty
 const Ok = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden style={{ flex: 'none', marginTop: 4 }}><path d="M3 8.5l3 3 7-7" fill="none" stroke="#389e0d" strokeWidth="1.8" strokeLinecap="round" /></svg>);
 
 /** Retention step before cancelling Pro: what they lose, which board stays, and why they leave. */
-export function CancelModal({ open, until, onClose, onConfirm }: {
-  open: boolean; until: string | null; onClose: () => void; onConfirm: (reason: string | null, note: string) => Promise<void>;
+export function CancelModal({ open, plan = 'pro', until, onClose, onConfirm }: {
+  open: boolean; plan?: 'pro' | 'enterprise'; until: string | null; onClose: () => void; onConfirm: (reason: string | null, note: string) => Promise<void>;
 }) {
   const { t, dlong } = useI18n();
   const [usage, setUsage] = useState<ProUsage | null>(null);
@@ -31,7 +31,7 @@ export function CancelModal({ open, until, onClose, onConfirm }: {
   useEffect(() => { if (open) { setReason(null); setNote(''); setBusy(false); load(); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} width={520} destroyOnHidden title={t('¿Seguro que querés cancelar Pro?')}>
+    <Modal open={open} onCancel={onClose} footer={null} width={520} destroyOnHidden title={plan === 'enterprise' ? t('¿Seguro que querés cancelar Enterprise?') : t('¿Seguro que querés cancelar Pro?')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
           {until ? t('Si cancelás, el {date} tu cuenta pasa a Free y perdés:', { date: dlong(until) }) : t('Si cancelás, al terminar el mes pagado tu cuenta pasa a Free y perdés:')}
@@ -39,7 +39,7 @@ export function CancelModal({ open, until, onClose, onConfirm }: {
         {!usage ? <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Cargando…')}</span> : (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 8, padding: '12px 14px' }}>
-              {proLosses(usage, t).map((x) => <span key={x} style={{ display: 'flex', gap: 8, fontSize: 14, lineHeight: 1.5 }}><X />{x}</span>)}
+              {proLosses(usage, t, plan).map((x) => <span key={x} style={{ display: 'flex', gap: 8, fontSize: 14, lineHeight: 1.5 }}><X />{x}</span>)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ display: 'flex', gap: 8, fontSize: 14, lineHeight: 1.5 }}><Ok />{proKeeps(usage, t)}</span>
@@ -61,11 +61,11 @@ export function CancelModal({ open, until, onClose, onConfirm }: {
               placeholder={reason === 'falta_funcion' ? t('¿Qué función te faltó?') : t('Contanos un poco más (opcional)')} />
           )}
         </div>
-        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>{t('Si después volvés a Pro, recuperás todo tal como estaba.')}</span>
+        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>{plan === 'enterprise' ? t('Si después volvés a Enterprise, recuperás todo tal como estaba.') : t('Si después volvés a Pro, recuperás todo tal como estaba.')}</span>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <button type="button" className="bx-btn" disabled={busy} style={{ color: '#cf1322', borderColor: '#ffccc7' }}
             onClick={async () => { setBusy(true); await onConfirm(reason, note); setBusy(false); }}>{busy ? t('Cancelando…') : t('Cancelar igual')}</button>
-          <button type="button" className="bx-btn-primary" onClick={onClose}>{t('Quedarme en Pro')}</button>
+          <button type="button" className="bx-btn-primary" onClick={onClose}>{plan === 'enterprise' ? t('Quedarme en Enterprise') : t('Quedarme en Pro')}</button>
         </div>
       </div>
     </Modal>

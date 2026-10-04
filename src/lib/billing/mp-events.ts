@@ -9,7 +9,7 @@ export async function handlePreapproval(id: string) {
   if (!accountId) return;
   const amount = Number(p.auto_recurring?.transaction_amount || 0);
   if (p.status === 'authorized') {
-    await activate(accountId, { provider: 'mercadopago', subId: id, currency: 'ARS', amount, periodEnd: p.next_payment_date || addMonth() });
+    await activate(accountId, { provider: 'mercadopago', subId: id, currency: 'ARS', amount, periodEnd: p.next_payment_date || addMonth(), plan: mercadopago.planOfPreapproval(p) });
   } else if (p.status === 'paused') {
     await paymentFailed(accountId, 'mercadopago', id, 'paused:' + id + ':' + (p.last_modified || ''));
   } else if (p.status === 'cancelled') {

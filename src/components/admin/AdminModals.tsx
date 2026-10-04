@@ -54,7 +54,7 @@ export function NewClientModal({ open, onClose, onDone, prices }: { open: boolea
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Plan
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 }}>
-              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'USD 19,90 / mes · 20 miembros por equipo · IA']] as const).map(([k, l, d]) => (
+              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'USD 19,99 / mes · 20 miembros por equipo · IA']] as const).map(([k, l, d]) => (
                 <div key={k} style={card(f.plan === k)} onClick={() => setF({ ...f, plan: k })}><span style={{ fontWeight: 600 }}>{l}</span><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{d}</span></div>
               ))}
             </div>

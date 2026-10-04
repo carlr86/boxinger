@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   const { data: acc } = await admin.from('accounts').select('id').eq('owner_id', user.id).maybeSingle();
   if (!acc) return NextResponse.json({ error: 'No tenés una suscripción.' }, { status: 404 });
   const { data: s } = await admin.from('subscriptions').select('*').eq('account_id', acc.id).single();
-  if (!s || s.plan !== 'pro' || !s.provider_subscription_id || !['paypal', 'mercadopago', 'creem'].includes(s.provider))
+  if (!s || !['pro', 'enterprise'].includes(s.plan) || !s.provider_subscription_id || !['paypal', 'mercadopago', 'creem'].includes(s.provider))
     return NextResponse.json({ error: 'No hay una suscripción para cancelar.' }, { status: 400 });
   try {
     let end: string | null = s.current_period_end;

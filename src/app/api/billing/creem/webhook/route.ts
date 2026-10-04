@@ -1,11 +1,23 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import * as creem from '@/lib/billing/creem';
-import { activate, addMonth, applyRefund, cancelled, claimEvent, currentPrice, expired, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
+import { activate, addMonth, applyRefund, cancelled, claimEvent, expired, findAccount, finishEvent, paymentFailed, planPrice, recordPayment } from '@/lib/billing/service';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { reportError } from '@/lib/alerts';
 
 // Registered on Creem (webhook "Boxinger") with the checkout/subscription/refund events. See docs/SETUP.md.
 type Obj = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+const idOf = (v: unknown): string | null => (typeof v === 'string' ? v : v && typeof v === 'object' && 'id' in v ? String((v as Obj).id) : null);
+/**
+ * Pro or Enterprise, from the product on the event (checkout, its subscription or order, or the subscription itself),
+ * else the plan Boxinger put in the checkout metadata; undefined = keep what the account already has.
+ */
+function planOf(o: Obj): 'pro' | 'enterprise' | undefined {
+  const product = idOf(o.product) || idOf(o.subscription?.product) || idOf(o.order?.product);
+  if (product) return creem.planOfProduct(product);
+  const m = o.metadata?.plan || o.subscription?.metadata?.plan;
+  return m === 'enterprise' || m === 'pro' ? m : undefined;
+}
 
 /**
  * Which Boxinger account a Creem event belongs to. Creem's webhooks (and completed checkouts) don't carry our
@@ -40,7 +52,8 @@ export async function POST(req: NextRequest) {
   if (!(await claimEvent('creem', eventId, type, body))) return NextResponse.json({ ok: true, duplicate: true });
 
   try {
-    const list = async () => (await currentPrice('USD')).amount;
+    const plan = planOf(o);
+    const list = () => planPrice(plan || 'pro', 'USD');
     if (type === 'checkout.completed') {
       // The checkout carries the subscription and our account (metadata / request_id).
       const sub: Obj | string | null = o.subscription || null;
@@ -48,7 +61,7 @@ export async function POST(req: NextRequest) {
       const accountId = await accountFor(subId || null, o, o.id);
       if (accountId && subId) {
         const end = typeof sub === 'object' && sub ? sub.current_period_end_date : null;
-        await activate(accountId, { provider: 'creem', subId, currency: 'USD', amount: await list(), periodEnd: end || addMonth() });
+        await activate(accountId, { provider: 'creem', subId, currency: 'USD', amount: await list(), periodEnd: end || addMonth(), plan });
       }
     } else if (type.startsWith('subscription.')) {
       const subId: string = o.id;
@@ -56,7 +69,7 @@ export async function POST(req: NextRequest) {
       if (accountId && subId) {
         const end: string | null = o.current_period_end_date || null;
         if (type === 'subscription.active' || type === 'subscription.paid') {
-          await activate(accountId, { provider: 'creem', subId, currency: 'USD', amount: await list(), periodEnd: end || addMonth() });
+          await activate(accountId, { provider: 'creem', subId, currency: 'USD', amount: await list(), periodEnd: end || addMonth(), plan });
           if (type === 'subscription.paid') {
             const tx = o.last_transaction || {};
             await recordPayment({

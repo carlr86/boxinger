@@ -7,6 +7,12 @@ import { cleanEnv, requireEnv } from '@/lib/env';
 const base = () => (requireEnv('CREEM_API_KEY').startsWith('creem_test_') ? 'https://test-api.creem.io/v1' : 'https://api.creem.io/v1');
 
 export const creemConfigured = () => !!(cleanEnv(process.env.CREEM_API_KEY) && cleanEnv(process.env.CREEM_PRODUCT_ID));
+/** Creem product of each plan. Enterprise defaults to the live "Enterprise Plan" product (USD 19.99 a month). */
+export const productFor = (plan: 'pro' | 'enterprise') =>
+  plan === 'enterprise' ? cleanEnv(process.env.CREEM_ENTERPRISE_PRODUCT_ID) || 'prod_5vBg7bDxuY1x7J7TZ8c3ql' : requireEnv('CREEM_PRODUCT_ID');
+/** Which plan a Creem product id is (anything that isn't Enterprise is Pro). */
+export const planOfProduct = (productId: string | null | undefined): 'pro' | 'enterprise' =>
+  productId && productId === productFor('enterprise') ? 'enterprise' : 'pro';
 
 async function cr<T = any>(method: string, path: string, body?: unknown): Promise<T> { // eslint-disable-line @typescript-eslint/no-explicit-any
   const r = await fetch(base() + path, {
@@ -20,14 +26,14 @@ async function cr<T = any>(method: string, path: string, body?: unknown): Promis
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-/** Hosted checkout for Boxinger Pro. The account travels as metadata and as request_id. */
-export async function createCheckout(o: { accountId: string; email: string; successUrl: string }) {
+/** Hosted checkout for Boxinger Pro or Enterprise. The account travels as metadata and as request_id. */
+export async function createCheckout(o: { accountId: string; email: string; successUrl: string; plan?: 'pro' | 'enterprise' }) {
   const r = await cr('POST', '/checkouts', {
-    product_id: requireEnv('CREEM_PRODUCT_ID'),
+    product_id: productFor(o.plan || 'pro'),
     request_id: o.accountId,
     customer: { email: o.email },
     success_url: o.successUrl,
-    metadata: { account_id: o.accountId },
+    metadata: { account_id: o.accountId, plan: o.plan || 'pro' },
   });
   return { id: r.id as string, url: r.checkout_url as string };
 }

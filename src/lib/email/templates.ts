@@ -141,6 +141,13 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
         html: layout(t('Ya tenés Pro'), t('Tu suscripción está activa. Ahora podés crear equipos y buzones ilimitados, sumar hasta 4 miembros por equipo y usar la Matriz, el Roadmap y Status.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
       };
     case 'pro_cancelled':
+      if (p.plan === 'enterprise')
+        return {
+          subject: t('Cancelaste tu suscripción Enterprise'),
+          html: layout(t('Tu suscripción Enterprise se canceló'),
+            (p.until ? t('Seguís con Enterprise hasta el {date}.', { date: date(p.until) }) : t('Seguís con Enterprise hasta el fin del período pagado.')) + ' ' + t('Después tu cuenta pasa a Free y los buzones extra quedan en solo lectura.'),
+            { label: t('Volver a Enterprise'), url: `${SITE_URL}/app/perfil?tab=sub` }),
+        };
       return {
         subject: t('Cancelaste tu suscripción Pro'),
         html: layout(t('Tu suscripción Pro se canceló'),
@@ -151,17 +158,18 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
     case 'pro_ended': {
       // Churn emails: what stops working on Free, and that coming back restores it all.
       const u = p.usage as ProUsage | undefined;
-      const losses = u ? proLosses(u, t) : [];
+      const ent = p.plan === 'enterprise';
+      const losses = u ? proLosses(u, t, ent ? 'enterprise' : 'pro') : [];
       const ul = losses.length ? `<ul style="padding-left:18px;margin:8px 0 12px">${losses.map((x) => `<li style="margin:0 0 6px">${esc(x)}</li>`).join('')}</ul>` : '';
       const keeps = u ? `<p style="margin:0 0 12px;color:rgba(0,0,0,0.6)">${esc(proKeeps(u, t))}</p>` : '';
       const ending = template === 'pro_ending';
       return {
-        subject: ending ? t('Tu plan Pro termina el {date}', { date: date(p.until) }) : t('Tu cuenta pasó a Free'),
-        html: layout(ending ? t('Tu Pro termina el {date}', { date: date(p.until) }) : t('Tu suscripción Pro terminó'),
-          (ending ? t('El {date} tu cuenta pasa a Free. Si no volvés a Pro, vas a perder:', { date: date(p.until) }) : t('Tu cuenta ya es Free. Esto quedó en pausa:')) + ul + keeps +
-          `<p style="margin:0 0 4px"><b>${esc(t('Si volvés a Pro, recuperás todo tal como estaba.'))}</b> ${esc(ending ? t('Podés reactivarlo sin pagar de nuevo este mes.') : t('No hay que volver a configurar nada.'))}</p>` +
+        subject: ending ? (ent ? t('Tu plan Enterprise termina el {date}', { date: date(p.until) }) : t('Tu plan Pro termina el {date}', { date: date(p.until) })) : t('Tu cuenta pasó a Free'),
+        html: layout(ending ? (ent ? t('Tu Enterprise termina el {date}', { date: date(p.until) }) : t('Tu Pro termina el {date}', { date: date(p.until) })) : ent ? t('Tu suscripción Enterprise terminó') : t('Tu suscripción Pro terminó'),
+          (ending ? (ent ? t('El {date} tu cuenta pasa a Free. Si no volvés a Enterprise, vas a perder:', { date: date(p.until) }) : t('El {date} tu cuenta pasa a Free. Si no volvés a Pro, vas a perder:', { date: date(p.until) })) : t('Tu cuenta ya es Free. Esto quedó en pausa:')) + ul + keeps +
+          `<p style="margin:0 0 4px"><b>${esc(ent ? t('Si volvés a Enterprise, recuperás todo tal como estaba.') : t('Si volvés a Pro, recuperás todo tal como estaba.'))}</b> ${esc(ending ? t('Podés reactivarlo sin pagar de nuevo este mes.') : t('No hay que volver a configurar nada.'))}</p>` +
           (ending && u && u.boards.length > 1 ? `<p style="margin:12px 0 0;color:rgba(0,0,0,0.6)">${esc(t('¿Te quedás en Free? Elegí qué buzón sigue activo desde Mis Buzones.'))}</p>` : ''),
-          { label: t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
+          { label: ent ? t('Volver a Enterprise') : t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     }
     case 'payment_failed':

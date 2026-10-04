@@ -14,8 +14,8 @@ export async function POST() {
   const admin = supabaseAdmin();
   const { data: acc } = await admin.from('accounts').select('id').eq('owner_id', user.id).maybeSingle();
   const { data: s } = acc ? await admin.from('subscriptions').select('*').eq('account_id', acc.id).single() : { data: null };
-  if (!acc || !s || s.plan !== 'pro' || !s.cancel_at_period_end) return NextResponse.json({ error: 'No hay una suscripción cancelada para reactivar.' }, { status: 400 });
-  if (s.provider !== 'creem') return NextResponse.json({ checkout: true });
+  if (!acc || !s || !['pro', 'enterprise'].includes(s.plan) || !s.cancel_at_period_end) return NextResponse.json({ error: 'No hay una suscripción cancelada para reactivar.' }, { status: 400 });
+  if (s.provider !== 'creem') return NextResponse.json({ checkout: true, plan: s.plan });
   try {
     const c = await creem.resumeSubscription(s.provider_subscription_id);
     await admin.from('subscriptions').update({
