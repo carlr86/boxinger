@@ -13,12 +13,13 @@ import { boardUrl } from '@/lib/env';
 import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
 import { Table, type Col, type MenuItems } from './Table';
 import { Dashboard } from './Dashboard';
+import { ErrorsPage, type ErrorsData } from './Errors';
 import { AdminBoardDrawer, ClientDrawer, EditSubscriptionModal, NewClientModal, SchedulePriceModal } from './AdminModals';
 import type { AdminBoard, AdminUser, Client, Prices } from './types';
 
-type Tab = 'dashboard' | 'clientes' | 'boards' | 'suscripciones' | 'usuarios' | 'perfil';
-const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Clientes'], ['boards', 'Buzones'], ['suscripciones', 'Suscripciones'], ['usuarios', 'Usuarios']];
-const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes', boards: 'Buzones', suscripciones: 'Suscripciones', usuarios: 'Usuarios', perfil: 'Mi perfil' };
+type Tab = 'dashboard' | 'clientes' | 'boards' | 'suscripciones' | 'usuarios' | 'errores' | 'perfil';
+const TABS: [Tab, string][] = [['dashboard', 'Dashboard'], ['clientes', 'Clientes'], ['boards', 'Buzones'], ['suscripciones', 'Suscripciones'], ['usuarios', 'Usuarios'], ['errores', 'Errores']];
+const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes', boards: 'Buzones', suscripciones: 'Suscripciones', usuarios: 'Usuarios', errores: 'Errores', perfil: 'Mi perfil' };
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Lemon Squeezy', creem: 'Creem', manual: 'Manual' };
 const sec = 'rgba(0,0,0,0.45)';
 const planTag = (p: string) => <Tag tone={planTone(p)}>{p}</Tag>;
@@ -38,6 +39,8 @@ export function AdminApp() {
   const [boards, setBoards] = useState<AdminBoard[] | null>(null);
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [prices, setPrices] = useState<Prices | null>(null);
+  const [openErrors, setOpenErrors] = useState(0);
+  useEffect(() => { rpc<ErrorsData>('admin_errors', { p_limit: 1 }).then((r) => setOpenErrors(r.open)).catch(() => {}); }, []);
   const [clientId, setClientId] = useState<string | null>(null);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [editSub, setEditSub] = useState<Client | null>(null);
@@ -180,7 +183,10 @@ export function AdminApp() {
         </a>
         <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: 4, flexWrap: 'wrap' }}>
           {TABS.map(([k, l]) => (
-            <a key={k} onClick={() => go(k)} style={{ padding: '9px 16px', borderRadius: 8, fontSize: 14, background: tab === k ? '#d1fae5' : 'transparent', color: tab === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>{l}</a>
+            <a key={k} onClick={() => go(k)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '9px 16px', borderRadius: 8, fontSize: 14, background: tab === k ? '#d1fae5' : 'transparent', color: tab === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>
+              {l}
+              {k === 'errores' && openErrors > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#ff4d4f', color: '#fff', fontSize: 12, lineHeight: '20px', textAlign: 'center' }}>{openErrors}</span>}
+            </a>
           ))}
         </div>
         {me && (
@@ -218,6 +224,7 @@ export function AdminApp() {
             </>
           )}
           {tab === 'usuarios' && (users ? <Table cols={userCols} rows={users.filter((u) => match(u.name, u.email, u.role, u.board?.name))} rowKey={(u) => u.user_id} menu={userMenu} minWidth={1000} /> : <Loading />)}
+          {tab === 'errores' && <ErrorsPage onCount={setOpenErrors} />}
           {tab === 'perfil' && <AdminProfile onLogout={logout} />}
         </div>
       </div>

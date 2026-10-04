@@ -112,7 +112,7 @@ Las funciones de Postgres encolan emails en `email_outbox` respetando las prefer
 
 ## Errores en producción
 
-`reportError()` (`src/lib/alerts.ts`) guarda cada error en `app_errors` (el mismo error suma al contador) y le manda un email a `CONTACT_TO`: como máximo uno cada 6 horas por error y 20 por hora en total. Los abiertos se ven en el Panel de Admin › Dashboard, donde se marcan como resueltos.
+`reportError()` (`src/lib/alerts.ts`) guarda cada error en `app_errors` (el mismo error suma al contador) y le manda un email a `CONTACT_TO`: como máximo uno cada 6 horas por error y 20 por hora en total. Les llega a los Super Admin. Los abiertos se ven en Panel de Admin › Errores, donde se copian y se marcan como resueltos. Se ignoran los cortes de conexión del visitante (p. ej. "destination stream closed early").
 
 Lo usan: errores no atrapados del servidor (`src/instrumentation.ts`), los webhooks de Creem, Mercado Pago y PayPal, el checkout y la cancelación, el proceso diario, los emails que fallan 5 veces y los errores del navegador (`ErrorReporter`, `app/error.tsx` y `global-error.tsx` → `/api/client-error`). En desarrollo solo se loguean, salvo con `REPORT_ERRORS=1`.
 
