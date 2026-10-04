@@ -9,22 +9,21 @@ export const AI_MODEL = () => cleanEnv(process.env.ANTHROPIC_MODEL) || 'claude-s
 const PRICE_IN = () => Number(cleanEnv(process.env.AI_PRICE_IN_USD) || 3); // per million input tokens
 const PRICE_OUT = () => Number(cleanEnv(process.env.AI_PRICE_OUT_USD) || 15); // per million output tokens
 
-export type Tool = { name: string; description: string; input_schema: Record<string, unknown> };
+export type Schema = Record<string, unknown>;
 export type AiResult<T> = { data: T; model: string; inputTokens: number; outputTokens: number; costUsd: number };
 
 /**
- * One call that must answer through `tool` (so the reply is always JSON with that shape).
- * Waits up to 60 s and retries once when Anthropic is busy.
+ * One call whose reply is JSON matching `schema` (structured outputs: objects need additionalProperties false,
+ * and length limits are enforced by the caller, not the schema). Waits up to 60 s and retries once when Anthropic is busy.
  */
-export async function askWithTool<T>(o: { system: string; user: string; tool: Tool; maxTokens?: number }): Promise<AiResult<T>> {
+export async function askJson<T>(o: { system: string; user: string; schema: Schema; maxTokens?: number }): Promise<AiResult<T>> {
   const model = AI_MODEL();
   const body = JSON.stringify({
     model,
     max_tokens: o.maxTokens ?? 4000,
     system: o.system,
     messages: [{ role: 'user', content: o.user }],
-    tools: [o.tool],
-    tool_choice: { type: 'tool', name: o.tool.name },
+    output_config: { format: { type: 'json_schema', schema: o.schema } },
   });
   let last = '';
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -40,11 +39,11 @@ export async function askWithTool<T>(o: { system: string; user: string; tool: To
     if (r.status === 429 || r.status === 529 || r.status >= 500) { last = `Anthropic ${r.status} ${text.slice(0, 300)}`; continue; }
     if (!r.ok) throw new Error(`Anthropic ${r.status} ${text.slice(0, 300)}`);
     const j = JSON.parse(text);
-    const use = (j.content || []).find((c: { type: string; name?: string }) => c.type === 'tool_use' && c.name === o.tool.name);
-    if (!use) throw new Error(`Anthropic: la respuesta no trajo ${o.tool.name} (stop_reason ${j.stop_reason})`);
+    const out = (j.content || []).find((c: { type: string }) => c.type === 'text')?.text;
+    if (!out || j.stop_reason === 'max_tokens') throw new Error(`Anthropic: respuesta incompleta (stop_reason ${j.stop_reason})`);
     const inputTokens = Number(j.usage?.input_tokens || 0), outputTokens = Number(j.usage?.output_tokens || 0);
     return {
-      data: use.input as T, model: j.model || model, inputTokens, outputTokens,
+      data: JSON.parse(out) as T, model: j.model || model, inputTokens, outputTokens,
       costUsd: Math.round(((inputTokens * PRICE_IN() + outputTokens * PRICE_OUT()) / 1e6) * 1e5) / 1e5,
     };
   }

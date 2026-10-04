@@ -125,7 +125,7 @@ En el Buzón, el Equipo abre *Asistente IA*. El Admin describe el producto (`boa
 - **Mejores para el Backlog:** lee las ideas pendientes y en revisión (hasta 300, con votos, comentarios, impacto y esfuerzo) y propone hasta 5 para aprobar, con el motivo, la confianza e ideas repetidas.
 - **Sugerir ideas:** propone 5 ideas nuevas, distintas de las del buzón y con una de sus categorías; "Agregar al buzón" abre el formulario ya completo.
 
-`/api/ai` → `ai_begin` (plan Enterprise, rol del Equipo, descripción, topes) → Claude (`src/lib/ai/claude.ts`, respuesta forzada por *tool use*; instrucciones en `src/lib/ai/prompts.ts`) → `ai_finish` guarda tokens, costo y resultado en `ai_runs`. Topes en `ai_limits()`: 30 sugerencias y 15 análisis por buzón por mes, 500 usos por día en toda la plataforma. Un error no consume el cupo y va a `reportError('asistente-ia')`. A la IA no le llegan nombres ni emails. El uso y el costo por cliente se ven en Admin › detalle del cliente (`admin_ai_usage`).
+`/api/ai` → `ai_begin` (plan Enterprise, rol del Equipo, descripción, topes) → Claude (`src/lib/ai/claude.ts`, respuesta en JSON con esquema fijo (structured outputs); instrucciones en `src/lib/ai/prompts.ts`) → `ai_finish` guarda tokens, costo y resultado en `ai_runs`. Topes en `ai_limits()`: 30 sugerencias y 15 análisis por buzón por mes, 500 usos por día en toda la plataforma. Un error no consume el cupo y va a `reportError('asistente-ia')`. A la IA no le llegan nombres ni emails. El uso y el costo por cliente se ven en Admin › detalle del cliente (`admin_ai_usage`).
 
 ## Idioma (español e inglés)
 

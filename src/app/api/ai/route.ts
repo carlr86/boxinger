@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { getLocale } from '@/lib/i18n/server';
-import { aiConfigured, askWithTool } from '@/lib/ai/claude';
+import { aiConfigured, askJson } from '@/lib/ai/claude';
 import { cleanRank, cleanSuggestions, rankPrompt, suggestPrompt, type RankResult, type Snapshot, type Suggestion } from '@/lib/ai/prompts';
 import { reportError } from '@/lib/alerts';
 
@@ -29,12 +29,12 @@ export async function POST(req: Request) {
     let result: { suggestions: Suggestion[] } | RankResult;
     let usage;
     if (kind === 'suggest') {
-      const r = await askWithTool<{ ideas: Suggestion[] }>({ ...suggestPrompt(s, locale), maxTokens: 3000 });
+      const r = await askJson<{ ideas: Suggestion[] }>({ ...suggestPrompt(s, locale), maxTokens: 3000 });
       result = { suggestions: cleanSuggestions(r.data, s) };
       usage = r;
       if (!result.suggestions.length) throw new Error('La IA no devolvió sugerencias válidas');
     } else {
-      const r = await askWithTool<RankResult>({ ...rankPrompt(s, locale), maxTokens: 3000 });
+      const r = await askJson<RankResult>({ ...rankPrompt(s, locale), maxTokens: 3000 });
       result = cleanRank(r.data, s);
       usage = r;
     }

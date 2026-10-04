@@ -1,6 +1,6 @@
 import 'server-only';
 import type { Locale } from '@/lib/i18n';
-import type { Tool } from './claude';
+import type { Schema } from './claude';
 
 // Instructions for the Enterprise AI assistant, in one place so they can be tuned without touching the rest.
 // Everything users wrote (product description, ideas) goes inside tags and is data, never instructions.
@@ -50,27 +50,25 @@ ${JSON.stringify(s.ideas)}
 </ideas>
 
 Propose 5 new ideas for this product.`,
-    tool: {
-      name: 'propose_ideas',
-      description: 'Returns the 5 proposed ideas.',
-      input_schema: {
-        type: 'object',
-        properties: {
-          ideas: {
-            type: 'array', minItems: 1, maxItems: 5,
-            items: {
-              type: 'object',
-              properties: {
-                title: { type: 'string' }, description: { type: 'string' },
-                category_id: { type: 'string' }, why: { type: 'string' },
-              },
-              required: ['title', 'description', 'category_id', 'why'],
+    schema: {
+      type: 'object',
+      properties: {
+        ideas: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' }, description: { type: 'string' },
+              category_id: { type: 'string' }, why: { type: 'string' },
             },
+            required: ['title', 'description', 'category_id', 'why'],
+            additionalProperties: false,
           },
         },
-        required: ['ideas'],
       },
-    } satisfies Tool,
+      required: ['ideas'],
+      additionalProperties: false,
+    } satisfies Schema,
   };
 }
 
@@ -98,36 +96,35 @@ ${JSON.stringify(s.ideas)}
 </ideas>
 
 Pick the best candidates to approve into the Backlog.`,
-    tool: {
-      name: 'rank_ideas',
-      description: 'Returns the best ideas to approve, possible duplicates and a short summary.',
-      input_schema: {
-        type: 'object',
-        properties: {
-          summary: { type: 'string' },
-          candidates: {
-            type: 'array', maxItems: 5,
-            items: {
-              type: 'object',
-              properties: {
-                idea_id: { type: 'integer' }, reason: { type: 'string' },
-                confidence: { type: 'string', enum: ['alta', 'media', 'baja'] },
-              },
-              required: ['idea_id', 'reason', 'confidence'],
+    schema: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string' },
+        candidates: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              idea_id: { type: 'integer' }, reason: { type: 'string' },
+              confidence: { type: 'string', enum: ['alta', 'media', 'baja'] },
             },
-          },
-          duplicates: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: { idea_ids: { type: 'array', items: { type: 'integer' } }, note: { type: 'string' } },
-              required: ['idea_ids', 'note'],
-            },
+            required: ['idea_id', 'reason', 'confidence'],
+            additionalProperties: false,
           },
         },
-        required: ['summary', 'candidates', 'duplicates'],
+        duplicates: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: { idea_ids: { type: 'array', items: { type: 'integer' } }, note: { type: 'string' } },
+            required: ['idea_ids', 'note'],
+            additionalProperties: false,
+          },
+        },
       },
-    } satisfies Tool,
+      required: ['summary', 'candidates', 'duplicates'],
+      additionalProperties: false,
+    } satisfies Schema,
   };
 }
 
