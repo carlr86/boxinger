@@ -6,12 +6,18 @@ import * as mercadopago from '@/lib/billing/mercadopago';
 import * as creem from '@/lib/billing/creem';
 import { addMonth, cancelled } from '@/lib/billing/service';
 import { reportError } from '@/lib/alerts';
+import { CONTACT_TO, sendDirect } from '@/lib/email/contact';
+import { render } from '@/lib/email/templates';
 
-const REASONS = ['precio', 'poco_uso', 'falta_funcion', 'otra_herramienta', 'temporal', 'otro'];
+const REASONS: Record<string, string> = {
+  precio: 'Es caro para lo que lo uso', poco_uso: 'No lo estoy usando lo suficiente', falta_funcion: 'Me falta una función',
+  otra_herramienta: 'Me paso a otra herramienta', temporal: 'Es por un tiempo, después vuelvo', otro: 'Otro motivo',
+};
+const PROVIDERS: Record<string, string> = { creem: 'Creem', mercadopago: 'Mercado Pago', paypal: 'PayPal' };
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  const reason = REASONS.includes(body?.reason) ? body.reason : null;
+  const reason = typeof body?.reason === 'string' && body.reason in REASONS ? body.reason : null;
   const note = typeof body?.note === 'string' ? body.note.trim().slice(0, 1000) || null : null;
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
@@ -38,9 +44,26 @@ export async function POST(req: Request) {
     }
     await cancelled(acc.id, s.provider_subscription_id, end || addMonth());
     await admin.from('subscriptions').update({ cancel_reason: reason, cancel_note: note, cancelled_at: new Date().toISOString() }).eq('account_id', acc.id);
+    await notifyCancel(user.id, s.provider, end || addMonth(), reason, note);
     return NextResponse.json({ ok: true });
   } catch (e) {
     await reportError('cancelar-suscripcion', e, { provider: s.provider });
     return NextResponse.json({ error: 'No pudimos cancelar la suscripción. Escribinos a hola@boxinger.com.' }, { status: 502 });
+  }
+}
+
+/** Tells the Boxinger mailbox who cancelled and why (reply goes to the customer). Never blocks the cancellation. */
+async function notifyCancel(userId: string, provider: string, until: string, reason: string | null, note: string | null) {
+  try {
+    const { data: p } = await supabaseAdmin().from('profiles').select('name, email').eq('id', userId).single();
+    const email = String(p?.email || '');
+    const mail = render('admin_cancel', {
+      name: p?.name || email, email, provider: PROVIDERS[provider] || provider, note,
+      reason: reason ? REASONS[reason] : null,
+      until: new Date(until).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' }),
+    });
+    await sendDirect({ to: CONTACT_TO(), ...mail, replyTo: email ? { name: String(p?.name || email), address: email } : undefined });
+  } catch (e) {
+    await reportError('aviso-cancelacion', e, { provider });
   }
 }

@@ -193,6 +193,15 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
         subject: `Riesgo alto de churn: ${s(p.name)}`,
         html: layout('Suscripción Pro sin actividad', `<b>${esc(p.name)}</b> (${esc(p.email)}) lleva ${esc(p.days)} días sin actividad en sus buzones.`, { label: 'Ver dashboard', url: `${SITE_URL}/app/admin` }, 'Notificación del panel de Admin de plataforma.'),
       };
+    case 'admin_cancel': {
+      const rows = [['Cliente', `${esc(p.name)} (${esc(p.email)})`], ['Medio de pago', esc(p.provider)], ['Sigue en Pro hasta', esc(p.until)],
+        ['Motivo', esc(p.reason || 'No indicó')], ['Comentario', p.note ? esc(p.note).replace(/\n/g, '<br>') : 'Sin comentario']]
+        .map(([k, v]) => `<tr><td style="padding:4px 14px 4px 0;color:rgba(0,0,0,0.5);vertical-align:top;white-space:nowrap">${k}</td><td style="padding:4px 0">${v}</td></tr>`).join('');
+      return {
+        subject: `Canceló Pro: ${s(p.name)}`,
+        html: layout('Un cliente canceló su suscripción Pro', `<table style="border-collapse:collapse">${rows}</table>`, { label: 'Ver suscripciones', url: `${SITE_URL}/app/admin?tab=suscripciones` }, 'Podés responder este email para escribirle al cliente.'),
+      };
+    }
     case 'admin_weekly':
       return {
         subject: 'Resumen semanal de Boxinger',
