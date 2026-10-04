@@ -29,7 +29,7 @@ export async function createCheckout(o: { accountId: string; email: string; succ
     success_url: o.successUrl,
     metadata: { account_id: o.accountId },
   });
-  return { url: r.checkout_url as string };
+  return { id: r.id as string, url: r.checkout_url as string };
 }
 
 export type CreemSub = { id: string; status: string; current_period_end_date: string | null; canceled_at: string | null; metadata?: Record<string, string> | null };

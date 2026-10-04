@@ -1,9 +1,31 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import * as creem from '@/lib/billing/creem';
 import { activate, addMonth, cancelled, claimEvent, currentPrice, expired, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // Registered on Creem (webhook "Boxinger") with the checkout/subscription/refund events. See docs/SETUP.md.
 type Obj = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+/**
+ * Which Boxinger account a Creem event belongs to. Creem's webhooks (and completed checkouts) don't carry our
+ * metadata, so: known subscription id → metadata if present → the checkout Boxinger opened for the account
+ * (subscriptions.pending_checkout_id) → the customer's email (the account owner's, prefilled at checkout).
+ */
+async function accountFor(subId: string | null, o: Obj, checkoutId?: string): Promise<string | null> {
+  const found = await findAccount('creem', subId, o.metadata?.account_id || o.request_id || null);
+  if (found) return found;
+  if (checkoutId) {
+    const { data } = await supabaseAdmin().from('subscriptions').select('account_id').eq('pending_checkout_id', checkoutId).maybeSingle();
+    if (data) return data.account_id;
+  }
+  const email: string | undefined = (typeof o.customer === 'object' ? o.customer?.email : null) || undefined;
+  if (!email) return null;
+  const admin = supabaseAdmin();
+  const { data: p } = await admin.from('profiles').select('id').ilike('email', email).maybeSingle();
+  if (!p) return null;
+  const { data: acc } = await admin.from('accounts').select('id').eq('owner_id', p.id).maybeSingle();
+  return acc?.id || null;
+}
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
@@ -22,14 +44,14 @@ export async function POST(req: NextRequest) {
       // The checkout carries the subscription and our account (metadata / request_id).
       const sub: Obj | string | null = o.subscription || null;
       const subId = typeof sub === 'string' ? sub : sub?.id;
-      const accountId = await findAccount('creem', subId || null, o.metadata?.account_id || o.request_id);
+      const accountId = await accountFor(subId || null, o, o.id);
       if (accountId && subId) {
         const end = typeof sub === 'object' && sub ? sub.current_period_end_date : null;
         await activate(accountId, { provider: 'creem', subId, currency: 'USD', amount: await list(), periodEnd: end || addMonth() });
       }
     } else if (type.startsWith('subscription.')) {
       const subId: string = o.id;
-      const accountId = await findAccount('creem', subId, o.metadata?.account_id);
+      const accountId = await accountFor(subId, o);
       if (accountId && subId) {
         const end: string | null = o.current_period_end_date || null;
         if (type === 'subscription.active' || type === 'subscription.paid') {
@@ -52,7 +74,7 @@ export async function POST(req: NextRequest) {
       }
     } else if (type === 'refund.created') {
       const subId: string | null = typeof o.subscription === 'string' ? o.subscription : o.subscription?.id || null;
-      const accountId = await findAccount('creem', subId, o.metadata?.account_id);
+      const accountId = await accountFor(subId, o);
       await recordPayment({
         accountId, provider: 'creem', paymentId: String(o.id), subId, amount: Number(o.refund_amount || 0) / 100,
         currency: String(o.refund_currency || o.currency || 'USD'), status: 'refunded', paidAt: new Date().toISOString(), raw: body,

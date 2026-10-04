@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { SITE_URL } from '@/lib/env';
 import { isEmail } from '@/lib/format';
-import { PAYPAL_ENABLED } from '@/lib/constants';
+import { CREEM_ENABLED, PAYPAL_ENABLED } from '@/lib/constants';
 import * as paypal from '@/lib/billing/paypal';
 import * as mercadopago from '@/lib/billing/mercadopago';
 import * as creem from '@/lib/billing/creem';
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const provider = body.provider as 'paypal' | 'mercadopago' | 'creem';
   if (!['paypal', 'mercadopago', 'creem'].includes(provider)) return NextResponse.json({ error: 'Medio de pago inválido.' }, { status: 400 });
-  if (provider === 'creem' && !creem.creemConfigured()) return NextResponse.json({ error: 'El pago con tarjeta internacional no está disponible por ahora.' }, { status: 400 });
+  if (provider === 'creem' && (!CREEM_ENABLED || !creem.creemConfigured())) return NextResponse.json({ error: 'El pago con tarjeta internacional no está disponible por ahora.' }, { status: 400 });
   if (provider === 'paypal' && !PAYPAL_ENABLED) return NextResponse.json({ error: 'El pago con PayPal no está disponible por ahora. Probá con Mercado Pago.' }, { status: 400 });
 
   const admin = supabaseAdmin();
@@ -46,12 +46,12 @@ export async function POST(req: NextRequest) {
       });
     } else if (provider === 'creem') {
       const c = await creem.createCheckout({ accountId: acc.id, email: owner.email, successUrl: `${SITE_URL}/app/perfil?tab=sub&checkout=ok` });
-      r = { id: '', url: c.url };
+      r = { id: c.id, url: c.url };
     } else {
       const payer = typeof body.payer_email === 'string' && isEmail(body.payer_email) ? body.payer_email : owner.email;
       r = await mercadopago.createPreapproval({ accountId: acc.id, payerEmail: payer, amount, backUrl: `${SITE_URL}/api/billing/mercadopago/return` });
     }
-    await admin.from('subscriptions').update({ checkout_started_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('account_id', acc.id);
+    await admin.from('subscriptions').update({ checkout_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(provider === 'creem' ? { pending_checkout_id: r.id } : {}) }).eq('account_id', acc.id);
     return NextResponse.json({ url: r.url });
   } catch (e) {
     console.error('checkout', e);
