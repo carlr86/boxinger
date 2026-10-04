@@ -305,6 +305,9 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
               { l: 'Inicio', v: ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.free_since || c.created_at) },
               { l: 'Precio', v: c.plan === 'Enterprise' ? 'A medida · facturado fuera de la plataforma' : c.plan === 'Pro' ? money(c.currency, Number(c.amount)) + ' / mes' + (c.deal_type ? (c.deal_type === 'fixed' ? ' · Precio exclusivo' : ' · −' + c.deal_value + '%') + (c.deal_until ? ' hasta ' + ddmmyyyy(c.deal_until) : ' sin vencimiento') : '') : 'Sin costo', fg: c.deal_type ? '#d46b08' : undefined },
               ...(c.plan === 'Pro' ? [{ l: 'Medio de pago', v: PROVIDER_L[c.provider || ''] || '—' }, { l: c.cancel_at_period_end ? 'Pro hasta' : 'Próximo cobro', v: c.current_period_end ? dlong(c.current_period_end) : '—' }] : []),
+              ...(c.cancel ? [{ l: 'Motivo de la baja', v: ({ precio: 'Caro para lo que lo usa', poco_uso: 'No lo usa lo suficiente', falta_funcion: 'Le falta una función', otra_herramienta: 'Se pasa a otra herramienta', temporal: 'Por un tiempo, después vuelve', otro: 'Otro' } as Record<string, string>)[c.cancel.reason || ''] || 'No lo indicó' },
+                ...(c.cancel.note ? [{ l: 'Comentario', v: c.cancel.note }] : []),
+                { l: 'Canceló el', v: ddmmyyyy(c.cancel.at) }] : []),
               { l: 'Facturado a la fecha', v: [c.billed ? 'USD ' + fmtPrice(Number(c.billed)) : '', c.billed_ars ? 'ARS ' + fmtPrice(Number(c.billed_ars)) : ''].filter(Boolean).join(' · ') || '—' },
               { l: 'Riesgo de churn', v: risk, fg: risk === 'Alto' ? '#cf1322' : risk === 'Medio' ? '#d48806' : undefined },
             ]} />

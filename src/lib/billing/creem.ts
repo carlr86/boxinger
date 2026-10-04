@@ -39,6 +39,9 @@ export const getSubscription = (id: string) => cr<CreemSub>('GET', '/subscriptio
 /** Cancels at the end of the paid period. */
 export const cancelSubscription = (id: string) => cr<CreemSub>('POST', `/subscriptions/${id}/cancel`, { mode: 'scheduled', onExecute: 'cancel' });
 
+/** Undoes a scheduled cancellation (subscription in scheduled_cancel). */
+export const resumeSubscription = (id: string) => cr<CreemSub>('POST', `/subscriptions/${id}/resume`, {});
+
 /** creem-signature: hex HMAC-SHA256 of the raw body with the webhook secret. */
 export function verifyWebhook(raw: string, signature: string | null): boolean {
   const secret = cleanEnv(process.env.CREEM_WEBHOOK_SECRET);

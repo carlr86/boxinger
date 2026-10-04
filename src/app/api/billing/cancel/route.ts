@@ -7,7 +7,12 @@ import * as creem from '@/lib/billing/creem';
 import { addMonth, cancelled } from '@/lib/billing/service';
 import { reportError } from '@/lib/alerts';
 
-export async function POST() {
+const REASONS = ['precio', 'poco_uso', 'falta_funcion', 'otra_herramienta', 'temporal', 'otro'];
+
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const reason = REASONS.includes(body?.reason) ? body.reason : null;
+  const note = typeof body?.note === 'string' ? body.note.trim().slice(0, 1000) || null : null;
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Necesitás iniciar sesión.' }, { status: 401 });
@@ -32,6 +37,7 @@ export async function POST() {
       await mercadopago.cancelPreapproval(s.provider_subscription_id);
     }
     await cancelled(acc.id, s.provider_subscription_id, end || addMonth());
+    await admin.from('subscriptions').update({ cancel_reason: reason, cancel_note: note, cancelled_at: new Date().toISOString() }).eq('account_id', acc.id);
     return NextResponse.json({ ok: true });
   } catch (e) {
     await reportError('cancelar-suscripcion', e, { provider: s.provider });

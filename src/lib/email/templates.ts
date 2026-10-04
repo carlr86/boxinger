@@ -2,6 +2,7 @@ import { SITE_URL } from '@/lib/env';
 import { fmtPrice } from '@/lib/format';
 import { CONTACT_TOPICS, type ContactTopic } from '@/lib/constants';
 import { makeT, type Locale, type T } from '@/lib/i18n';
+import { proKeeps, proLosses, type ProUsage } from '@/lib/pro-loss';
 
 // Transactional emails, in the recipient's language (Spanish by default; English texts in src/lib/i18n/en.ts).
 // Each template gets the outbox payload written by the Postgres functions (see supabase/migrations).
@@ -146,6 +147,23 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
           (p.until ? t('Seguís con Pro hasta el {date}.', { date: date(p.until) }) : t('Seguís con Pro hasta el fin del período pagado.')) + ' ' + t('Después tu cuenta pasa a Free y los buzones extra quedan en solo lectura.'),
           { label: t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
+    case 'pro_ending':
+    case 'pro_ended': {
+      // Churn emails: what stops working on Free, and that coming back restores it all.
+      const u = p.usage as ProUsage | undefined;
+      const losses = u ? proLosses(u, t) : [];
+      const ul = losses.length ? `<ul style="padding-left:18px;margin:8px 0 12px">${losses.map((x) => `<li style="margin:0 0 6px">${esc(x)}</li>`).join('')}</ul>` : '';
+      const keeps = u ? `<p style="margin:0 0 12px;color:rgba(0,0,0,0.6)">${esc(proKeeps(u, t))}</p>` : '';
+      const ending = template === 'pro_ending';
+      return {
+        subject: ending ? t('Tu plan Pro termina el {date}', { date: date(p.until) }) : t('Tu cuenta pasó a Free'),
+        html: layout(ending ? t('Tu Pro termina el {date}', { date: date(p.until) }) : t('Tu suscripción Pro terminó'),
+          (ending ? t('El {date} tu cuenta pasa a Free. Si no volvés a Pro, vas a perder:', { date: date(p.until) }) : t('Tu cuenta ya es Free. Esto quedó en pausa:')) + ul + keeps +
+          `<p style="margin:0 0 4px"><b>${esc(t('Si volvés a Pro, recuperás todo tal como estaba.'))}</b> ${esc(ending ? t('Podés reactivarlo sin pagar de nuevo este mes.') : t('No hay que volver a configurar nada.'))}</p>` +
+          (ending && u && u.boards.length > 1 ? `<p style="margin:12px 0 0;color:rgba(0,0,0,0.6)">${esc(t('¿Te quedás en Free? Elegí qué buzón sigue activo desde Mis Buzones.'))}</p>` : ''),
+          { label: t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
+      };
+    }
     case 'payment_failed':
       return {
         subject: t('No pudimos cobrar tu suscripción Pro'),

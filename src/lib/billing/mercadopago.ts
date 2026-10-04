@@ -17,14 +17,15 @@ async function mp<T = any>(method: string, path: string, body?: unknown, idem?: 
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-export async function createPreapproval(o: { accountId: string; payerEmail: string; amount: number; backUrl: string }) {
+/** `startDate`: first charge later (coming back to Pro before the paid period ends: no double charge). */
+export async function createPreapproval(o: { accountId: string; payerEmail: string; amount: number; backUrl: string; startDate?: string | null }) {
   const p = await mp('POST', '/preapproval', {
     reason: 'Boxinger Pro',
     external_reference: o.accountId,
     payer_email: o.payerEmail,
     back_url: o.backUrl,
     status: 'pending',
-    auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: Math.round(o.amount * 100) / 100, currency_id: 'ARS' },
+    auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: Math.round(o.amount * 100) / 100, currency_id: 'ARS', ...(o.startDate ? { start_date: o.startDate } : {}) },
   }, 'preapproval-' + o.accountId + '-' + Date.now());
   return { id: p.id as string, url: p.init_point as string };
 }

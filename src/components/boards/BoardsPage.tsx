@@ -15,6 +15,7 @@ import type { BoardCard, TeamCtx, Visibility } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
 import { BoardDetail } from './BoardDetail';
 import { VisibilityModal } from '@/components/board/VisibilityModal';
+import { FreeBoardSelect } from '@/components/FreeBoardSelect';
 
 type ModalState =
   | { type: 'create'; teamId: string }
@@ -154,7 +155,8 @@ export function BoardsPage() {
               {sub.current_period_end
                 ? t('Cancelaste tu suscripción Pro. Seguís con Pro hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.', { date: dlong(sub.current_period_end) })
                 : t('Cancelaste tu suscripción Pro. Seguís con Pro hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.')}{' '}
-              <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Ver suscripción')}</a>
+              <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Volver a Pro')}</a>
+              <FreeBoardSelect style={{ display: 'flex', marginTop: 8, fontSize: 13 }} />
             </Note>
           );
         })()}
@@ -162,6 +164,12 @@ export function BoardsPage() {
           <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 16px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', fontSize: 14 }}>
             <span style={{ flex: 1, minWidth: 240, color: 'rgba(0,0,0,0.65)' }}>{t('Tu plan Free incluye 1 equipo con 1 buzón, solo para vos. Con Pro tenés equipos y buzones ilimitados, y hasta 4 miembros por equipo.')}</span>
             <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Ver planes')}</a>
+            {allOwnBoards.length > 1 && (
+              <div style={{ flexBasis: '100%', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+                <FreeBoardSelect style={{ fontSize: 13 }} />
+                <span>{t('Los demás quedan en solo lectura. Lo podés cambiar una vez cada 30 días.')}</span>
+              </div>
+            )}
           </div>
         )}
         {!ctx.account && ctx.teams.length === 0 && ctx.guest_boards.length > 0 && (

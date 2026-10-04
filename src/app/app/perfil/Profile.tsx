@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Modal, Popconfirm } from 'antd';
+import { Modal } from 'antd';
 import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Note, PageHead, Seg, Tag } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -14,6 +14,8 @@ import { CREEM_ENABLED, ENTERPRISE_TAG, PAYPAL_ENABLED } from '@/lib/constants';
 import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
+import { CancelModal } from './CancelModal';
+import { FreeBoardSelect } from '@/components/FreeBoardSelect';
 
 type Tab = 'datos' | 'notif' | 'sub';
 const card: React.CSSProperties = { background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 };
@@ -245,13 +247,29 @@ function Subscription() {
       window.location.href = j.url;
     } catch (e) { toast.err(e); goingRef.current = false; setGoing(null); setBusy(false); }
   }
-  async function cancel() {
+  const [cancelOpen, setCancelOpen] = useState(false);
+  // Cancelled but still paid for: Mercado Pago comes back with a new subscription that charges from that date.
+  const paidUntil = isPro && s?.cancel_at_period_end && s.current_period_end ? s.current_period_end : null;
+  async function resume() {
     setBusy(true);
     try {
-      const r = await fetch('/api/billing/cancel', { method: 'POST' });
+      const r = await fetch('/api/billing/resume', { method: 'POST' });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || t('No pudimos reactivar la suscripción.'));
+      if (j.checkout) { setBusy(false); setPick(true); setMpOpen(true); return; }
+      await refresh();
+      toast.ok('¡Volviste a Pro! Tu suscripción sigue como antes.');
+    } catch (e) { toast.err(e); }
+    setBusy(false);
+  }
+  async function cancel(reason: string | null = null, note = '') {
+    setBusy(true);
+    try {
+      const r = await fetch('/api/billing/cancel', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ reason, note }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || t('No pudimos cancelar la suscripción.'));
       await refresh();
+      setCancelOpen(false);
       toast.ok('Suscripción cancelada. Pro sigue activo hasta el fin del período pagado.');
     } catch (e) { toast.err(e); } finally { setBusy(false); }
   }
@@ -280,6 +298,7 @@ function Subscription() {
           {s.current_period_end
             ? t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Pro hasta el {date} y después tu cuenta pasa a Free.', { date: dlong(s.current_period_end) })
             : t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Pro hasta el fin del período pagado y después tu cuenta pasa a Free.')}
+          <FreeBoardSelect style={{ display: 'flex', marginTop: 8, fontSize: 13 }} />
         </Note>
       )}
       {isPro && s?.deal_type && (
@@ -304,9 +323,13 @@ function Subscription() {
             : <><button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>{t('Crear mi buzón')}</button>
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Para pasar a Pro primero creá tu equipo y tu buzón.')}</span></>)}
           {isPro && s && ['paypal', 'mercadopago', 'creem'].includes(s.provider || '') && !s.cancel_at_period_end && (
-            <Popconfirm title={t('¿Cancelar la suscripción Pro?')} description={t('Seguís con Pro hasta el fin del período pagado. Después tu cuenta pasa a Free.')} okText={t('Cancelar suscripción')} cancelText={t('Volver')} okButtonProps={{ danger: true }} onConfirm={cancel}>
-              <button type="button" className="bx-btn" disabled={busy}>{t('Cancelar suscripción')}</button>
-            </Popconfirm>
+            <button type="button" className="bx-btn" disabled={busy} onClick={() => setCancelOpen(true)}>{t('Cancelar suscripción')}</button>
+          )}
+          {isPro && s && ['mercadopago', 'creem'].includes(s.provider || '') && s.cancel_at_period_end && (
+            <>
+              <button type="button" className="bx-btn-primary" style={{ height: 36 }} disabled={busy} onClick={resume}>{t('Volver a Pro')}</button>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{s.provider === 'creem' ? t('Se reactiva tu suscripción: no se cobra nada ahora.') : t('No se cobra nada hasta que termine tu mes ya pagado.')}</span>
+            </>
           )}
           {isPro && s?.provider === 'manual' && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Tu plan Pro lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.')}</span>}
         </div>
@@ -323,6 +346,8 @@ function Subscription() {
         </div>
       </div>
 
+      <CancelModal open={cancelOpen} until={s?.current_period_end || null} onClose={() => setCancelOpen(false)} onConfirm={(r, n) => cancel(r, n)} />
+
       <Modal open={contact} onCancel={() => setContact(false)} footer={null} title={t('Consultar por Enterprise')} width={560} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Contanos sobre tu equipo y te escribimos con una propuesta a medida.')}</span>
@@ -333,7 +358,8 @@ function Subscription() {
       <Modal open={pick} onCancel={closePick} closable={!going} mask={{ closable: !going }} keyboard={!going} footer={null} title={t('Pasar a Pro')} width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.')}</span>
-          {CREEM_ENABLED
+          {paidUntil && <Note tone="success">{t('Ya pagaste hasta el {date}: el primer cobro de la nueva suscripción es ese día.', { date: dlong(paidUntil) })}</Note>}
+          {paidUntil ? null : CREEM_ENABLED
             ? <PayOption title={t('Tarjeta internacional')} sub={t('Visa, Mastercard, Amex, Apple Pay o Google Pay · cualquier país · en dólares')} price={money('USD', Number(prices.USD)) + perMonth} disabled={busy} loading={going === 'creem'} onClick={() => start('creem')} />
             : PAYPAL_ENABLED
               ? <PayOption title="PayPal" sub={t('Tarjeta o saldo PayPal · cualquier país')} price={money('USD', Number(prices.USD)) + perMonth} disabled={busy} loading={going === 'paypal'} onClick={() => start('paypal')} />

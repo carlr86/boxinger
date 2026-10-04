@@ -31,6 +31,10 @@ export async function POST(req: NextRequest) {
   if (sub && sub.plan === 'pro' && ['active', 'past_due'].includes(sub.status) && sub.provider !== 'manual')
     return NextResponse.json({ error: 'Ya tenés el plan Pro activo.' }, { status: 409 });
 
+  // Cancelled but still paid for: the new subscription starts charging when the paid period ends.
+  const paidUntil = sub && sub.plan === 'pro' && sub.status === 'cancelled' && sub.current_period_end && new Date(sub.current_period_end) > new Date() ? sub.current_period_end : null;
+  if (paidUntil && provider === 'creem' && sub?.provider === 'creem')
+    return NextResponse.json({ error: 'Tu suscripción con tarjeta sigue vigente: usá Volver a Pro para reactivarla sin pagar de nuevo.' }, { status: 409 });
   const owner = (acc as unknown as { profiles: { name: string; email: string } }).profiles;
   const currency = provider === 'mercadopago' ? 'ARS' : 'USD';
   const price = await currentPrice(currency);
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
       r = { id: c.id, url: c.url };
     } else {
       const payer = typeof body.payer_email === 'string' && isEmail(body.payer_email) ? body.payer_email : owner.email;
-      r = await mercadopago.createPreapproval({ accountId: acc.id, payerEmail: payer, amount, backUrl: `${SITE_URL}/api/billing/mercadopago/return` });
+      r = await mercadopago.createPreapproval({ accountId: acc.id, payerEmail: payer, amount, backUrl: `${SITE_URL}/api/billing/mercadopago/return`, startDate: paidUntil });
     }
     await admin.from('subscriptions').update({ checkout_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(provider === 'creem' ? { pending_checkout_id: r.id } : {}) }).eq('account_id', acc.id);
     return NextResponse.json({ url: r.url });

@@ -101,7 +101,10 @@ Límites anti-bots dentro de las funciones: 5 ideas cada 10 minutos, 30 votos y 
 
 - **PayPal** cobra en USD con el precio de lista en USD. **Mercado Pago** cobra en ARS con el precio de lista en ARS, que el Super Admin define por separado (no hay conversión automática).
 - La activación la confirman los **webhooks** (firma verificada con la API de PayPal y con `x-signature` HMAC en Mercado Pago). Los retornos del checkout aceleran la activación.
-- **Cancelar**: el cliente cancela desde *Mi perfil › Suscripción*; sigue con Pro hasta el fin del período y el job diario lo pasa a Free.
+- **Cancelar**: el cliente cancela desde *Mi perfil › Suscripción*, después de un paso de retención que le muestra lo que pierde (`pro_usage()`, textos en `src/lib/pro-loss.ts`), le deja elegir qué buzón sigue activo en Free (`set_free_board`) y le pregunta el motivo (se ve en Admin › detalle del cliente). Sigue con Pro hasta el fin del período y el job diario lo pasa a Free.
+- **Volver a Pro** antes del vencimiento: Creem reanuda la misma suscripción (`/subscriptions/{id}/resume`); en Mercado Pago, que no reactiva una cancelada, se crea una nueva con `start_date` = fin del período pagado, así no se cobra dos veces.
+- **Emails de churn**: 3 días antes del vencimiento (`pro_ending`) y el día que pasa a Free (`pro_ended`), con lo que pierde y que volviendo recupera todo.
+- **Buzón activo en Free**: el elegido (`accounts.free_board_id`) o, si no eligió, el más antiguo. En Free se puede cambiar una vez cada 30 días.
 - **Cambios de precio** programados por el Super Admin: con alcance "todas", el job diario actualiza cada suscripción en el proveedor el día de inicio; con "solo nuevas", solo cambia el checkout.
 - **Precios especiales** (descuento % o precio fijo, con vencimiento): se aplican al instante en el proveedor y el job diario los revierte al vencer.
 - El Super Admin puede dar Pro "manual" (sin cobro) desde el panel.

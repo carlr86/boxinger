@@ -35,6 +35,24 @@ export async function GET(req: NextRequest) {
   const { data: over } = await admin.from('subscriptions').update({ plan: 'free', status: 'expired', free_since: now.toISOString(), cancel_at_period_end: false })
     .eq('plan', 'pro').eq('status', 'cancelled').lt('current_period_end', now.toISOString()).select('account_id');
   log.downgraded = over?.length || 0;
+  // 3b. Churn emails: "your Pro ends in 3 days" and "your account is now Free", with what they lose.
+  const owners = async (ids: string[]) => {
+    const { data } = ids.length ? await admin.from('accounts').select('id, owner_id, profiles:owner_id (email)').in('id', ids) : { data: [] };
+    return new Map(((data || []) as unknown as { id: string; owner_id: string; profiles: { email: string } }[]).map((a) => [a.id, a]));
+  };
+  const churnMail = async (accountId: string, template: string, until: string | null, dedupe: string, who: Map<string, { owner_id: string; profiles: { email: string } }>) => {
+    const o = who.get(accountId);
+    if (!o?.profiles?.email) return;
+    const { data: usage } = await admin.rpc('pro_usage', { p_account: accountId });
+    await admin.from('email_outbox').upsert({ to_email: o.profiles.email, user_id: o.owner_id, template, payload: { until, usage }, dedupe_key: dedupe }, { onConflict: 'dedupe_key', ignoreDuplicates: true });
+  };
+  const endedWho = await owners((over || []).map((s) => s.account_id));
+  for (const s of over || []) await churnMail(s.account_id, 'pro_ended', null, 'ended:' + s.account_id + ':' + now.toISOString().slice(0, 10), endedWho);
+  const { data: ending } = await admin.from('subscriptions').select('account_id, current_period_end').eq('plan', 'pro').eq('status', 'cancelled')
+    .gt('current_period_end', now.toISOString()).lte('current_period_end', new Date(now.getTime() + 3 * 864e5).toISOString());
+  const endingWho = await owners((ending || []).map((s) => s.account_id));
+  for (const s of ending || []) await churnMail(s.account_id, 'pro_ending', s.current_period_end, 'ending:' + s.account_id + ':' + String(s.current_period_end).slice(0, 10), endingWho);
+  log.pro_ending = ending?.length || 0;
 
   // 4. Daily digest of comments for the Team.
   const { data: digest } = await admin.rpc('digest_candidates', { p_since: new Date(now.getTime() - 864e5).toISOString() });

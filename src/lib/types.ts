@@ -103,7 +103,7 @@ export interface TeamCtx {
   owner: Person; members: Person[]; pending: { id: string; email: string }[]; boards: BoardCard[];
 }
 export interface Subscription {
-  account_id: string; plan: 'free' | 'pro' | 'enterprise'; status: string; provider: 'paypal' | 'mercadopago' | 'manual' | null;
+  account_id: string; plan: 'free' | 'pro' | 'enterprise'; status: string; provider: 'paypal' | 'mercadopago' | 'creem' | 'manual' | null;
   provider_subscription_id: string | null; currency: 'USD' | 'ARS'; list_amount: number | null; charged_amount: number | null;
   pro_since: string | null; free_since: string; current_period_end: string | null; cancel_at_period_end: boolean;
   deal_type: 'pct' | 'fixed' | null; deal_value: number | null; deal_until: string | null; effective_amount: number;
@@ -115,7 +115,7 @@ export interface MyContext {
     notif: Record<string, boolean>; admin_notif: Record<string, boolean>; created_at: string; providers: string[];
     onboarding_skipped?: boolean; locale?: 'es' | 'en' | null;
   };
-  account: { id: string; name: string; status: string; created_at: string; pro: boolean; plan: 'free' | 'pro' | 'enterprise'; member_limit: number | null; subscription: Subscription } | null;
+  account: { id: string; name: string; status: string; created_at: string; pro: boolean; plan: 'free' | 'pro' | 'enterprise'; member_limit: number | null; free_board?: string | null; subscription: Subscription } | null;
   teams: TeamCtx[];
   guest_boards: BoardCard[];
   prices: { USD: number; ARS: number };
