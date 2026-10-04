@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE_KEYS, statusTone } from '@/lib/constants';
-import { dshort, exact, relShort } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
 
@@ -23,6 +23,7 @@ const GridIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="no
 const ListIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>);
 
 function LayoutToggle({ value, onChange }: { value: Layout; onChange: (l: Layout) => void }) {
+  const { t } = useI18n();
   const btn = (k: Layout, icon: React.ReactNode, label: string) => (
     <Tooltip title={label}>
       <button type="button" aria-label={label} aria-pressed={value === k} onClick={() => onChange(k)}
@@ -34,8 +35,8 @@ function LayoutToggle({ value, onChange }: { value: Layout; onChange: (l: Layout
   );
   return (
     <div style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 6, background: 'rgba(0,0,0,0.05)' }}>
-      {btn('cards', <GridIcon />, 'Ver como tarjetas')}
-      {btn('list', <ListIcon />, 'Ver como lista')}
+      {btn('cards', <GridIcon />, t('Ver como tarjetas'))}
+      {btn('list', <ListIcon />, t('Ver como lista'))}
     </div>
   );
 }
@@ -52,11 +53,13 @@ export function useGridCols() {
 }
 
 export function OriginTag({ origin }: { origin: string }) {
+  const { t } = useI18n();
   const o = ORIGIN[origin];
-  return <Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{o.l}</Tag>;
+  return <Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>;
 }
 
 export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean }) {
+  const { t } = useI18n();
   const { cols, isMobile } = useGridCols();
   const [q, setQ] = useState('');
   const [fCat, setFCat] = useState('all');
@@ -87,66 +90,66 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   return (
     <>
       <PageHead
-        title={backlog ? 'Backlog' : 'Buzón de Ideas'}
-        sub={backlog ? 'Ideas aprobadas por el Equipo, candidatas para el roadmap.' : 'Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.'}
+        title={backlog ? t('Backlog') : t('Buzón de Ideas')}
+        sub={backlog ? t('Ideas aprobadas por el Equipo, candidatas para el roadmap.') : t('Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.')}
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <LayoutToggle value={layout} onChange={setLayout} />
-            {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ Nueva idea</button>}
+            {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ {t('Nueva idea')}</button>}
           </div>
         }
       />
       {!backlog && api.me && api.canWrite && !api.canCreate && (
         <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
-          {api.isTeam ? 'En este buzón el Admin no habilitó la carga de ideas para los miembros. Podés votar, comentar y gestionar las ideas.' : 'En este buzón solo el Equipo carga ideas. Podés votar y comentar las ideas publicadas.'}
+          {api.isTeam ? t('En este buzón el Admin no habilitó la carga de ideas para los miembros. Podés votar, comentar y gestionar las ideas.') : t('En este buzón solo el Equipo carga ideas. Podés votar y comentar las ideas publicadas.')}
         </div>
       )}
       {isMobile ? (
         // Phones: one column, full-width controls, everything left-aligned.
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en título y descripción" style={{ width: '100%', height: 36 }} />}
-          <Seg options={[['all', 'Todas'], ['equipo', 'Equipo'], ['comunidad', 'Comunidad']]} value={fOri} onChange={setFOri} style={{ alignSelf: 'flex-start' }} />
+          {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ width: '100%', height: 36 }} />}
+          <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'flex-start' }} />
           <div style={{ display: 'grid', gridTemplateColumns: backlog ? '1fr' : '1fr 1fr', gap: 10 }}>
             <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
-              <option value="all">Categorías</option>
+              <option value="all">{t('Categorías')}</option>
               {api.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             {!backlog && (
               <select className="bx-select" value={fSt} onChange={(e) => setFSt(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
-                <option value="all">Estados</option>
-                {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
-                <option value="lanzada">{LAUNCHED.l}</option>
+                <option value="all">{t('Estados')}</option>
+                {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{t(v.l)}</option>)}
+                <option value="lanzada">{t(LAUNCHED.l)}</option>
               </select>
             )}
           </div>
           {!backlog && (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>
-              Ordenar
+              {t('Ordenar')}
               <select className="bx-select" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} style={{ height: 36 }}>
-                <option value="recent">Más recientes</option><option value="votes">Más votadas</option><option value="comments">Más comentadas</option>
+                <option value="recent">{t('Más recientes')}</option><option value="votes">{t('Más votadas')}</option><option value="comments">{t('Más comentadas')}</option>
               </select>
             </label>
           )}
         </div>
       ) : (
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en título y descripción" style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />}
-        <Seg options={[['all', 'Todas'], ['equipo', 'Equipo'], ['comunidad', 'Comunidad']]} value={fOri} onChange={setFOri} style={{ alignSelf: 'auto' }} />
+        {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />}
+        <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'auto' }} />
         <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)}>
-          <option value="all">Todas las categorías</option>
+          <option value="all">{t('Todas las categorías')}</option>
           {api.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         {!backlog && (
           <>
             <select className="bx-select" value={fSt} onChange={(e) => setFSt(e.target.value)}>
-              <option value="all">Todos los estados</option>
-              {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
-                <option value="lanzada">{LAUNCHED.l}</option>
+              <option value="all">{t('Todos los estados')}</option>
+              {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{t(v.l)}</option>)}
+                <option value="lanzada">{t(LAUNCHED.l)}</option>
             </select>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-              <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Ordenar</span>
+              <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Ordenar')}</span>
               <select className="bx-select" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
-                <option value="recent">Más recientes</option><option value="votes">Más votadas</option><option value="comments">Más comentadas</option>
+                <option value="recent">{t('Más recientes')}</option><option value="votes">{t('Más votadas')}</option><option value="comments">{t('Más comentadas')}</option>
               </select>
             </div>
           </>
@@ -156,8 +159,8 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
 
       {list.length === 0 && (
         <Empty
-          text={backlog ? 'Todavía no hay ideas aprobadas.' : filtersOn ? 'No hay ideas que coincidan con los filtros.' : 'Este buzón todavía no tiene ideas.'}
-          cta={!backlog && !filtersOn && api.canCreate ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>Cargá la primera idea</button> : undefined}
+          text={backlog ? t('Todavía no hay ideas aprobadas.') : filtersOn ? t('No hay ideas que coincidan con los filtros.') : t('Este buzón todavía no tiene ideas.')}
+          cta={!backlog && !filtersOn && api.canCreate ? <button type="button" className="bx-btn-primary" onClick={api.openNew}>{t('Cargá la primera idea')}</button> : undefined}
         />
       )}
       {layout === 'list' ? (
@@ -173,7 +176,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       )}
       {list.length > limit && (
         <button type="button" className="bx-btn" style={{ alignSelf: 'center' }} onClick={() => setLimit(limit + PAGE)}>
-          Ver más ideas ({list.length - limit})
+          {t('Ver más ideas ({n})', { n: list.length - limit })}
         </button>
       )}
     </>
@@ -186,21 +189,23 @@ export { VoteIcon, CommentIcon };
 
 /** Who proposed the idea: small avatar + name (team members and Community alike). */
 export function AuthorLine({ i, size = 18 }: { i: Pick<Idea, 'author_id' | 'author_name' | 'author_avatar'>; size?: number }) {
+  const { t } = useI18n();
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
       <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={size} color={i.author_id ? undefined : '#d9d9d9'} />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.author_name}</span>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.author_id ? i.author_name : t(i.author_name)}</span>
     </span>
   );
 }
 
 /** The "Votar" button with its vote menu (or the disabled state that explains why you can't vote). */
 function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
+  const { t } = useI18n();
   const [pop, setPop] = useState(false);
   const vm = voteMode(api, i);
   const mine = vm === 'can' ? i.my_vote : null;
   const disabled = vm === 'closed' || vm === 'own';
-  const label = vm === 'closed' ? 'Votación cerrada' : vm === 'own' ? 'Tu idea' : mine ? 'Votaste: ' + api.voteL(mine) : 'Votar';
+  const label = vm === 'closed' ? t('Votación cerrada') : vm === 'own' ? t('Tu idea') : mine ? t('Votaste: {option}', { option: api.voteL(mine) }) : t('Votar');
   const voteBtn = (
     <button type="button" disabled={disabled}
       onClick={(e) => { e.stopPropagation(); if (vm === 'login') api.goLogin(true); }}
@@ -217,13 +222,13 @@ function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
           {VOTE_KEYS.map((k) => (
             <div key={k} className="bx-item" onClick={() => { setPop(false); api.vote(i.id, k); }}
               style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: mine === k ? '#d1fae5' : undefined, color: mine === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>
-              {api.voteL(k)}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? 'Tu voto' : ''}</span>
+              {api.voteL(k)}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? t('Tu voto') : ''}</span>
             </div>
           ))}
           {mine && (
             <>
               <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
-              <div className="bx-item" style={{ color: 'rgba(0,0,0,0.45)' }} onClick={() => { setPop(false); api.vote(i.id, null); }}>Quitar mi voto</div>
+              <div className="bx-item" style={{ color: 'rgba(0,0,0,0.45)' }} onClick={() => { setPop(false); api.vote(i.id, null); }}>{t('Quitar mi voto')}</div>
             </>
           )}
         </div>
@@ -235,6 +240,7 @@ function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
 
 /** One idea per row: easier to scan when a board has many ideas. */
 function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?: boolean; first: boolean }) {
+  const { t, dshort, exact, relShort } = useI18n();
   return (
     <div className="bx-idea-row" onClick={() => api.openIdea(i.id)}
       style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', padding: '14px 20px', borderTop: first ? undefined : '1px solid #f0f0f0', cursor: 'pointer', opacity: i.hidden ? 0.55 : 1 }}>
@@ -243,15 +249,15 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           <OriginTag origin={i.origin} />
           <Tag>{api.catL(i.category_id)}</Tag>
-          <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>
-          {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Oculta</span>}
+          <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
+          {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
           <span style={{ marginLeft: 4 }}><AuthorLine i={i} /></span>
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, color: 'rgba(0,0,0,0.45)', flex: 'none', marginLeft: 'auto' }}>
-        <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
+        <Tooltip title={t('Votaciones')}><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
-        <span title={exact(i.created_at)} style={{ whiteSpace: 'nowrap' }}>{backlog && i.approved_at ? 'Aprobada el ' + dshort(i.approved_at) : relShort(i.created_at)}</span>
+        <span title={exact(i.created_at)} style={{ whiteSpace: 'nowrap' }}>{backlog && i.approved_at ? t('Aprobada el {date}', { date: dshort(i.approved_at) }) : relShort(i.created_at)}</span>
         {!backlog && <span style={{ minWidth: 0 }}><VoteControl api={api} i={i} /></span>}
       </div>
     </div>
@@ -259,6 +265,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
 }
 
 function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boolean }) {
+  const { t, dshort, exact, relShort } = useI18n();
   const short = i.description.length > 140 ? i.description.slice(0, 140).trimEnd() : i.description;
   const showRate = api.isTeam && api.pro && (i.status === 'aprobada' || i.status === 'rechazada');
 
@@ -267,36 +274,36 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         <OriginTag origin={i.origin} />
         <Tag>{api.catL(i.category_id)}</Tag>
-        <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>
-        {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Oculta</span>}
+        <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
+        {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
       </div>
       <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.title}</div>
       <AuthorLine i={i} />
       <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 14, lineHeight: 1.57, flex: 1, overflowWrap: 'anywhere' }}>
-        {short}{i.description.length > 140 && <><span>… </span><a style={{ color: '#059669' }}>Ver más</a></>}
+        {short}{i.description.length > 140 && <><span>… </span><a style={{ color: '#059669' }}>{t('Ver más')}</a></>}
       </div>
       {showRate && (
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
           {(['impact', 'effort'] as const).map((k) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>{k === 'impact' ? 'Impacto' : 'Esfuerzo'}</span><Dots v={rateOf(i, k)} k={k} />
+              <span>{k === 'impact' ? t('Impacto') : t('Esfuerzo')}</span><Dots v={rateOf(i, k)} k={k} />
             </div>
           ))}
         </div>
       )}
       {api.isTeam && api.pro && i.status === 'aprobada' && !!i.growth?.length && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }} title="Growth · solo visible para el Equipo">
-          {i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{GROWTH[k].l}</Tag>)}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }} title={t('Growth · solo visible para el Equipo')}>
+          {i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{t(GROWTH[k].l)}</Tag>)}
         </div>
       )}
       {backlog && i.approved_at && (
         <div style={{ fontSize: 13, color: '#389e0d', background: '#f6ffed', borderRadius: 6, padding: '6px 10px' }}>
-          Aprobada el {dshort(i.approved_at)} · {i.votes} votos finales
+          {t('Aprobada el {date} · {n} votos finales', { date: dshort(i.approved_at), n: i.votes })}
         </div>
       )}
       {/* One line, so every card's footer sits at the same height. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'rgba(0,0,0,0.45)', borderTop: '1px solid #f0f0f0', paddingTop: 12, flexWrap: 'nowrap' }}>
-        <Tooltip title="Votaciones"><span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><VoteIcon />{i.votes}</span></Tooltip>
+        <Tooltip title={t('Votaciones')}><span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><CommentIcon />{i.comments}</span>
         <Tooltip title={exact(i.created_at)}><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{relShort(i.created_at)}</span></Tooltip>
         {!backlog && <VoteControl api={api} i={i} />}

@@ -2,11 +2,12 @@
 import { useMemo, useState } from 'react';
 import { PageHead, Seg, Tag } from '@/components/ui';
 import { IDEA_STATUS, statusTone } from '@/lib/constants';
-import { plural } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import { AuthorLine, OriginTag } from './IdeaGrid';
 import type { BoardApi } from './shared';
 
 export function Ranking({ api }: { api: BoardApi }) {
+  const { t, plural } = useI18n();
   const [cat, setCat] = useState('all');
   // `rank` is the board-wide order (score, then Importante, total votes, age), so filtering
   // by category keeps the same relative order the ranking would compute inside it.
@@ -16,8 +17,8 @@ export function Ranking({ api }: { api: BoardApi }) {
   );
   return (
     <>
-      <PageHead title="Ranking" sub="Las 10 ideas con mayor puntaje entre Pendiente de revisión y En revisión." />
-      <Seg options={[['all', 'Todas'] as [string, string]].concat(api.cats.map((c) => [c.id, c.name]))} value={cat} onChange={setCat} />
+      <PageHead title={t('Ranking')} sub={t('Las 10 ideas con mayor puntaje entre Pendiente de revisión y En revisión.')} />
+      <Seg options={[['all', t('Todas')] as [string, string]].concat(api.cats.map((c) => [c.id, c.name]))} value={cat} onChange={setCat} />
       <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', overflow: 'hidden' }}>
         {rows.map((i, k) => (
           <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: '1px solid #f0f0f0', flexWrap: 'wrap' }}>
@@ -31,22 +32,22 @@ export function Ranking({ api }: { api: BoardApi }) {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-              {api.isTeam && <span style={{ whiteSpace: 'nowrap' }}>{i.score} pts</span>}
+              {api.isTeam && <span style={{ whiteSpace: 'nowrap' }}>{t('{n} pts', { n: i.score ?? 0 })}</span>}
               <span style={{ whiteSpace: 'nowrap' }}>{plural(i.votes, 'voto', 'votos')}</span>
               <span style={{ whiteSpace: 'nowrap' }}>{plural(i.comments, 'comentario', 'comentarios')}</span>
             </div>
             {api.isTeam && api.canWrite ? (
               <select className="bx-select" style={{ width: 180 }} value={i.status} onChange={(e) => api.setStatus(i.id, e.target.value)}>
-                {Object.entries(IDEA_STATUS).map(([k2, v]) => <option key={k2} value={k2}>{v.l}</option>)}
+                {Object.entries(IDEA_STATUS).map(([k2, v]) => <option key={k2} value={k2}>{t(v.l)}</option>)}
               </select>
-            ) : <Tag tone={statusTone(i)}>{statusTone(i).l}</Tag>}
+            ) : <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>}
           </div>
         ))}
-        {rows.length === 0 && <div style={{ padding: 48, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>Todavía no hay ideas en juego en esta categoría.</div>}
+        {rows.length === 0 && <div style={{ padding: 48, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>{t('Todavía no hay ideas en juego en esta categoría.')}</div>}
       </div>
       {api.isTeam && (
         <p style={{ margin: 0, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-          Puntaje: {api.voteL('importante')} 2 · {api.voteL('interesante')} 1 · {api.voteL('no_importante')} 0. Desempate por más votos {api.voteL('importante')}, más votos totales y antigüedad.
+          {t('Puntaje: {a} 2 · {b} 1 · {c} 0. Desempate por más votos {a}, más votos totales y antigüedad.', { a: api.voteL('importante'), b: api.voteL('interesante'), c: api.voteL('no_importante') })}
         </p>
       )}
     </>

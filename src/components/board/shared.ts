@@ -39,6 +39,7 @@ export function voteMode(api: Pick<BoardApi, 'me'>, i: Idea): VoteMode {
 
 export const rateOf = (i: Idea, k: 'impact' | 'effort') => (k === 'impact' ? i.impact : i.effort) || 0;
 
+/** Matrix quadrant name and hint (Spanish source; screens show them through t()). */
 export function quadrant(imp: number, eff: number): [string, string] | null {
   if (!imp || !eff) return null;
   if (imp >= 4 && eff <= 2) return ['Victoria rápida', 'Alto impacto con poco esfuerzo. Buena candidata para priorizar.'];

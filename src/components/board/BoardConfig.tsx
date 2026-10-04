@@ -6,7 +6,7 @@ import { rpc, flushEmails } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar, EmailChips, Note, PageHead, ProPill, Seg, ToggleRow } from '@/components/ui';
 import { displayUrl, boardUrl } from '@/lib/env';
-import { rel, plural } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
 import { useSession, useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
@@ -22,14 +22,15 @@ const SUB: Record<Tab, string> = {
 export function BoardConfig({ api }: { api: BoardApi }) {
   // ?seccion=comunidad (access-request email and notifications) opens the Community tab.
   const seccion = useSearchParams().get('seccion');
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>(!api.isAdmin || seccion === 'comunidad' ? 'com' : 'general');
   useEffect(() => { if (seccion === 'comunidad') setTab('com'); }, [seccion]);
   const pend = api.data.board.pending_requests || 0;
-  const comL = pend ? `Comunidad (${pend})` : 'Comunidad';
-  const tabs: [Tab, string][] = api.isAdmin ? [['general', 'General'], ['cats', 'Categorías'], ['com', comL]] : [['com', comL]];
+  const comL = pend ? `${t('Comunidad')} (${pend})` : t('Comunidad');
+  const tabs: [Tab, string][] = api.isAdmin ? [['general', t('General')], ['cats', t('Categorías')], ['com', comL]] : [['com', comL]];
   return (
     <>
-      <PageHead title="Configuración del buzón" sub={SUB[tab]} />
+      <PageHead title={t('Configuración del buzón')} sub={t(SUB[tab])} />
       {tabs.length > 1 && <Seg options={tabs} value={tab} onChange={setTab} />}
       <div style={{ width: '100%', maxWidth: 760, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {tab === 'general' && <General api={api} />}
@@ -44,6 +45,7 @@ const card: React.CSSProperties = { background: '#fff', borderRadius: 8, border:
 
 function General({ api }: { api: BoardApi }) {
   const toast = useToast();
+  const { t } = useI18n();
   const { refresh: refreshCtx } = useSession();
   const b = api.data.board;
   const [name, setName] = useState(b.name);
@@ -54,13 +56,13 @@ function General({ api }: { api: BoardApi }) {
   const [visOpen, setVisOpen] = useState(false);
 
   async function upload(file: File) {
-    if (!/^image\/(png|jpeg)$/.test(file.type)) return toast.err(new Error('Elegí una imagen PNG o JPG'));
-    if (file.size > 2 * 1024 * 1024) return toast.err(new Error('La imagen puede pesar hasta 2 MB'));
+    if (!/^image\/(png|jpeg)$/.test(file.type)) return toast.err(new Error(t('Elegí una imagen PNG o JPG')));
+    if (file.size > 2 * 1024 * 1024) return toast.err(new Error(t('La imagen puede pesar hasta 2 MB')));
     setBusy(true);
     const path = `logos/${b.id}/logo-${Date.now()}.${file.type === 'image/png' ? 'png' : 'jpg'}`;
     const sb = supabaseBrowser();
     const { error } = await sb.storage.from('media').upload(path, file, { contentType: file.type });
-    if (error) { setBusy(false); return toast.err(new Error('No pudimos subir la imagen: ' + error.message)); }
+    if (error) { setBusy(false); return toast.err(new Error(t('No pudimos subir la imagen: {error}', { error: error.message }))); }
     const url = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
     await api.run(rpc('update_board', { p_board: b.id, p_logo_url: url }), 'Logo actualizado');
     setLogo(url);
@@ -71,66 +73,66 @@ function General({ api }: { api: BoardApi }) {
 
   return (
     <div style={card}>
-      <div style={{ fontSize: 16, fontWeight: 600 }}>Datos del buzón</div>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Nombre
+      <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Datos del buzón')}</div>
+      <label style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{t('Nombre')}
         <input className="bx-input" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textAlign: 'right' }}>{name.length} / 60</span>
       </label>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Descripción corta
+      <label style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{t('Descripción corta')}
         <textarea className="bx-input" value={desc} maxLength={200} rows={3} onChange={(e) => setDesc(e.target.value)} />
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textAlign: 'right' }}>{desc.length} / 200</span>
       </label>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Logo
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{t('Logo')}
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <label style={{ width: 104, height: 104, border: '1px dashed #d9d9d9', borderRadius: 8, background: '#fafafa', display: 'grid', placeItems: 'center', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.65)', cursor: 'pointer', overflow: 'hidden' }}>
-            {logo ? <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>+<br />Subir</span>}
+            {logo ? <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>+<br />{t('Subir')}</span>}
             <input type="file" accept="image/png,image/jpeg" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
           </label>
-          {logo && <a className="bx-link-muted" onClick={async () => { await api.run(rpc('update_board', { p_board: b.id, p_clear_logo: true }), 'Logo quitado'); setLogo(null); api.reload(); refreshCtx(); }}>Quitar logo</a>}
+          {logo && <a className="bx-link-muted" onClick={async () => { await api.run(rpc('update_board', { p_board: b.id, p_clear_logo: true }), 'Logo quitado'); setLogo(null); api.reload(); refreshCtx(); }}>{t('Quitar logo')}</a>}
         </div>
-        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>PNG o JPG, hasta 2 MB</span>
+        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('PNG o JPG, hasta 2 MB')}</span>
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button type="button" className="bx-btn-primary" disabled={busy}
           onClick={async () => {
-            if (!name.trim()) return toast.err(new Error('El nombre es obligatorio'));
+            if (!name.trim()) return toast.err(new Error(t('El nombre es obligatorio')));
             await api.run(rpc('update_board', { p_board: b.id, p_name: name, p_description: desc }), 'Buzón actualizado');
             api.reload();
             refreshCtx();
-          }}>Guardar cambios</button>
-        <button type="button" className="bx-btn" onClick={() => (api.pro ? (window.location.href = '/app/buzones?crear=1') : setPaidNote(true))}>Crear otro buzón</button>
+          }}>{t('Guardar cambios')}</button>
+        <button type="button" className="bx-btn" onClick={() => (api.pro ? (window.location.href = '/app/buzones?crear=1') : setPaidNote(true))}>{t('Crear otro buzón')}</button>
       </div>
 
-      <Section title="Visibilidad" desc="Quién puede ver este buzón. La URL no cambia.">
+      <Section title={t('Visibilidad')} desc={t('Quién puede ver este buzón. La URL no cambia.')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{VISIBILITY[b.visibility].l}</span>
-          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{VISIBILITY[b.visibility].short}</span>
-          <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>Cambiar visibilidad</button>
+          <span style={{ fontSize: 12, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>{t(VISIBILITY[b.visibility].l)}</span>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t(VISIBILITY[b.visibility].short)}</span>
+          <button type="button" className="bx-btn" onClick={() => setVisOpen(true)}>{t('Cambiar visibilidad')}</button>
         </div>
       </Section>
 
-      <Section title="Quiénes pueden crear ideas" desc="El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no cambia.">
+      <Section title={t('Quiénes pueden crear ideas')} desc={t('El dueño del equipo y quien creó el buzón siempre pueden. Votar y comentar no cambia.')}>
         <Options>
           {api.pro && (
-            <ToggleRow label="Miembros del equipo" desc="Los miembros con acceso a este buzón." on={b.members_can_create_ideas}
+            <ToggleRow label={t('Miembros del equipo')} desc={t('Los miembros con acceso a este buzón.')} on={b.members_can_create_ideas}
               onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: v, p_guests: null }), v ? 'Los miembros pueden crear ideas' : 'Los miembros ya no pueden crear ideas'); api.reload(); }} />
           )}
           {b.visibility !== 'private' ? (
-            <ToggleRow label="Invitados" desc={b.visibility === 'invite' ? 'Las personas que invitaste a este buzón.' : 'La Comunidad que se sumó con el link o por invitación.'} on={b.guests_can_create_ideas}
+            <ToggleRow label={t('Invitados')} desc={b.visibility === 'invite' ? t('Las personas que invitaste a este buzón.') : t('La Comunidad que se sumó con el link o por invitación.')} on={b.guests_can_create_ideas}
               onChange={async (v) => { await api.run(rpc('set_board_idea_permissions', { p_board: b.id, p_members: null, p_guests: v }), v ? 'Los invitados pueden crear ideas' : 'Los invitados ya no pueden crear ideas'); api.reload(); }} />
           ) : (
-            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Los buzones privados no tienen invitados.')}</span>
           )}
         </Options>
       </Section>
 
-      <Section title="Qué ven los invitados" desc="Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.">
+      <Section title={t('Qué ven los invitados')} desc={t('Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.')}>
         <Options>
           {b.visibility === 'private' ? (
-            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Los buzones privados no tienen invitados.</span>
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Los buzones privados no tienen invitados.')}</span>
           ) : (
-            <ToggleRow label={<span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>Roadmap (solo lectura) <ProPill /></span>}
-              desc="Ven las columnas y en qué etapa está cada idea. No ven prioridad, impacto, esfuerzo ni puntaje, y no pueden mover nada."
+            <ToggleRow label={<span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{t('Roadmap (solo lectura)')} <ProPill /></span>}
+              desc={t('Ven las columnas y en qué etapa está cada idea. No ven prioridad, impacto, esfuerzo ni puntaje, y no pueden mover nada.')}
               on={b.roadmap_setting && api.pro}
               onChange={async (v) => {
                 if (v && !api.pro) return api.goPro();
@@ -141,10 +143,10 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
-      <Section title="Opciones de voto" desc={`Cómo se llaman los tres votos en este buzón (de ${VOTE_LABEL_MIN} a ${VOTE_LABEL_MAX} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.`}>
+      <Section title={t('Opciones de voto')} desc={t('Cómo se llaman los tres votos en este buzón (de {min} a {max} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}>
         <VoteLabels api={api} />
       </Section>
-      {paidNote && <Note>Buzones ilimitados en el plan Pro. <a onClick={api.goPro}>Ver planes</a></Note>}
+      {paidNote && <Note>{t('Buzones ilimitados en el plan Pro.')} <a onClick={api.goPro}>{t('Ver planes')}</a></Note>}
       <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
         onClose={() => setVisOpen(false)} onDone={() => api.reload()} onGoPro={api.goPro} />
     </div>
@@ -153,14 +155,15 @@ function General({ api }: { api: BoardApi }) {
 
 /** Rename the three vote options of a board (scoring stays 2 / 1 / 0). */
 function VoteLabels({ api }: { api: BoardApi }) {
+  const { t } = useI18n();
   const b = api.data.board;
   const init = () => Object.fromEntries(VOTE_KEYS.map((k) => [k, b.vote_labels?.[k] || ''])) as Record<string, string>;
   const [v, setV] = useState(init);
   const [busy, setBusy] = useState(false);
   useEffect(() => { setV(init()); }, [b.vote_labels]); // eslint-disable-line react-hooks/exhaustive-deps
-  const name = (k: string) => v[k].trim() || VOTE[k];
+  const name = (k: string) => v[k].trim() || t(VOTE[k]);
   const tooLong = VOTE_KEYS.some((k) => v[k].trim() && (v[k].trim().length < VOTE_LABEL_MIN || v[k].trim().length > VOTE_LABEL_MAX));
-  const changed = VOTE_KEYS.some((k) => name(k) !== (b.vote_labels?.[k] || VOTE[k]));
+  const changed = VOTE_KEYS.some((k) => name(k) !== (b.vote_labels?.[k] || t(VOTE[k])));
   async function save(labels: Record<string, string>, msg: string) {
     setBusy(true);
     const r = await api.run(rpc('set_vote_labels', { p_board: b.id, p_labels: labels }), msg);
@@ -172,15 +175,15 @@ function VoteLabels({ api }: { api: BoardApi }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,180px),1fr))', gap: 12 }}>
         {VOTE_KEYS.map((k, n) => (
           <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
-            {['Primera', 'Segunda', 'Tercera'][n]} opción · {2 - n} {n === 1 ? 'punto' : 'puntos'}
-            <input className="bx-input" value={v[k]} maxLength={VOTE_LABEL_MAX} placeholder={VOTE[k]} onChange={(e) => setV({ ...v, [k]: e.target.value })} />
+            {[t('Primera opción'), t('Segunda opción'), t('Tercera opción')][n]} · {2 - n} {n === 1 ? t('punto') : t('puntos')}
+            <input className="bx-input" value={v[k]} maxLength={VOTE_LABEL_MAX} placeholder={t(VOTE[k])} onChange={(e) => setV({ ...v, [k]: e.target.value })} />
           </label>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" className="bx-btn-primary" disabled={busy || !changed || tooLong} onClick={() => save(v, 'Opciones de voto guardadas')}>Guardar opciones</button>
-        {Object.keys(b.vote_labels || {}).length > 0 && <a className="bx-link-muted" onClick={() => save({}, 'Opciones de voto restauradas')}>Restaurar las originales</a>}
-        {tooLong && <span style={{ fontSize: 13, color: '#cf1322' }}>Cada opción debe tener entre {VOTE_LABEL_MIN} y {VOTE_LABEL_MAX} caracteres.</span>}
+        <button type="button" className="bx-btn-primary" disabled={busy || !changed || tooLong} onClick={() => save(v, 'Opciones de voto guardadas')}>{t('Guardar opciones')}</button>
+        {Object.keys(b.vote_labels || {}).length > 0 && <a className="bx-link-muted" onClick={() => save({}, 'Opciones de voto restauradas')}>{t('Restaurar las originales')}</a>}
+        {tooLong && <span style={{ fontSize: 13, color: '#cf1322' }}>{t('Cada opción debe tener entre {min} y {max} caracteres.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}</span>}
       </div>
     </>
   );
@@ -213,6 +216,7 @@ function Options({ children }: { children: React.ReactNode }) {
 
 function Categories({ api }: { api: BoardApi }) {
   const toast = useToast();
+  const { t, plural } = useI18n();
   const [newName, setNewName] = useState('');
   const [err, setErr] = useState('');
   const [edit, setEdit] = useState<string | null>(null);
@@ -228,14 +232,14 @@ function Categories({ api }: { api: BoardApi }) {
 
   async function add() {
     const v = newName.trim();
-    if (!v) return setErr('Escribí un nombre');
-    if (cats.some((c) => c.name.toLowerCase() === v.toLowerCase())) return setErr('Ya existe una categoría con ese nombre');
-    if (cats.length >= 12) return setErr('Máximo 12 categorías');
+    if (!v) return setErr(t('Escribí un nombre'));
+    if (cats.some((c) => c.name.toLowerCase() === v.toLowerCase())) return setErr(t('Ya existe una categoría con ese nombre'));
+    if (cats.length >= 12) return setErr(t('Máximo 12 categorías'));
     const r = await api.run(rpc('add_category', { p_board: api.data.board.id, p_name: v }), 'Categoría agregada');
     if (r !== undefined) { setNewName(''); setErr(''); api.reload(); }
   }
   async function saveEdit() {
-    if (!editVal.trim()) return toast.err(new Error('El nombre no puede quedar vacío'));
+    if (!editVal.trim()) return toast.err(new Error(t('El nombre no puede quedar vacío')));
     const r = await api.run(rpc('rename_category', { p_id: edit, p_name: editVal }), 'Categoría actualizada');
     if (r !== undefined) { setEdit(null); api.reload(); }
   }
@@ -243,8 +247,8 @@ function Categories({ api }: { api: BoardApi }) {
   return (
     <div style={card}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ fontSize: 16, fontWeight: 600 }}>Categorías</div>
-        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>Se usan al cargar ideas y para filtrar el Buzón, el Ranking y el Backlog. El buzón necesita al menos 1 categoría.</span>
+        <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Categorías')}</div>
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Se usan al cargar ideas y para filtrar el Buzón, el Ranking y el Backlog. El buzón necesita al menos 1 categoría.')}</span>
       </div>
       <div style={{ border: '1px solid #f0f0f0', borderRadius: 8 }}>
         {cats.map((c) => {
@@ -255,22 +259,22 @@ function Categories({ api }: { api: BoardApi }) {
                 <>
                   <input autoFocus className="bx-input" style={{ flex: 1, minWidth: 0, borderColor: '#059669' }} maxLength={40} value={editVal} onChange={(e) => setEditVal(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEdit(null); }} />
-                  <a onClick={saveEdit} style={{ fontSize: 14 }}>Guardar</a>
-                  <a onClick={() => setEdit(null)} className="bx-link-muted" style={{ fontSize: 14 }}>Cancelar</a>
+                  <a onClick={saveEdit} style={{ fontSize: 14 }}>{t('Guardar')}</a>
+                  <a onClick={() => setEdit(null)} className="bx-link-muted" style={{ fontSize: 14 }}>{t('Cancelar')}</a>
                 </>
               ) : (
                 <>
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 14 }}>{c.name}</span>
-                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{n === 0 ? 'Sin ideas' : plural(n, 'idea', 'ideas')}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{n === 0 ? t('Sin ideas') : plural(n, 'idea', 'ideas')}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <Tooltip title="Editar nombre">
-                      <button type="button" className="bx-icon-btn" aria-label={'Editar ' + c.name} style={{ width: 30, height: 30 }}
+                    <Tooltip title={t('Editar nombre')}>
+                      <button type="button" className="bx-icon-btn" aria-label={t('Editar {name}', { name: c.name })} style={{ width: 30, height: 30 }}
                         onClick={() => { setEdit(c.id); setEditVal(c.name); }}><PencilIcon /></button>
                     </Tooltip>
-                    <Tooltip title={only ? 'El buzón necesita al menos 1 categoría' : 'Eliminar categoría'}>
-                      <button type="button" className={'bx-icon-btn' + (only ? '' : ' bx-icon-danger')} aria-label={'Eliminar ' + c.name} aria-disabled={only}
+                    <Tooltip title={only ? t('El buzón necesita al menos 1 categoría') : t('Eliminar categoría')}>
+                      <button type="button" className={'bx-icon-btn' + (only ? '' : ' bx-icon-danger')} aria-label={t('Eliminar {name}', { name: c.name })} aria-disabled={only}
                         style={{ width: 30, height: 30, opacity: only ? 0.4 : 1, cursor: only ? 'not-allowed' : 'pointer' }}
                         onClick={() => (only ? toast.info('El buzón necesita al menos 1 categoría') : (setDel(c.id), setMoveTo('')))}><TrashIcon /></button>
                     </Tooltip>
@@ -281,37 +285,37 @@ function Categories({ api }: { api: BoardApi }) {
           );
         })}
         <div style={{ display: 'flex', gap: 8, padding: 12 }}>
-          <input className={'bx-input' + (err ? ' err' : '')} style={{ flex: 1, minWidth: 0 }} placeholder="Nueva categoría" maxLength={40} value={newName}
+          <input className={'bx-input' + (err ? ' err' : '')} style={{ flex: 1, minWidth: 0 }} placeholder={t('Nueva categoría')} maxLength={40} value={newName}
             onChange={(e) => { setNewName(e.target.value); setErr(''); }} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
-          <button type="button" className="bx-btn" onClick={add}>+ Agregar</button>
+          <button type="button" className="bx-btn" onClick={add}>+ {t('Agregar')}</button>
         </div>
         {err && <span style={{ fontSize: 13, color: '#ff4d4f', padding: '0 12px 12px', display: 'block' }}>{err}</span>}
       </div>
       <a style={{ fontSize: 14, alignSelf: 'flex-start' }} onClick={async () => {
         const n = await api.run(rpc<number>('reset_categories', { p_board: api.data.board.id }));
         if (n === undefined) return;
-        toast.info(n === 0 ? 'Ya tenés las categorías por defecto' : n === 1 ? 'Se agregó 1 categoría por defecto' : 'Se agregaron ' + n + ' categorías por defecto');
+        toast.info(n === 0 ? 'Ya tenés las categorías por defecto' : n === 1 ? 'Se agregó 1 categoría por defecto' : t('Se agregaron {n} categorías por defecto', { n }));
         api.reload();
-      }}>Restaurar categorías por defecto</a>
+      }}>{t('Restaurar categorías por defecto')}</a>
 
-      <Modal open={!!dc} onCancel={() => setDel(null)} title={dc ? `Eliminar "${dc.name}"` : ''} width={440} destroyOnHidden
-        okText="Eliminar" cancelText="Cancelar" okButtonProps={{ danger: true }}
+      <Modal open={!!dc} onCancel={() => setDel(null)} title={dc ? t('Eliminar "{name}"', { name: dc.name }) : ''} width={440} destroyOnHidden
+        okText={t('Eliminar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }}
         onOk={async () => {
           const to = moveTo || targets[0]?.id;
           const r = await api.run(rpc<number>('delete_category', { p_id: dc!.id, p_move_to: dn ? to : null }));
           if (r === undefined) return;
-          toast.ok(dn ? `Categoría eliminada · ${plural(dn, 'idea movida', 'ideas movidas')}` : 'Categoría eliminada');
+          toast.ok(dn ? t('Categoría eliminada · {ideas}', { ideas: plural(dn, 'idea movida', 'ideas movidas') }) : 'Categoría eliminada');
           setDel(null);
           api.reload();
         }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
-            {dn > 0 ? `${dn === 1 ? '1 idea usa' : dn + ' ideas usan'} esta categoría. Elegí a qué categoría moverlas antes de eliminarla.` : 'Ninguna idea usa esta categoría. Esta acción no se puede deshacer.'}
+            {dn > 0 ? (dn === 1 ? t('1 idea usa esta categoría. Elegí a qué categoría moverla antes de eliminarla.') : t('{n} ideas usan esta categoría. Elegí a qué categoría moverlas antes de eliminarla.', { n: dn })) : t('Ninguna idea usa esta categoría. Esta acción no se puede deshacer.')}
           </span>
           {dn > 0 && (
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Mover las ideas a
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>{t('Mover las ideas a')}
               <select className="bx-select" value={moveTo || targets[0]?.id} onChange={(e) => setMoveTo(e.target.value)}>
-                {targets.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                {targets.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
               </select>
             </label>
           )}
@@ -323,6 +327,7 @@ function Categories({ api }: { api: BoardApi }) {
 
 /** Pro: anyone with a verified email from these domains can enter an invite-only board. */
 function AllowedDomains({ api }: { api: BoardApi }) {
+  const { t } = useI18n();
   const b = api.data.board;
   const [list, setList] = useState<string[]>(b.allowed_domains || []);
   const [input, setInput] = useState('');
@@ -335,12 +340,12 @@ function AllowedDomains({ api }: { api: BoardApi }) {
 
   return (
     <div style={card}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600 }}>Acceso por dominio <ProPill /></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600 }}>{t('Acceso por dominio')} <ProPill /></div>
       <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
-        Cualquiera que ingrese con un email verificado de estos dominios entra como invitado, sin que tengas que invitarlo. Ideal para los empleados de un cliente: por ejemplo, <b>cliente.com</b>.
+        {t('Cualquiera que ingrese con un email verificado de estos dominios entra como invitado, sin que tengas que invitarlo. Ideal para los empleados de un cliente: por ejemplo, cliente.com.')}
       </span>
       {!api.pro ? (
-        <Note>El acceso por dominio está disponible en Pro. <a onClick={api.goPro}>Ver planes</a></Note>
+        <Note>{t('El acceso por dominio está disponible en Pro.')} <a onClick={api.goPro}>{t('Ver planes')}</a></Note>
       ) : (
         <>
           {list.length > 0 && (
@@ -348,17 +353,17 @@ function AllowedDomains({ api }: { api: BoardApi }) {
               {list.map((d) => (
                 <span key={d} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, lineHeight: '24px', padding: '0 4px 0 10px', borderRadius: 4, border: '1px solid #d9d9d9', background: '#fafafa' }}>
                   @{d}
-                  <button type="button" aria-label={'Quitar ' + d} onClick={() => save(list.filter((x) => x !== d), 'Dominio quitado')}
+                  <button type="button" aria-label={t('Quitar {name}', { name: d })} onClick={() => save(list.filter((x) => x !== d), 'Dominio quitado')}
                     style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', fontSize: 15, lineHeight: 1, padding: '0 4px' }}>×</button>
                 </span>
               ))}
             </div>
           )}
           <form style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} onSubmit={(e) => { e.preventDefault(); add(); }}>
-            <input className="bx-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder="cliente.com" style={{ flex: 1, minWidth: 180, maxWidth: 320 }} />
-            <button type="submit" className="bx-btn" disabled={!input.trim()}>Agregar dominio</button>
+            <input className="bx-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t('cliente.com')} style={{ flex: 1, minWidth: 180, maxWidth: 320 }} />
+            <button type="submit" className="bx-btn" disabled={!input.trim()}>{t('Agregar dominio')}</button>
           </form>
-          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>No se aceptan dominios de email personal (gmail.com, hotmail.com…), porque dejarían entrar a cualquiera.</span>
+          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('No se aceptan dominios de email personal (gmail.com, hotmail.com…), porque dejarían entrar a cualquiera.')}</span>
         </>
       )}
     </div>
@@ -374,24 +379,25 @@ type AccessRequest = { id: number; user_id: string; name: string; email: string;
 
 /** Pending "Solicitar acceso" requests (Pro): approve to add them as Invitados, or reject. */
 function AccessRequests({ api, list, reload }: { api: BoardApi; list: AccessRequest[] | null; reload: () => void }) {
+  const { t, rel } = useI18n();
   const decide = async (r: AccessRequest, ok: boolean) => {
-    const done = await api.run(rpc('decide_access_request', { p_id: r.id, p_approve: ok }), ok ? `${r.name} ya es invitado` : 'Solicitud rechazada');
+    const done = await api.run(rpc('decide_access_request', { p_id: r.id, p_approve: ok }), ok ? t('{name} ya es invitado', { name: r.name }) : 'Solicitud rechazada');
     if (done !== undefined) { if (ok) flushEmails(); reload(); api.reload(); }
   };
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600 }}>
-        Solicitudes de acceso{list && list.length > 0 ? ` · ${list.length}` : ''} <ProPill />
+        {t('Solicitudes de acceso')}{list && list.length > 0 ? ` · ${list.length}` : ''} <ProPill />
       </div>
       <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
-        Quien abre el link sin estar invitado puede pedir acceso. Si lo aprobás, entra como invitado; si lo rechazás, no ve nada del buzón.
+        {t('Quien abre el link sin estar invitado puede pedir acceso. Si lo aprobás, entra como invitado; si lo rechazás, no ve nada del buzón.')}
       </span>
       {!api.data.board.takes_requests ? (
-        <Note>Las solicitudes de acceso están disponibles en Pro. <a onClick={api.goPro}>Ver planes</a></Note>
+        <Note>{t('Las solicitudes de acceso están disponibles en Pro.')} <a onClick={api.goPro}>{t('Ver planes')}</a></Note>
       ) : !list ? (
-        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Cargando…</span>
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Cargando…')}</span>
       ) : list.length === 0 ? (
-        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>No hay solicitudes pendientes.</span>
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('No hay solicitudes pendientes.')}</span>
       ) : (
         <div style={{ border: '1px solid #f0f0f0', borderRadius: 8 }}>
           {list.map((r, k) => (
@@ -399,14 +405,14 @@ function AccessRequests({ api, list, reload }: { api: BoardApi; list: AccessRequ
               <Avatar name={r.name} id={r.user_id} url={r.avatar_url} />
               <div style={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>{r.name}</span>
-                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.email} · pidió acceso {rel(r.created_at)}</span>
+                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.email} · {t('pidió acceso {when}', { when: rel(r.created_at) })}</span>
                 {r.message && <span style={{ marginTop: 6, fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.75)', background: '#fafafa', borderLeft: '3px solid #a9cbc2', borderRadius: 4, padding: '6px 10px', overflowWrap: 'anywhere' }}>{r.message}</span>}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Popconfirm title={`¿Rechazar a ${r.name}?`} description="No se le avisa por email. No va a poder pedir acceso de nuevo por 7 días." okText="Rechazar" cancelText="Cancelar" okButtonProps={{ danger: true }} onConfirm={() => decide(r, false)}>
-                  <button type="button" className="bx-btn">Rechazar</button>
+                <Popconfirm title={t('¿Rechazar a {name}?', { name: r.name })} description={t('No se le avisa por email. No va a poder pedir acceso de nuevo por 7 días.')} okText={t('Rechazar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }} onConfirm={() => decide(r, false)}>
+                  <button type="button" className="bx-btn">{t('Rechazar')}</button>
                 </Popconfirm>
-                <button type="button" className="bx-btn-primary" onClick={() => decide(r, true)}>Aprobar</button>
+                <button type="button" className="bx-btn-primary" onClick={() => decide(r, true)}>{t('Aprobar')}</button>
               </div>
             </div>
           ))}
@@ -420,6 +426,7 @@ type Guest = { user_id: string; name: string; email: string; avatar_url: string 
 
 function Community({ api }: { api: BoardApi }) {
   const toast = useToast();
+  const { t, rel } = useI18n();
   const b = api.data.board;
   const [data, setData] = useState<{ guests: Guest[]; pending: { id: string; email: string; created_at: string }[]; invite_code: string; requests: AccessRequest[] | null } | null>(null);
   const [emails, setEmails] = useState<string[]>([]);
@@ -434,23 +441,23 @@ function Community({ api }: { api: BoardApi }) {
     <>
       {b.visibility === 'invite' && api.isAdmin && <AccessRequests api={api} list={data?.requests ?? null} reload={load} />}
       <div style={card}>
-        <div style={{ fontSize: 16, fontWeight: 600 }}>Invitar a la Comunidad</div>
+        <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Invitar a la Comunidad')}</div>
         {priv ? (
-          <Note>Los buzones privados son solo para el Equipo y no admiten invitados de la Comunidad.</Note>
+          <Note>{t('Los buzones privados son solo para el Equipo y no admiten invitados de la Comunidad.')}</Note>
         ) : (
           <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{b.visibility === 'invite' ? 'Link del buzón' : 'Link público'}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{b.visibility === 'invite' ? t('Link del buzón') : t('Link público')}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #d9d9d9', borderRadius: 6, padding: '4px 4px 4px 11px', background: '#fafafa' }}>
                 <span style={{ flex: 1, minWidth: 0, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayUrl(b.slug)}</span>
-                <a style={{ padding: '4px 10px' }} onClick={() => { navigator.clipboard?.writeText(link).catch(() => {}); toast.ok('Link del buzón copiado'); }}>Copiar</a>
+                <a style={{ padding: '4px 10px' }} onClick={() => { navigator.clipboard?.writeText(link).catch(() => {}); toast.ok('Link del buzón copiado'); }}>{t('Copiar')}</a>
               </div>
               <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
                 {b.visibility === 'invite'
-                  ? 'Solo funciona para quienes invitaste por email' + (b.allowed_domains?.length ? ' o tienen un email de los dominios permitidos' : '') + '.' + (b.takes_requests ? ' Si le llega a otra persona, puede solicitar acceso y vos decidís.' : ' Si le llega a otra persona, no ve el buzón.')
-                  : `Quien se registre desde este link queda como Comunidad de ${b.name}.`}
+                  ? (b.allowed_domains?.length ? t('Solo funciona para quienes invitaste por email o tienen un email de los dominios permitidos.') : t('Solo funciona para quienes invitaste por email.')) + ' ' + (b.takes_requests ? t('Si le llega a otra persona, puede solicitar acceso y vos decidís.') : t('Si le llega a otra persona, no ve el buzón.'))
+                  : t('Quien se registre desde este link queda como Comunidad de {board}.', { board: b.name })}
               </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>Invitar por email
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>{t('Invitar por email')}
               <EmailChips value={emails} onChange={setEmails} />
             </div>
             <button type="button" className="bx-btn-primary" style={{ alignSelf: 'flex-start' }}
@@ -459,17 +466,17 @@ function Community({ api }: { api: BoardApi }) {
                 const n = await api.run(rpc<number>('invite_guests', { p_board: b.id, p_emails: emails }));
                 if (n === undefined) return;
                 flushEmails();
-                toast.ok(n === 0 ? 'Esas personas ya son parte de la Comunidad' : n === 1 ? 'Invitación enviada' : n + ' invitaciones enviadas');
+                toast.ok(n === 0 ? 'Esas personas ya son parte de la Comunidad' : n === 1 ? 'Invitación enviada' : t('{n} invitaciones enviadas', { n }));
                 setEmails([]);
                 load();
-              }}>Enviar invitaciones</button>
+              }}>{t('Enviar invitaciones')}</button>
             {!!data?.pending.length && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Invitaciones pendientes</span>
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Invitaciones pendientes')}</span>
                 {data.pending.map((p) => (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
                     <span style={{ flex: 1, minWidth: 0 }}>{p.email} <span style={{ color: 'rgba(0,0,0,0.45)', fontSize: 12 }}>· {rel(p.created_at)}</span></span>
-                    <a className="bx-link-muted" onClick={async () => { await api.run(rpc('revoke_invitation', { p_id: p.id }), 'Invitación cancelada'); load(); }}>Cancelar</a>
+                    <a className="bx-link-muted" onClick={async () => { await api.run(rpc('revoke_invitation', { p_id: p.id }), 'Invitación cancelada'); load(); }}>{t('Cancelar')}</a>
                   </div>
                 ))}
               </div>
@@ -479,39 +486,39 @@ function Community({ api }: { api: BoardApi }) {
       </div>
       {b.visibility === 'invite' && b.allowed_domains && <AllowedDomains api={api} />}
       <div style={card}>
-        <div style={{ fontSize: 16, fontWeight: 600 }}>Miembros de la Comunidad · {data?.guests.length ?? '…'}</div>
-        {data && data.guests.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Todavía no hay miembros de la Comunidad. {b.visibility === 'invite' ? 'Invitá personas por email para sumarlas.' : 'Compartí el link del buzón para sumar personas.'}</span>}
+        <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Miembros de la Comunidad')} · {data?.guests.length ?? '…'}</div>
+        {data && data.guests.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Todavía no hay miembros de la Comunidad.')} {b.visibility === 'invite' ? t('Invitá personas por email para sumarlas.') : t('Compartí el link del buzón para sumar personas.')}</span>}
         {data?.guests.map((m) => (
           <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: m.status === 'blocked' ? 0.5 : 1 }}>
             <Avatar name={m.name} id={m.user_id} url={m.avatar_url} />
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: 14 }}>{m.name}</span>
-              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email} · se unió {rel(m.joined_at)}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.email} · {t('se unió {when}', { when: rel(m.joined_at) })}</span>
             </div>
-            {m.status === 'blocked' && <span style={{ fontSize: 12, color: '#cf1322' }}>Bloqueado</span>}
+            {m.status === 'blocked' && <span style={{ fontSize: 12, color: '#cf1322' }}>{t('Bloqueado')}</span>}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {m.status === 'blocked' ? (
-                <Tooltip title="Desbloquear">
-                  <button type="button" className="bx-icon-btn" aria-label={'Desbloquear a ' + m.name} style={{ width: 30, height: 30, color: '#059669' }}
+                <Tooltip title={t('Desbloquear')}>
+                  <button type="button" className="bx-icon-btn" aria-label={t('Desbloquear a {name}', { name: m.name })} style={{ width: 30, height: 30, color: '#059669' }}
                     onClick={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'active' }), 'Miembro desbloqueado'); load(); }}><UnlockIcon /></button>
                 </Tooltip>
               ) : (
-                <Popconfirm title={`¿Bloquear a ${m.name}?`}
-                  description={b.visibility === 'public' ? 'Deja de poder votar, comentar y cargar ideas. Su contenido queda visible.' : 'Deja de ver el buzón y no puede volver a entrar ni pedir acceso. Su contenido queda visible.'}
-                  okText="Bloquear" cancelText="Cancelar" okButtonProps={{ danger: true }}
+                <Popconfirm title={t('¿Bloquear a {name}?', { name: m.name })}
+                  description={b.visibility === 'public' ? t('Deja de poder votar, comentar y cargar ideas. Su contenido queda visible.') : t('Deja de ver el buzón y no puede volver a entrar ni pedir acceso. Su contenido queda visible.')}
+                  okText={t('Bloquear')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }}
                   onConfirm={async () => { await api.run(rpc('set_guest_status', { p_board: b.id, p_user: m.user_id, p_status: 'blocked' }), b.visibility === 'public' ? 'Bloqueado: ya no puede participar' : 'Bloqueado: ya no puede entrar al buzón'); load(); }}>
-                  <span><Tooltip title="Bloquear"><button type="button" className="bx-icon-btn bx-icon-danger" aria-label={'Bloquear a ' + m.name} style={{ width: 30, height: 30 }}><BlockIcon /></button></Tooltip></span>
+                  <span><Tooltip title={t('Bloquear')}><button type="button" className="bx-icon-btn bx-icon-danger" aria-label={t('Bloquear a {name}', { name: m.name })} style={{ width: 30, height: 30 }}><BlockIcon /></button></Tooltip></span>
                 </Popconfirm>
               )}
-              <Popconfirm title={`¿Eliminar a ${m.name} de la Comunidad?`}
-                description={b.visibility === 'public' ? 'Deja de ser parte de la Comunidad. Puede volver a sumarse con el link. Su contenido queda visible.' : 'Deja de ver el buzón. Más adelante puede volver a pedir acceso o lo podés invitar de nuevo. Su contenido queda visible.'}
-                okText="Eliminar" cancelText="Cancelar" okButtonProps={{ danger: true }}
+              <Popconfirm title={t('¿Eliminar a {name} de la Comunidad?', { name: m.name })}
+                description={b.visibility === 'public' ? t('Deja de ser parte de la Comunidad. Puede volver a sumarse con el link. Su contenido queda visible.') : t('Deja de ver el buzón. Más adelante puede volver a pedir acceso o lo podés invitar de nuevo. Su contenido queda visible.')}
+                okText={t('Eliminar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }}
                 onConfirm={async () => {
-                  const r = await api.run(rpc<{ domain: boolean }>('remove_board_guest', { p_board: b.id, p_user: m.user_id }), `${m.name} ya no es parte de la Comunidad`);
+                  const r = await api.run(rpc<{ domain: boolean }>('remove_board_guest', { p_board: b.id, p_user: m.user_id }), t('{name} ya no es parte de la Comunidad', { name: m.name }));
                   if (r?.domain) toast.info('Tiene un email de un dominio permitido, así que puede volver a entrar. Para impedirlo, bloquealo.');
                   load(); api.reload();
                 }}>
-                <span><Tooltip title="Eliminar de la Comunidad"><button type="button" className="bx-icon-btn bx-icon-danger" aria-label={'Eliminar a ' + m.name} style={{ width: 30, height: 30 }}><TrashIcon /></button></Tooltip></span>
+                <span><Tooltip title={t('Eliminar de la Comunidad')}><button type="button" className="bx-icon-btn bx-icon-danger" aria-label={t('Eliminar a {name}', { name: m.name })} style={{ width: 30, height: 30 }}><TrashIcon /></button></Tooltip></span>
               </Popconfirm>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { Roadmap } from './Roadmap';
 import { Matrix, Status } from './Insights';
 import { BoardConfig } from './BoardConfig';
 import type { BoardApi, View } from './shared';
+import { useI18n } from '@/lib/i18n/client';
 
 const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'matriz', 'roadmap', 'status', 'config'];
 const TEAM_VIEWS: View[] = ['matriz', 'roadmap', 'status', 'config'];
@@ -29,6 +30,7 @@ function parse(path: string): { view: View; idea: number | null } {
 export function BoardApp({ initial, path, join }: { initial: BoardData; path: string; join: boolean }) {
   const router = useRouter();
   const toast = useToast();
+  const { t } = useI18n();
   const { refresh: refreshCtx } = useSession();
   const { isMobile } = useGridCols();
   const [data, setData] = useState<BoardData>(initial);
@@ -56,14 +58,14 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
 
   // Ranking and counts refresh within 5 seconds of any vote or change.
   useEffect(() => {
-    const t = setInterval(async () => {
+    const iv = setInterval(async () => {
       if (document.visibilityState !== 'visible') return;
       try {
         const v = await rpc<string>('board_version', { p_board: b.id });
         if (v && v !== version.current) reload();
       } catch {}
     }, 5000);
-    return () => clearInterval(t);
+    return () => clearInterval(iv);
   }, [b.id, reload]);
 
   // Arriving from the board link or an invitation while signed in: join as Invitado.
@@ -73,7 +75,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
     const invited = role === 'guest' && data.joined === false;
     if (!data.me || !((join && !role) || invited)) return;
     rpc<string>('join_board', { p_slug: b.slug })
-      .then(async () => { await Promise.all([reload(), refreshCtx()]); toast.ok('Ya sos parte de la Comunidad de ' + b.name); })
+      .then(async () => { await Promise.all([reload(), refreshCtx()]); toast.ok(t('Ya sos parte de la Comunidad de {board}', { board: b.name })); })
       .catch((e) => toast.err(e))
       .finally(() => { if (join) window.history.replaceState(null, '', window.location.pathname); });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -104,8 +106,8 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const patchIdea = (id: number, patch: Partial<Idea>) => setData((d) => ({ ...d, ideas: d.ideas.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
 
   const cats = data.categories;
-  const voteL = useCallback((k: string) => b.vote_labels?.[k] || VOTE[k] || k, [b.vote_labels]);
-  const catL = useMemo(() => { const m = new Map(cats.map((c) => [c.id, c.name])); return (id: string) => m.get(id) || 'Sin categoría'; }, [cats]);
+  const voteL = useCallback((k: string) => b.vote_labels?.[k] || (VOTE[k] ? t(VOTE[k]) : k), [b.vote_labels, t]);
+  const catL = useMemo(() => { const m = new Map(cats.map((c) => [c.id, c.name])); return (id: string) => m.get(id) || t('Sin categoría'); }, [cats, t]);
 
   const api: BoardApi = {
     data, isTeam, isAdmin: data.perms ? data.perms.can_manage : role === 'admin', canCreate: canWrite && (data.perms ? data.perms.can_create_ideas : true),
@@ -121,7 +123,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
       if (!cur || cur.status === st) return;
       if (st === 'rechazada') return setRejectFor(id);
       patchIdea(id, { status: st as Idea['status'] });
-      const r = await run(rpc('set_idea_status', { p_id: id, p_status: st, p_reason: null }), 'Estado: ' + IDEA_STATUS[st].l + '. Se notificó al autor por email.');
+      const r = await run(rpc('set_idea_status', { p_id: id, p_status: st, p_reason: null }), t('Estado: {status}. Se notificó al autor por email.', { status: t(IDEA_STATUS[st].l) }));
       if (r !== undefined) flushEmails();
       reload();
     },
@@ -129,15 +131,15 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
       if (!data.me) return goLogin(true);
       const cur = data.ideas.find((i) => i.id === id);
       if (cur) patchIdea(id, { my_vote: value as Idea['my_vote'], votes: cur.votes + (value && !cur.my_vote ? 1 : !value && cur.my_vote ? -1 : 0) });
-      const r = await run(rpc('vote', { p_idea: id, p_value: value }), value ? 'Votaste: ' + voteL(value) : 'Quitaste tu voto');
+      const r = await run(rpc('vote', { p_idea: id, p_value: value }), value ? t('Votaste: {option}', { option: voteL(value) }) : t('Quitaste tu voto'));
       if (r === undefined || !role) refreshCtx();
       reload();
     },
   };
 
-  const tabs = [{ key: 'buzon', label: 'Buzón' }, { key: 'ranking', label: 'Ranking' }, { key: 'backlog', label: 'Backlog' }]
-    .concat(isTeam ? [{ key: 'matriz', label: 'Matriz' }, { key: 'roadmap', label: 'Roadmap' }, { key: 'status', label: 'Status' }]
-      : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: 'Roadmap' }] : []);
+  const tabs = [{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }]
+    .concat(isTeam ? [{ key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
+      : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : []);
   const shownView = canSee(view) ? view : 'buzon';
 
   return (
@@ -149,10 +151,10 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
         loginNext={base + '?unirme=1'}
       />
       <main className="bx-main">
-        {(b.status !== 'active' || b.account_status !== 'active') && <Note tone="warn">Este buzón está suspendido y queda en solo lectura.</Note>}
-        {b.locked && <Note tone="warn">Este buzón requiere el plan Pro y queda en solo lectura. {isTeam && <a onClick={api.goPro}>Ver planes</a>}</Note>}
-        {role === 'blocked' && <Note tone="error">El Equipo bloqueó tu participación en este buzón. Podés ver las ideas, pero no votar ni comentar.</Note>}
-        {role === 'super' && <Note>Estás viendo este buzón como Admin de plataforma.</Note>}
+        {(b.status !== 'active' || b.account_status !== 'active') && <Note tone="warn">{t('Este buzón está suspendido y queda en solo lectura.')}</Note>}
+        {b.locked && <Note tone="warn">{t('Este buzón requiere el plan Pro y queda en solo lectura.')} {isTeam && <a onClick={api.goPro}>{t('Ver planes')}</a>}</Note>}
+        {role === 'blocked' && <Note tone="error">{t('El Equipo bloqueó tu participación en este buzón. Podés ver las ideas, pero no votar ni comentar.')}</Note>}
+        {role === 'super' && <Note>{t('Estás viendo este buzón como Admin de plataforma.')}</Note>}
         {(shownView === 'buzon' || shownView === 'backlog') && <IdeaGrid api={api} backlog={shownView === 'backlog'} />}
         {shownView === 'ranking' && <Ranking api={api} />}
         {shownView === 'roadmap' && <Roadmap api={api} />}
@@ -162,7 +164,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
       </main>
 
       {isMobile && data.me && api.canCreate && (shownView === 'buzon' || shownView === 'backlog') && !selId && (
-        <button type="button" onClick={api.openNew} title="Nueva idea"
+        <button type="button" onClick={api.openNew} title={t('Nueva idea')}
           style={{ position: 'fixed', right: 20, bottom: 24, width: 56, height: 56, borderRadius: '50%', border: 0, background: '#059669', color: '#fff', fontSize: 28, lineHeight: 1, cursor: 'pointer', boxShadow: '0 6px 16px rgba(5,150,105,0.35)', zIndex: 30 }}>+</button>
       )}
 
@@ -188,7 +190,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
       <RejectModal open={rejectFor != null} onClose={() => setRejectFor(null)}
         onConfirm={async (reason) => {
           const id = rejectFor!;
-          const r = await run(rpc('set_idea_status', { p_id: id, p_status: 'rechazada', p_reason: reason }), 'Estado: Rechazada. Se notificó al autor por email.');
+          const r = await run(rpc('set_idea_status', { p_id: id, p_status: 'rechazada', p_reason: reason }), t('Estado: {status}. Se notificó al autor por email.', { status: t('Rechazada') }));
           if (r !== undefined) { flushEmails(); setRejectFor(null); }
           reload();
         }} />

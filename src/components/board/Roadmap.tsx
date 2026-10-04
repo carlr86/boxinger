@@ -4,7 +4,7 @@ import { Dropdown } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Dots, Help, PageHead, ProLock, Seg, Tag } from '@/components/ui';
 import { DEV, LAUNCH_COL, LAUNCH_RECENT_DAYS, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
-import { ddmmyyyy, plural } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import { rateOf, scoreOf, type BoardApi } from './shared';
 import { AuthorLine } from './IdeaGrid';
@@ -25,17 +25,21 @@ function useDensity(): [Density, (d: Density) => void] {
   return [d, set];
 }
 
-const VALUE_HELP = (
-  <>
-    <b>Valor = Impacto × Puntaje de votos ÷ Esfuerzo</b>. Si la idea no tiene votos que sumen, el puntaje cuenta como 1.
-    Cuanto más alto, más valor por el esfuerzo. Ejemplo: impacto 4, esfuerzo 2 y 8 puntos de votos = 16. Necesita impacto y esfuerzo calificados.
-  </>
-);
+function ValueHelp() {
+  const { t } = useI18n();
+  return (
+    <>
+      <b>{t('Valor = Impacto × Puntaje de votos ÷ Esfuerzo')}</b>. {t('Si la idea no tiene votos que sumen, el puntaje cuenta como 1.')}{' '}
+      {t('Cuanto más alto, más valor por el esfuerzo. Ejemplo: impacto 4, esfuerzo 2 y 8 puntos de votos = 16. Necesita impacto y esfuerzo calificados.')}
+    </>
+  );
+}
 
 export function Roadmap({ api }: { api: BoardApi }) {
+  const { t, ddmmyyyy, plural } = useI18n();
   const [density, setDensity] = useDensity();
   const compact = density === 'compact';
-  const densityToggle = <Seg options={[['expanded', 'Expandidas'], ['compact', 'Compactas']]} value={density} onChange={(v) => setDensity(v as Density)} style={{ alignSelf: 'auto' }} />;
+  const densityToggle = <Seg options={[['expanded', t('Expandidas')], ['compact', t('Compactas')]]} value={density} onChange={(v) => setDensity(v as Density)} style={{ alignSelf: 'auto' }} />;
   const [drag, setDrag] = useState<number | null>(null);
   const [over, setOver] = useState<{ col: string; before: number | null } | null>(null);
   const [pick, setPick] = useState<string | null>(null);
@@ -43,7 +47,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
   const [editCol, setEditCol] = useState<string | null>(null);
   const [nameVal, setNameVal] = useState('');
   const names = api.data.board.roadmap_names || {};
-  const colL = (k: string) => names[k] || RM_COLS.find((c) => c.k === k)!.l;
+  const colL = (k: string) => names[k] || t(RM_COLS.find((c) => c.k === k)!.l);
 
   const ideas = api.data.ideas;
   const inRm = ideas.filter((i) => i.status === 'aprobada' && i.rm_col && i.dev_status !== 'lanzada');
@@ -58,21 +62,21 @@ export function Roadmap({ api }: { api: BoardApi }) {
     <div style={{ flex: '1 0 260px', maxWidth: 360, minHeight: compact ? 200 : 320, background: LAUNCH_COL.bg, borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px 4px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 13, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid ' + LAUNCH_COL.cbd, background: LAUNCH_COL.cbg, color: LAUNCH_COL.cfg, fontWeight: 500 }}>{LAUNCH_COL.l}</span>
-          <Help label="Qué muestra">Las ideas que el equipo ya lanzó{allLaunched ? '' : `, de los últimos ${LAUNCH_RECENT_DAYS} días`}. Llegan acá al marcarlas como lanzadas.</Help>
+          <span style={{ fontSize: 13, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid ' + LAUNCH_COL.cbd, background: LAUNCH_COL.cbg, color: LAUNCH_COL.cfg, fontWeight: 500 }}>{t(LAUNCH_COL.l)}</span>
+          <Help label="Qué muestra">{allLaunched ? t('Las ideas que el equipo ya lanzó. Llegan acá al marcarlas como lanzadas.') : t('Las ideas que el equipo ya lanzó, de los últimos {n} días. Llegan acá al marcarlas como lanzadas.', { n: LAUNCH_RECENT_DAYS })}</Help>
         </span>
         <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{launchedShown.length}</span>
       </div>
       {launchedShown.map(card)}
-      {launchedShown.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{launched.length ? `Nada lanzado en los últimos ${LAUNCH_RECENT_DAYS} días.` : 'Todavía no hay ideas lanzadas.'}</div>}
+      {launchedShown.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{launched.length ? t('Nada lanzado en los últimos {n} días.', { n: LAUNCH_RECENT_DAYS }) : t('Todavía no hay ideas lanzadas.')}</div>}
       {(launchedMore > 0 || allLaunched) && launched.length > 0 && (
         <a onClick={() => setAllLaunched(!allLaunched)} style={{ fontSize: 13, color: LAUNCH_COL.cfg, padding: '2px 4px', alignSelf: 'flex-start' }}>
-          {allLaunched ? `Ver solo los últimos ${LAUNCH_RECENT_DAYS} días` : `Ver todas (${launched.length})`}
+          {allLaunched ? t('Ver solo los últimos {n} días', { n: LAUNCH_RECENT_DAYS }) : t('Ver todas ({n})', { n: launched.length })}
         </a>
       )}
     </div>
   );
-  const launchDate = (i: Idea) => <span style={{ fontSize: 12, color: LAUNCH_COL.cfg }}>Lanzada el {ddmmyyyy(i.launched_at!)}</span>;
+  const launchDate = (i: Idea) => <span style={{ fontSize: 12, color: LAUNCH_COL.cfg }}>{t('Lanzada el {date}', { date: ddmmyyyy(i.launched_at!) })}</span>;
 
   const backlog = ideas.filter((i) => i.status === 'aprobada' && !i.rm_col && !i.hidden && !i.launched_at).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
 
@@ -94,7 +98,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
   if (!api.isTeam) {
     return (
       <>
-        <PageHead title="Roadmap" sub="Las ideas aprobadas que el equipo planea desarrollar, y en qué etapa está cada una." right={densityToggle} />
+        <PageHead title={t('Roadmap')} sub={t('Las ideas aprobadas que el equipo planea desarrollar, y en qué etapa está cada una.')} right={densityToggle} />
         <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
           {RM_COLS.map((c) => {
             const cards = inRm.filter((i) => i.rm_col === c.k).sort((a, b) => (a.rm_order ?? 0) - (b.rm_order ?? 0));
@@ -112,11 +116,11 @@ export function Roadmap({ api }: { api: BoardApi }) {
                       <span style={{ fontSize: compact ? 14 : 15, fontWeight: 600, lineHeight: 1.35 }}>{i.title}</span>
                       {!compact && <AuthorLine i={i} />}
                       {!compact && <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>}
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Tag>{api.catL(i.category_id)}</Tag><Tag tone={D}>{D.l}</Tag></div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Tag>{api.catL(i.category_id)}</Tag><Tag tone={D}>{t(D.l)}</Tag></div>
                     </div>
                   );
                 })}
-                {cards.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Sin ideas por ahora.</div>}
+                {cards.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Sin ideas por ahora.')}</div>}
               </div>
             );
           })}
@@ -137,8 +141,8 @@ export function Roadmap({ api }: { api: BoardApi }) {
   if (!api.pro) {
     return (
       <>
-        <PageHead title="Roadmap" sub="Sumá ideas desde el Backlog y ordenalas por prioridad. Arrastrá las tarjetas para moverlas o reordenarlas." />
-        <ProLock title="Planificá con el Roadmap" text="Pasá ideas aprobadas del Backlog al Roadmap y organizalas en Ahora, Siguiente y Más adelante. Lo que ya salió queda en Lanzadas." onGo={api.goPro} />
+        <PageHead title={t('Roadmap')} sub={t('Sumá ideas desde el Backlog y ordenalas por prioridad. Arrastrá las tarjetas para moverlas o reordenarlas.')} />
+        <ProLock title={t('Planificá con el Roadmap')} text={t('Pasá ideas aprobadas del Backlog al Roadmap y organizalas en Ahora, Siguiente y Más adelante. Lo que ya salió queda en Lanzadas.')} onGo={api.goPro} />
       </>
     );
   }
@@ -147,7 +151,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
 
   return (
     <>
-      <PageHead title="Roadmap" sub="Sumá ideas desde el Backlog y ordenalas por prioridad. Arrastrá las tarjetas para moverlas o reordenarlas."
+      <PageHead title={t('Roadmap')} sub={t('Sumá ideas desde el Backlog y ordenalas por prioridad. Arrastrá las tarjetas para moverlas o reordenarlas.')}
         right={<div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}><span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(backlog.length, 'idea en el Backlog', 'ideas en el Backlog')}</span>{densityToggle}</div>} />
       <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8, alignItems: 'stretch' }}>
         {RM_COLS.map((c) => {
@@ -159,13 +163,13 @@ export function Roadmap({ api }: { api: BoardApi }) {
               style={{ flex: '1 0 280px', maxWidth: 360, minHeight: 480, background: c.bg, borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10, boxShadow: drag && over?.col === c.k ? 'inset 0 0 0 2px ' + c.cbd : 'none', transition: 'box-shadow .15s' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px 4px' }}>
                 {editCol === c.k ? (
-                  <input autoFocus value={nameVal} maxLength={24} placeholder="Nombre de la columna" onChange={(e) => setNameVal(e.target.value)} onBlur={saveName}
+                  <input autoFocus value={nameVal} maxLength={24} placeholder={t('Nombre de la columna')} onChange={(e) => setNameVal(e.target.value)} onBlur={saveName}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditCol(null); }}
                     style={{ flex: 1, minWidth: 0, marginRight: 8, height: 26, padding: '0 8px', border: '1px solid #059669', borderRadius: 4, fontSize: 13, outline: 'none', boxShadow: '0 0 0 2px rgba(5,150,105,0.1)' }} />
                 ) : (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                     <span style={{ fontSize: 13, lineHeight: '22px', padding: '0 8px', borderRadius: 4, border: '1px solid ' + c.cbd, background: c.cbg, color: c.cfg, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{colL(c.k)}</span>
-                    {api.canWrite && <a onClick={() => { setEditCol(c.k); setNameVal(colL(c.k)); }} title="Cambiar nombre de la columna" style={{ display: 'grid', placeItems: 'center', width: 22, height: 22, borderRadius: 4, color: 'rgba(0,0,0,0.45)' }}><Pencil /></a>}
+                    {api.canWrite && <a onClick={() => { setEditCol(c.k); setNameVal(colL(c.k)); }} title={t('Cambiar nombre de la columna')} style={{ display: 'grid', placeItems: 'center', width: 22, height: 22, borderRadius: 4, color: 'rgba(0,0,0,0.45)' }}><Pencil /></a>}
                   </span>
                 )}
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{cards.length}</span>
@@ -176,38 +180,38 @@ export function Roadmap({ api }: { api: BoardApi }) {
                   onOver={() => { if (over?.before !== i.id) setOver({ col: c.k, before: i.id }); }}
                   onDrop={() => { if (drag && drag !== i.id) move(drag, c.k, i.id); else { setDrag(null); setOver(null); } }}
                   menu={[
-                    { key: 'open', label: 'Ver detalle', onClick: () => api.openIdea(i.id) },
-                    ...(idx > 0 ? [{ key: 'up', label: 'Subir', onClick: () => move(i.id, c.k, cards[idx - 1].id) }] : []),
-                    ...(idx < cards.length - 1 ? [{ key: 'down', label: 'Bajar', onClick: () => move(i.id, c.k, cards[idx + 2]?.id ?? null) }] : []),
-                    { type: 'group' as const, key: 'to', label: 'Mover a', children: RM_COLS.filter((x) => x.k !== c.k).map((x) => ({ key: 'm' + x.k, label: colL(x.k), onClick: () => move(i.id, x.k, null, 'Movida a ' + colL(x.k)) })) },
+                    { key: 'open', label: t('Ver detalle'), onClick: () => api.openIdea(i.id) },
+                    ...(idx > 0 ? [{ key: 'up', label: t('Subir'), onClick: () => move(i.id, c.k, cards[idx - 1].id) }] : []),
+                    ...(idx < cards.length - 1 ? [{ key: 'down', label: t('Bajar'), onClick: () => move(i.id, c.k, cards[idx + 2]?.id ?? null) }] : []),
+                    { type: 'group' as const, key: 'to', label: t('Mover a'), children: RM_COLS.filter((x) => x.k !== c.k).map((x) => ({ key: 'm' + x.k, label: colL(x.k), onClick: () => move(i.id, x.k, null, t('Movida a {col}', { col: colL(x.k) })) })) },
                     { type: 'divider' as const },
-                    { key: 'launch', label: 'Marcar como lanzada', onClick: async () => { await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'lanzada' } }), 'Idea lanzada · pasó a la columna Lanzadas'); flushEmails(); api.reload(); } },
+                    { key: 'launch', label: t('Marcar como lanzada'), onClick: async () => { await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'lanzada' } }), 'Idea lanzada · pasó a la columna Lanzadas'); flushEmails(); api.reload(); } },
                     { type: 'divider' as const },
-                    { key: 'back', label: 'Volver al Backlog', onClick: () => move(i.id, null, null, 'Volvió al Backlog') },
+                    { key: 'back', label: t('Volver al Backlog'), onClick: () => move(i.id, null, null, 'Volvió al Backlog') },
                   ]} />
               ))}
-              {cards.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Arrastrá una tarjeta o añadí una idea del Backlog.</div>}
+              {cards.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Arrastrá una tarjeta o añadí una idea del Backlog.')}</div>}
               <div style={{ flex: 1 }} />
               {api.canWrite && (pick === c.k ? (
                 <>
                   <div style={{ background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, padding: 4, display: 'flex', flexDirection: 'column', maxHeight: 260, overflowY: 'auto' }}>
                     {pickList.map((i) => (
                       <div key={i.id} className="bx-item" style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '8px 10px' }}
-                        onClick={() => { setPick(null); setQ(''); move(i.id, c.k, null, '"' + i.title + '" pasó al Roadmap'); }}>
+                        onClick={() => { setPick(null); setQ(''); move(i.id, c.k, null, t('"{title}" pasó al Roadmap', { title: i.title })); }}>
                         <span style={{ flex: 'none', fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>ID-{i.id}</span>
                         <span style={{ minWidth: 0 }}>{i.title}</span>
                       </div>
                     ))}
-                    {pickList.length === 0 && <span style={{ padding: 10, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{backlog.length ? 'No hay ideas con ese nombre.' : 'El Backlog está vacío. Aprobá ideas para sumarlas.'}</span>}
+                    {pickList.length === 0 && <span style={{ padding: 10, fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{backlog.length ? t('No hay ideas con ese nombre.') : t('El Backlog está vacío. Aprobá ideas para sumarlas.')}</span>}
                   </div>
-                  <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar idea del Backlog" className="bx-input"
-                    onKeyDown={(e) => { if (e.key === 'Escape') setPick(null); if (e.key === 'Enter' && pickList[0]) { setPick(null); setQ(''); move(pickList[0].id, c.k, null, '"' + pickList[0].title + '" pasó al Roadmap'); } }}
+                  <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar idea del Backlog')} className="bx-input"
+                    onKeyDown={(e) => { if (e.key === 'Escape') setPick(null); if (e.key === 'Enter' && pickList[0]) { setPick(null); setQ(''); move(pickList[0].id, c.k, null, t('"{title}" pasó al Roadmap', { title: pickList[0].title })); } }}
                     style={{ borderColor: '#059669', boxShadow: '0 0 0 2px rgba(5,150,105,0.1)' }} />
-                  <a onClick={() => setPick(null)} style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', alignSelf: 'flex-start', padding: '0 4px' }}>Cancelar</a>
+                  <a onClick={() => setPick(null)} style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', alignSelf: 'flex-start', padding: '0 4px' }}>{t('Cancelar')}</a>
                 </>
               ) : (
                 <a onClick={() => { setPick(c.k); setQ(''); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 4px', fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>
-                  <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>Añadir
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>{t('Añadir')}
                 </a>
               ))}
             </div>
@@ -217,10 +221,10 @@ export function Roadmap({ api }: { api: BoardApi }) {
           <RmCard key={i.id} api={api} i={i} compact={compact} launched dragging={false} overMe={false}
             onDragStart={() => {}} onDragEnd={() => {}} onOver={() => {}} onDrop={() => {}}
             menu={[
-              { key: 'open', label: 'Ver detalle', onClick: () => api.openIdea(i.id) },
-              { key: 'undo', label: 'Deshacer lanzamiento', onClick: async () => {
+              { key: 'open', label: t('Ver detalle'), onClick: () => api.openIdea(i.id) },
+              { key: 'undo', label: t('Deshacer lanzamiento'), onClick: async () => {
                 await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'en_curso' } }));
-                await move(i.id, 'ahora', null, 'Volvió a Ahora, en curso');
+                await move(i.id, 'ahora', null, t('Volvió a {col}, en curso', { col: colL('ahora') }));
               } },
             ]} />
         ))}
@@ -235,7 +239,9 @@ function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDr
   api: BoardApi; i: Idea; compact: boolean; launched?: boolean; dragging: boolean; overMe: boolean; menu: MenuItem[];
   onDragStart: () => void; onDragEnd: () => void; onOver: () => void; onDrop: () => void;
 }) {
+  const { t, ddmmyyyy, locale } = useI18n();
   const sc = scoreOf(i);
+  const num = (n: number) => (locale === 'en' ? String(n) : String(n).replace('.', ','));
   const imp = rateOf(i, 'impact'), eff = rateOf(i, 'effort');
   const P = i.priority ? PRIO[i.priority] : NO_PRIO;
   const D = DEV[i.dev_status || 'por_empezar'];
@@ -253,36 +259,36 @@ function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDr
         {api.canWrite && (
           <span onClick={(e) => e.stopPropagation()}>
             <Dropdown trigger={['click']} menu={{ items: menu as never }} placement="bottomRight">
-              <button type="button" title="Acciones" className="bx-icon-btn" style={{ width: 26, height: 26 }}><More /></button>
+              <button type="button" title={t('Acciones')} className="bx-icon-btn" style={{ width: 26, height: 26 }}><More /></button>
             </Dropdown>
           </span>
         )}
       </div>
-      {launched && i.launched_at && <span style={{ fontSize: 12, color: LAUNCH_COL.cfg }}>Lanzada el {ddmmyyyy(i.launched_at)}</span>}
+      {launched && i.launched_at && <span style={{ fontSize: 12, color: LAUNCH_COL.cfg }}>{t('Lanzada el {date}', { date: ddmmyyyy(i.launched_at) })}</span>}
       {compact ? (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Tag tone={P}>{P.l}</Tag>
-          {!launched && <Tag tone={D}>{D.l}</Tag>}
-          {sc != null && <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>Valor {String(sc).replace('.', ',')}</span>}
+          <Tag tone={P}>{t(P.l)}</Tag>
+          {!launched && <Tag tone={D}>{t(D.l)}</Tag>}
+          {sc != null && <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{t('Valor')} {num(sc)}</span>}
         </div>
       ) : <>
       <AuthorLine i={i} />
       <span style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.description}</span>
       <div style={{ display: 'grid', gridTemplateColumns: '76px 1fr', rowGap: 6, alignItems: 'center', fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
-        <span>Categoría</span><span><Tag>{api.catL(i.category_id)}</Tag></span>
-        <span>Prioridad</span><span><Tag tone={P}>{P.l}</Tag></span>
+        <span>{t('Categoría')}</span><span><Tag>{api.catL(i.category_id)}</Tag></span>
+        <span>{t('Prioridad')}</span><span><Tag tone={P}>{t(P.l)}</Tag></span>
         {imp > 0 && eff > 0 && (
           <>
-            <span>Impacto</span><Dots v={imp} k="impact" />
-            <span>Esfuerzo</span><Dots v={eff} k="effort" />
+            <span>{t('Impacto')}</span><Dots v={imp} k="impact" />
+            <span>{t('Esfuerzo')}</span><Dots v={eff} k="effort" />
           </>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>Valor <Help>{VALUE_HELP}</Help></span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? 'Sin calificar' : String(sc).replace('.', ',')}</span>
-        <span>Desarrollo</span><span><Tag tone={D}>{D.l}</Tag></span>
-        {([['chk_design', 'Diseño'], ['chk_prd', 'PRD / SPEC']] as const).map(([k, l]) => (
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{t('Valor')} <Help><ValueHelp /></Help></span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? t('Sin calificar') : num(sc)}</span>
+        <span>{t('Desarrollo')}</span><span><Tag tone={D}>{t(D.l)}</Tag></span>
+        {([['chk_design', t('Diseño')], ['chk_prd', 'PRD / SPEC']] as const).map(([k, l]) => (
           <span key={k} style={{ display: 'contents' }}>
             <span>{l}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: i[k] ? '#389e0d' : 'rgba(0,0,0,0.45)' }}>{i[k] ? <Yes /> : <No />}{i[k] ? 'Sí' : 'No'}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: i[k] ? '#389e0d' : 'rgba(0,0,0,0.45)' }}>{i[k] ? <Yes /> : <No />}{i[k] ? t('Sí') : t('No')}</span>
           </span>
         ))}
       </div>
