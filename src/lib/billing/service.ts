@@ -109,6 +109,20 @@ export async function recordPayment(o: { accountId: string | null; provider: 'pa
   }, { onConflict: 'provider,provider_payment_id' });
 }
 
+/**
+ * A refund (or chargeback) on a recorded charge. `total`: refunded so far (Mercado Pago gives the running
+ * total); `add`: this refund (Creem). Fully refunded → status 'refunded'. False when the charge isn't recorded.
+ */
+export async function applyRefund(provider: 'mercadopago' | 'creem', paymentId: string, r: { total?: number; add?: number }): Promise<boolean> {
+  const admin = supabaseAdmin();
+  const { data: p } = await admin.from('payments').select('id, amount, refunded_amount').eq('provider', provider).eq('provider_payment_id', paymentId).maybeSingle();
+  if (!p) return false;
+  const amount = Number(p.amount || 0);
+  const refunded = Math.round(Math.min(amount, r.total ?? Number(p.refunded_amount || 0) + (r.add || 0)) * 100) / 100;
+  await admin.from('payments').update({ refunded_amount: refunded, status: refunded >= amount ? 'refunded' : 'completed' }).eq('id', p.id);
+  return true;
+}
+
 /** Stores a webhook once; returns false when it was already processed. */
 export async function claimEvent(provider: string, eventId: string, type: string, payload: unknown): Promise<boolean> {
   const admin = supabaseAdmin();

@@ -328,7 +328,7 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
           {c.payments.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>Pagos</span>
-              <Rows rows={c.payments.map((p) => ({ l: (p.paid_at ? ddmmyyyy(p.paid_at) : '—') + ' · ' + (PROVIDER_L[p.provider] || p.provider), v: money(p.currency as 'USD', Number(p.amount)) + ' · ' + ({ completed: 'Cobrado', failed: 'Fallido', refunded: 'Reembolsado', pending: 'Pendiente' } as Record<string, string>)[p.status], fg: p.status === 'failed' ? '#cf1322' : undefined }))} />
+              <Rows rows={c.payments.map((p) => ({ l: (p.paid_at ? ddmmyyyy(p.paid_at) : '—') + ' · ' + (PROVIDER_L[p.provider] || p.provider), v: money(p.currency as 'USD', Number(p.amount)) + ' · ' + ({ completed: 'Cobrado', failed: 'Fallido', refunded: 'Reembolsado', pending: 'Pendiente' } as Record<string, string>)[p.status] + (p.status === 'completed' && Number(p.refunded_amount) > 0 ? ' · reembolso parcial de ' + money(p.currency as 'USD', Number(p.refunded_amount)) : ''), fg: p.status === 'failed' ? '#cf1322' : undefined }))} />
             </div>
           )}
         </div>

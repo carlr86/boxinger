@@ -31,6 +31,7 @@ export async function createPreapproval(o: { accountId: string; payerEmail: stri
 
 export const getPreapproval = (id: string) => mp('GET', '/preapproval/' + id);
 export const getAuthorizedPayment = (id: string) => mp('GET', '/authorized_payments/' + id);
+export const getPayment = (id: string) => mp('GET', '/v1/payments/' + id);
 
 export async function updateAmount(id: string, amount: number) {
   await mp('PUT', '/preapproval/' + id, { auto_recurring: { transaction_amount: Math.round(amount * 100) / 100, currency_id: 'ARS' } });

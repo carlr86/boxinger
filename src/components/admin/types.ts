@@ -8,7 +8,7 @@ export type Client = {
 };
 export type ClientDetail = Client & {
   billed: number; billed_ars: number; activation_token: string | null;
-  payments: { provider: string; amount: number; currency: string; status: string; paid_at: string | null }[];
+  payments: { provider: string; amount: number; refunded_amount?: number; currency: string; status: string; paid_at: string | null }[];
   board_list: { id: string; name: string; slug: string; visibility: string; status: string; team_name: string; ideas: number; guests: number; members: number; created_at: string; last_activity_at: string }[];
 };
 export type AdminBoard = {

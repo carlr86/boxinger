@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import * as creem from '@/lib/billing/creem';
-import { activate, addMonth, cancelled, claimEvent, currentPrice, expired, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
+import { activate, addMonth, applyRefund, cancelled, claimEvent, currentPrice, expired, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { reportError } from '@/lib/alerts';
 
@@ -75,11 +75,17 @@ export async function POST(req: NextRequest) {
       }
     } else if (type === 'refund.created') {
       const subId: string | null = typeof o.subscription === 'string' ? o.subscription : o.subscription?.id || null;
-      const accountId = await accountFor(subId, o);
-      await recordPayment({
-        accountId, provider: 'creem', paymentId: String(o.id), subId, amount: Number(o.refund_amount || 0) / 100,
-        currency: String(o.refund_currency || o.currency || 'USD'), status: 'refunded', paidAt: new Date().toISOString(), raw: body,
-      });
+      const txId = typeof o.transaction === 'string' ? o.transaction : o.transaction?.id;
+      const refund = Number(o.refund_amount || 0) / 100;
+      // On the charge it refunds; if that charge isn't recorded, keep the refund on its own (it adds nothing to billed).
+      if (!txId || !(await applyRefund('creem', String(txId), { add: refund }))) {
+        const accountId = await accountFor(subId, o);
+        await recordPayment({
+          accountId, provider: 'creem', paymentId: String(o.id), subId, amount: refund,
+          currency: String(o.refund_currency || o.currency || 'USD'), status: 'refunded', paidAt: new Date().toISOString(), raw: body,
+        });
+        await supabaseAdmin().from('payments').update({ refunded_amount: refund }).eq('provider', 'creem').eq('provider_payment_id', String(o.id));
+      }
     }
     await finishEvent('creem', eventId);
     return NextResponse.json({ ok: true });

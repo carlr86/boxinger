@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import * as mercadopago from '@/lib/billing/mercadopago';
-import { claimEvent, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
+import { applyRefund, claimEvent, findAccount, finishEvent, paymentFailed, recordPayment } from '@/lib/billing/service';
 import { handlePreapproval } from '@/lib/billing/mp-events';
 import { reportError } from '@/lib/alerts';
 
@@ -33,6 +33,11 @@ export async function POST(req: NextRequest) {
       });
       if (accountId && subId && bad) await paymentFailed(accountId, 'mercadopago', subId, 'mp:' + ap.id);
       if (accountId && subId && ok) await handlePreapproval(subId);
+    } else if (type === 'payment') {
+      // Refunds and chargebacks of a subscription charge (needs the "Pagos" event on the Mercado Pago webhook).
+      const p = await mercadopago.getPayment(dataId);
+      const back = p.status === 'refunded' || p.status === 'charged_back' ? Number(p.transaction_amount || 0) : Number(p.transaction_amount_refunded || 0);
+      if (back > 0) await applyRefund('mercadopago', String(p.id), { total: back });
     }
     await finishEvent('mercadopago', eventId);
     return NextResponse.json({ ok: true });
