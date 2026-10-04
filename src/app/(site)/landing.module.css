@@ -77,6 +77,12 @@
 .item{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5}
 .check{flex:none;margin-top:2px}
 .planCta{height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500}
+.payInfo{max-width:1072px;width:100%;margin-top:32px;display:flex;flex-direction:column;gap:16px}
+.payWays{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.payWay{background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:4px;font-size:14px;color:rgba(0,0,0,0.65);line-height:1.5}
+.payName{font-size:15px;font-weight:600;color:rgba(0,0,0,0.88)}
+.payCards{color:rgba(0,0,0,0.88)}
+.payNote{margin:0;display:flex;gap:8px;align-items:flex-start;font-size:14px;color:rgba(0,0,0,0.65);line-height:1.5}
 
 .contact{background:#fff;border-top:1px solid #f0f0f0;scroll-margin-top:64px}
 .contactIn{max-width:1120px;margin:0 auto;padding:88px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:56px;align-items:start}

@@ -1274,6 +1274,11 @@ export const EN: Record<string, string> = {
   "Suscripción cancelada. Enterprise sigue activo hasta el fin del período pagado.": "Subscription cancelled. Enterprise stays active until the end of the paid period.",
   "Tu suscripción con tarjeta sigue vigente: usá Volver a Enterprise para reactivarla sin pagar de nuevo.": "Your card subscription is still active: use Back to Enterprise to reactivate it without paying again.",
   "Para contratar Enterprise primero creá tu equipo y tu buzón.": "To get Enterprise, first create your team and your board.",
+  "Para pagos en Argentina, en pesos.": "For payments in Argentina, in pesos.",
+  "Todas las tarjetas de crédito.": "All credit cards.",
+  "Para pagos internacionales, en dólares, desde cualquier país.": "For international payments, in US dollars, from any country.",
+  "Todas las tarjetas de crédito, Apple Pay y Google Pay.": "All credit cards, Apple Pay and Google Pay.",
+  "Pago mensual recurrente: se cobra solo cada mes y podés cancelar cuando quieras desde Mi perfil, sin costo.": "Recurring monthly payment: it's charged automatically every month and you can cancel anytime from My profile, at no cost.",
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

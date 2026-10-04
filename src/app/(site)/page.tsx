@@ -192,6 +192,22 @@ export default async function Landing() {
             </div>
           ))}
         </div>
+        {/* How Pro and Enterprise are paid. */}
+        <div className={s.payInfo}>
+          <div className={s.payWays}>
+            {[
+              ['Mercado Pago', 'Para pagos en Argentina, en pesos.', 'Todas las tarjetas de crédito.'],
+              ['Creem', 'Para pagos internacionales, en dólares, desde cualquier país.', 'Todas las tarjetas de crédito, Apple Pay y Google Pay.'],
+            ].map(([n, d, c]) => (
+              <div key={n} className={s.payWay}>
+                <span className={s.payName}>{n}</span>
+                <span>{t(d)}</span>
+                <span className={s.payCards}>{t(c)}</span>
+              </div>
+            ))}
+          </div>
+          <p className={s.payNote}><Check />{t('Pago mensual recurrente: se cobra solo cada mes y podés cancelar cuando quieras desde Mi perfil, sin costo.')}</p>
+        </div>
       </section>
 
       <section id="contacto" className={s.contact}>
