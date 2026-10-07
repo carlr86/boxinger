@@ -16,7 +16,7 @@ type Tab = 'general' | 'cats' | 'com';
 const SUB: Record<Tab, string> = {
   general: 'Nombre, descripción y logo que ve la Comunidad.',
   cats: 'Categorías para clasificar las ideas de este buzón.',
-  com: 'Invitaciones y miembros de la Comunidad.',
+  com: 'Invitaciones e invitados de la Comunidad.',
 };
 
 export function BoardConfig({ api }: { api: BoardApi }) {
@@ -486,8 +486,15 @@ function Community({ api }: { api: BoardApi }) {
       </div>
       {b.visibility === 'invite' && b.allowed_domains && <AllowedDomains api={api} />}
       <div style={card}>
-        <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Miembros de la Comunidad')} · {data?.guests.length ?? '…'}</div>
-        {data && data.guests.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Todavía no hay miembros de la Comunidad.')} {b.visibility === 'invite' ? t('Invitá personas por email para sumarlas.') : t('Compartí el link del buzón para sumar personas.')}</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Invitados')} · {data?.guests.length ?? '…'}</div>
+          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>
+            {b.visibility === 'invite'
+              ? t('Las personas de la Comunidad que ya entraron al buzón: por invitación, por un dominio permitido o con una solicitud aprobada. Quienes todavía no aceptaron la invitación están en Invitaciones pendientes.')
+              : t('Las personas de la Comunidad que se sumaron al buzón, con el link o por invitación.')}
+          </span>
+        </div>
+        {data && data.guests.length === 0 && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Todavía no entró ningún invitado.')} {b.visibility === 'invite' ? t('Invitá personas por email para sumarlas.') : t('Compartí el link del buzón para sumar personas.')}</span>}
         {data?.guests.map((m) => (
           <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, opacity: m.status === 'blocked' ? 0.5 : 1 }}>
             <Avatar name={m.name} id={m.user_id} url={m.avatar_url} />

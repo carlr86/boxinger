@@ -1287,6 +1287,10 @@ export const EN: Record<string, string> = {
   "Conciliación automática con el banco": "Automatic bank reconciliation",
   "Mejor candidata para el Backlog": "Best candidate for the Backlog",
   "31 votos y 7 comentarios: es lo que más piden y baja las consultas al soporte, el objetivo del trimestre.": "31 votes and 7 comments: it's what users ask for most and it cuts support requests, this quarter's goal.",
+  "Invitaciones e invitados de la Comunidad.": "Invitations and Community guests.",
+  "Las personas de la Comunidad que ya entraron al buzón: por invitación, por un dominio permitido o con una solicitud aprobada. Quienes todavía no aceptaron la invitación están en Invitaciones pendientes.": "Community people who already joined the board: by invitation, an allowed domain or an approved request. Those who haven't accepted their invitation yet are under Pending invitations.",
+  "Las personas de la Comunidad que se sumaron al buzón, con el link o por invitación.": "Community people who joined the board, with the link or by invitation.",
+  "Todavía no entró ningún invitado.": "No guests have joined yet.",
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

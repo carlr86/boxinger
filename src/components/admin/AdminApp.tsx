@@ -108,7 +108,7 @@ export function AdminApp() {
     { key: 'plan', title: 'Plan', width: '120px', sort: (b) => planRank(b.plan), render: (b) => planTag(b.plan) },
     { key: 'url', title: 'URL', width: '1.4fr', render: (b) => <span style={{ color: sec, fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12 }}>/app/b/{b.slug}</span> },
     { key: 'ideas', title: 'Ideas', width: '80px', sort: (b) => b.ideas, render: (b) => b.ideas },
-    { key: 'guests', title: 'Miembros', width: '100px', sort: (b) => b.guests, render: (b) => (b.visibility === 'private' ? <span style={{ color: sec }}>Privado</span> : b.guests) },
+    { key: 'guests', title: 'Invitados', width: '100px', sort: (b) => b.guests, render: (b) => (b.visibility === 'private' ? <span style={{ color: sec }}>Privado</span> : b.guests) },
     { key: 'act', title: 'Última actividad', width: '150px', sort: (b) => +new Date(b.last_activity_at), render: (b) => <span style={{ color: sec }}>{rel(b.last_activity_at)}</span> },
     { key: 'st', title: 'Estado', width: '110px', sort: (b) => (b.status === 'active' ? 1 : 0), render: (b) => statusTag(b.status === 'active', 'Activo', 'Suspendido') },
   ];

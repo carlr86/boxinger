@@ -282,7 +282,7 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
             <Tag tone={planTone(c.plan)}>{c.plan}</Tag>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 }}>
-            {[['Buzones', c.board_list.length], ['Ideas', c.ideas], ['Miembros', c.guests]].map(([l, v]) => (
+            {[['Buzones', c.board_list.length], ['Ideas', c.ideas], ['Invitados', c.guests]].map(([l, v]) => (
               <div key={l as string} style={{ background: '#fafafa', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{l}</span><span style={{ fontSize: 20, fontWeight: 600 }}>{v}</span></div>
             ))}
           </div>
@@ -324,7 +324,7 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
                 </div>
                 <span style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>/app/b/{b.slug}</span>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
-                  <span>{b.ideas} ideas</span><span>{b.visibility === 'private' ? 'Solo Equipo' : b.guests + ' miembros'}</span><span>Equipo: {b.team_name}</span><span>Creado {ddmmyyyy(b.created_at)}</span><span>Actividad {rel(b.last_activity_at)}</span>
+                  <span>{b.ideas} ideas</span><span>{b.visibility === 'private' ? 'Solo Equipo' : b.guests + ' invitados'}</span><span>Equipo: {b.team_name}</span><span>Creado {ddmmyyyy(b.created_at)}</span><span>Actividad {rel(b.last_activity_at)}</span>
                 </div>
               </div>
             ))}
@@ -381,7 +381,7 @@ export function AdminBoardDrawer({ boardId, onClose, onChanged, openClient }: { 
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 8 }}>
-            {[['Ideas', b.ideas], ['Miembros', b.guests_count], ['Votos', b.votes], ['Comentarios', b.comments]].map(([l, v]) => (
+            {[['Ideas', b.ideas], ['Invitados', b.guests_count], ['Votos', b.votes], ['Comentarios', b.comments]].map(([l, v]) => (
               <div key={l as string} style={{ background: '#fafafa', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{l}</span><span style={{ fontSize: 20, fontWeight: 600 }}>{Number(v).toLocaleString('es-AR')}</span></div>
             ))}
           </div>
@@ -394,7 +394,7 @@ export function AdminBoardDrawer({ boardId, onClose, onChanged, openClient }: { 
             <Rows rows={[{ l: 'Rol', v: 'Admin (dueño)' }, { l: 'Método de acceso', v: a.login }, { l: 'Cuenta creada', v: dlong(a.created_at) }, { l: 'Buzones de la cuenta', v: String(a.boards) }, { l: 'Última actividad', v: rel(a.last_activity_at) }]} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Miembros de la Comunidad · {b.guests_count}</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Invitados · {b.guests_count}</span>
             {b.guests.map((m) => (
               <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Avatar name={m.name} id={m.user_id} size={28} />
