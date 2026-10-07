@@ -212,7 +212,8 @@ function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
   const label = vm === 'closed' ? t('Votación cerrada') : vm === 'own' ? t('Tu idea') : mine ? t('Votaste: {option}', { option: api.voteL(mine) }) : t('Votar');
   const voteBtn = (
     <button type="button" disabled={disabled}
-      onClick={(e) => { e.stopPropagation(); if (vm === 'login') api.goLogin(true); }}
+      // When it can vote, let the click reach the Dropdown's wrapper (which keeps it from opening the idea).
+      onClick={(e) => { if (vm !== 'can') e.stopPropagation(); if (vm === 'login') api.goLogin(true); }}
       style={{ marginLeft: 'auto', height: 28, padding: '0 12px', borderRadius: 6, fontSize: 13, cursor: disabled ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
         border: '1px solid ' + (disabled ? '#d9d9d9' : '#059669'), background: disabled ? 'rgba(0,0,0,0.04)' : mine ? '#d1fae5' : '#fff', color: disabled ? 'rgba(0,0,0,0.25)' : '#059669' }}>
       {label}
