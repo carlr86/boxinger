@@ -30,6 +30,7 @@ export async function LegalPage({ title, updated, children }: { title: string; u
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px', display: 'flex', gap: 20, flexWrap: 'wrap', fontSize: 13 }}>
           <Link href="/terminos" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Términos')}</Link>
           <Link href="/privacidad" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Privacidad')}</Link>
+          <Link href="/seguridad" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Seguridad')}</Link>
           <Link href="/arrepentimiento" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Botón de arrepentimiento')}</Link>
           <Link href="/#contacto" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Contacto')}</Link>
         </div>

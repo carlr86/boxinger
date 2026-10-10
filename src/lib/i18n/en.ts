@@ -1111,6 +1111,8 @@ export const EN: Record<string, string> = {
   "Funciones": "Features",
   "Planes": "Plans",
   "Contacto": "Contact",
+  "Seguridad": "Security",
+  "Seguridad y protección de datos": "Security & data protection",
   "Las ideas de tus usuarios, ordenadas en un solo buzón.": "Your users’ ideas, organized in a single board.",
   "Crear cuenta gratis": "Create a free account",
   "Plan Free sin tarjeta de crédito.": "Free plan, no credit card.",

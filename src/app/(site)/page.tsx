@@ -280,6 +280,7 @@ export default async function Landing() {
           <div className={s.footerLinks}>
             <Link href="/terminos" className={s.footerLink}>{t('Términos')}</Link>
             <Link href="/privacidad" className={s.footerLink}>{t('Privacidad')}</Link>
+            <Link href="/seguridad" className={s.footerLink}>{t('Seguridad')}</Link>
             <a href="#contacto" className={s.footerLink}>{t('Contacto')}</a>
             <Link href="/arrepentimiento" className={s.footerLink}>{t('Botón de arrepentimiento')}</Link>
             <LanguageSwitch />
