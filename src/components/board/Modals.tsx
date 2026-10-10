@@ -23,7 +23,8 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
   const tl = f.title.trim().length, d = f.description.trim().length;
   const e = {
     title: tl < 5 || tl > 80 ? t('El título debe tener entre 5 y 80 caracteres') : '',
-    desc: d < 20 || d > 2000 ? t('La descripción debe tener entre 20 y 2.000 caracteres') : '',
+    // imported ideas may come with a short (or no) description
+    desc: d > 2000 || (d < 20 && !idea?.imported) ? t('La descripción debe tener entre 20 y 2.000 caracteres') : '',
     cat: !f.category_id ? t('Elegí una categoría') : '',
   };
   async function submit() {

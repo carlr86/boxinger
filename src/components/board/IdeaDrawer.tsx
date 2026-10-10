@@ -51,6 +51,12 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
     await Promise.all([load(), api.reload()]);
     return r;
   };
+  // Imported ideas with no account behind them: the team sees who asked for it (name and email from the file).
+  const byLine = (x: IdeaDetail) => {
+    if (x.author_id || !x.imported) return t('Por {name}', { name: x.author_id ? x.author_name : t(x.author_name) });
+    const who = x.requester_name && x.requester_email ? `${x.requester_name} (${x.requester_email})` : x.requester_name || x.requester_email;
+    return who ? t('Pedida por {name}', { name: who }) : t('Importada');
+  };
   // Entering the Roadmap tells whoever proposed or voted for the idea.
   const moveRm = async (col: string | null, ok: string) => {
     const told = await api.run(rpc<number>('move_roadmap', { p_id: id, p_col: col, p_before: null }));
@@ -107,14 +113,14 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
       {i && (
         <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <OriginTag origin={i.origin} ai={i.ai} />
+            <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} />
             <Tag>{api.catL(i.category_id)}</Tag>
             <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
             {i.hidden && <Tag>{t('Oculta para la Comunidad')}</Tag>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, lineHeight: 1.4, textWrap: 'pretty', overflowWrap: 'anywhere' }}>{i.title}</h2>
-            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Por {name}', { name: i.author_id ? i.author_name : t(i.author_name) })} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span></span>
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span></span>
           </div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'rgba(0,0,0,0.78)', overflowWrap: 'anywhere' }}>{i.description}</p>
           {i.status === 'rechazada' && (

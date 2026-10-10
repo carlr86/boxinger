@@ -39,6 +39,9 @@ export interface Idea {
   dev_at?: string | null;
   launched_at?: string | null;
   ai?: boolean; // added from an AI assistant suggestion
+  imported?: boolean; // came from a CSV/Excel import
+  requester_name?: string | null; // who asked for it, per the imported file (team only)
+  requester_email?: string | null;
   chk_design?: boolean;
   chk_prd?: boolean;
   growth?: string[];

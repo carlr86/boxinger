@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
 import { AiButton, AiPanel, AiTag } from './AiPanel';
+import { ImportButton, ImportModal } from './ImportModal';
 
 const PAGE = 20;
 const LAYOUT_KEY = 'bx-ideas-layout';
@@ -53,10 +54,16 @@ export function useGridCols() {
   return { w, cols: w < 768 ? 1 : w < 992 ? 2 : 3, isMobile: w < 768, isTablet: w >= 768 && w < 992 };
 }
 
-export function OriginTag({ origin, ai }: { origin: string; ai?: boolean }) {
+/** Ideas brought in from a CSV/Excel file. */
+export function ImportedTag() {
+  const { t } = useI18n();
+  return <Tag tone={{ l: '', bg: '#f5f5f5', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.6)' }} title={t('Idea importada desde un archivo, con su fecha original')}>{t('Importada')}</Tag>;
+}
+
+export function OriginTag({ origin, ai, imported }: { origin: string; ai?: boolean; imported?: boolean }) {
   const { t } = useI18n();
   const o = ORIGIN[origin];
-  return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}</>;
+  return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}{imported && <ImportedTag />}</>;
 }
 
 export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean }) {
@@ -69,6 +76,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   const [sort, setSort] = useState<'recent' | 'votes' | 'comments'>('recent');
   const [limit, setLimit] = useState(PAGE);
   const [aiOpen, setAiOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const list = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -98,6 +106,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {!backlog && api.data.role === 'admin' && <AiButton onClick={() => setAiOpen(true)} />}
             <LayoutToggle value={layout} onChange={setLayout} />
+            {!backlog && !isMobile && api.isAdmin && <ImportButton api={api} onClick={() => setImportOpen(true)} />}
             {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ {t('Nueva idea')}</button>}
           </div>
         }
@@ -183,6 +192,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         </button>
       )}
       {api.data.role === 'admin' && <AiPanel api={api} open={aiOpen} onClose={() => setAiOpen(false)} isMobile={isMobile} />}
+      {api.isAdmin && api.pro && <ImportModal api={api} open={importOpen} onClose={() => setImportOpen(false)} isMobile={isMobile} />}
     </>
   );
 }
@@ -252,7 +262,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
       <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{i.title}</span>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <OriginTag origin={i.origin} ai={i.ai} />
+          <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} />
           <Tag>{api.catL(i.category_id)}</Tag>
           <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
           {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
@@ -277,7 +287,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
   return (
     <div className="bx-card" onClick={() => api.openIdea(i.id)} style={{ opacity: i.hidden ? 0.55 : 1 }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <OriginTag origin={i.origin} ai={i.ai} />
+        <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} />
         <Tag>{api.catL(i.category_id)}</Tag>
         <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
         {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
