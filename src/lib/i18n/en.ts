@@ -1365,6 +1365,9 @@ export const EN: Record<string, string> = {
   "El archivo no tiene filas.": "The file has no rows.",
   "La importación no existe.": "The import doesn't exist.",
   "Origen inválido.": "Invalid origin.",
+  // ── Video de la landing ──
+  "Mirá cómo funciona en 1:40": "See how it works in 1:40",
+  "Video: cómo funciona Boxinger": "Video: how Boxinger works",
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

@@ -112,7 +112,13 @@ export default async function Landing() {
               <Link href="/app/registro" className={s.btnLgPrimary}>{t('Crear cuenta gratis')}</Link>
               <Link href="/app/ingresar" className={s.btnLg}>{t('Ya tengo cuenta')}</Link>
             </div>
-            <span className={s.note}>{t('Plan Free sin tarjeta de crédito.')}</span>
+            <div className={s.heroFoot}>
+              <span className={s.note}>{t('Plan Free sin tarjeta de crédito.')}</span>
+              <a href="#video" className={s.videoLink}>
+                <span className={s.playDot} aria-hidden><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 1.5v7l6-3.5z" fill="currentColor" /></svg></span>
+                {t('Mirá cómo funciona en 1:40')}
+              </a>
+            </div>
           </div>
 
           <div className={s.mockWrap} aria-hidden>
@@ -172,6 +178,14 @@ export default async function Landing() {
           <h2 className={s.h2}>{t('Cómo funciona')}</h2>
           <p className={s.sub}>{t('Cada idea sigue el mismo recorrido, desde que alguien la propone hasta que se lanza.')}</p>
         </div>
+        <figure id="video" className={s.video}>
+          {/* preload="none": the 7 MB file only downloads when someone presses play */}
+          <video controls playsInline preload="none" poster="/video/boxinger-como-funciona.jpg" width={1920} height={1080}
+            aria-label={t('Video: cómo funciona Boxinger')}>
+            <source src="/video/boxinger-como-funciona.mp4" type="video/mp4" />
+          </video>
+          {locale === 'en' && <figcaption className={s.note}>Video in Spanish, with on-screen captions.</figcaption>}
+        </figure>
         <div className={s.steps}>
           {STEPS.map((st) => (
             <div key={st.n} className={s.step}>
