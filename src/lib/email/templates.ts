@@ -62,6 +62,13 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
         subject: t('El Equipo respondió tu comentario en "{title}"', { title: s(p.title) }),
         html: layout(t('El Equipo te respondió'), t('Comentaste:') + quote(p.comment) + t('Respuesta del Equipo de {board}:', { board: esc(p.board_name) }) + quote(p.reply), { label: t('Ver la conversación'), url: ideaUrl(p) }),
       };
+    case 'idea_planned':
+      return {
+        subject: t('"{title}" está en el Roadmap', { title: s(p.title) }),
+        html: p.mine
+          ? layout(t('Tu idea está en el Roadmap'), t('El Equipo de {board} sumó {title}, la idea que propusiste, a su Roadmap: es parte de lo que planean desarrollar. Te avisamos cuando se lance.', { board: esc(p.board_name), title: b(p.title) }), { label: t('Ver la idea'), url: ideaUrl(p) })
+          : layout(t('Una idea que votaste está en el Roadmap'), t('El Equipo de {board} sumó {title} a su Roadmap: es parte de lo que planean desarrollar. Gracias por tu voto, te avisamos cuando se lance.', { board: esc(p.board_name), title: b(p.title) }), { label: t('Ver la idea'), url: ideaUrl(p) }),
+      };
     case 'idea_launched':
       return {
         subject: t('¡Se lanzó "{title}"!', { title: s(p.title) }),

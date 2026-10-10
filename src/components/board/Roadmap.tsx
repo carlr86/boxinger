@@ -5,6 +5,7 @@ import { rpc, flushEmails } from '@/lib/rpc';
 import { Dots, Help, PageHead, ProLock, Seg, Tag } from '@/components/ui';
 import { DEV, LAUNCH_COL, LAUNCH_RECENT_DAYS, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
+import { useToast } from '@/components/Providers';
 import type { Idea } from '@/lib/types';
 import { rateOf, scoreOf, type BoardApi } from './shared';
 import { AuthorLine } from './IdeaGrid';
@@ -37,6 +38,7 @@ function ValueHelp() {
 
 export function Roadmap({ api }: { api: BoardApi }) {
   const { t, ddmmyyyy, plural } = useI18n();
+  const toast = useToast();
   const [density, setDensity] = useDensity();
   const compact = density === 'compact';
   const densityToggle = <Seg options={[['expanded', t('Expandidas')], ['compact', t('Compactas')]]} value={density} onChange={(v) => setDensity(v as Density)} style={{ alignSelf: 'auto' }} />;
@@ -84,7 +86,11 @@ export function Roadmap({ api }: { api: BoardApi }) {
     // optimistic: update the column locally, then reload
     api.patchIdea(id, { rm_col: col, rm_order: before == null ? 9999 : (ideas.find((x) => x.id === before)?.rm_order ?? 0) - 0.5 });
     setDrag(null); setOver(null);
-    await api.run(rpc('move_roadmap', { p_id: id, p_col: col, p_before: before }), ok);
+    const told = await api.run(rpc<number>('move_roadmap', { p_id: id, p_col: col, p_before: before }));
+    if (told !== undefined) {
+      if (told) { toast.ok(t('{ok} · Le avisamos a {who} que la propusieron o votaron', { ok: ok || t('Pasó al Roadmap'), who: plural(told, 'persona', 'personas') })); flushEmails(); }
+      else if (ok) toast.ok(ok);
+    }
     api.reload();
   }
   async function saveName() {

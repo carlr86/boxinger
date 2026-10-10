@@ -119,10 +119,17 @@ eq(team.members.length, 1); eq(team.boards.find((x) => x.id === b2.id).access[ma
 
 console.log('\n# roadmap (pro)');
 await ok('rate', () => rpc(carla, 'update_idea_plan', [i1, { impact: 4, effort: 2, priority: 'alta' }]));
-await ok('roadmap move', () => rpc(carla, 'move_roadmap', [i1, 'ahora', null]));
+await ok('roadmap move tells the author (not Carla, who moved it)', async () => eq(await rpc(carla, 'move_roadmap', [i1, 'ahora', null]), 1));
+eq((await db.query(`select to_email from public.email_outbox where template='idea_planned'`)).rows.map((x) => x.to_email), ['lucas@gmail.com'], 'roadmap email');
+await ok('moving it again or back and forth does not repeat it', async () => {
+  eq(await rpc(carla, 'move_roadmap', [i1, 'siguiente', null]), 0);
+  await rpc(carla, 'move_roadmap', [i1, null, null]);
+  eq(await rpc(carla, 'move_roadmap', [i1, 'ahora', null]), 0);
+  eq((await db.query(`select count(*)::int n from public.notifications where kind='idea_planned'`)).rows[0].n, 1);
+});
 await err('only approved to roadmap', () => rpc(carla, 'move_roadmap', [i2, 'ahora', null]), 'aprobadas');
 await ok('launch notifies voters', () => rpc(carla, 'update_idea_plan', [i1, { dev_status: 'lanzada' }]));
-eq((await db.query(`select count(*)::int n from public.email_outbox where template='idea_launched'`)).rows[0].n, 2, 'launch emails: the voter and the author (Lucas)');
+eq((await db.query(`select count(*)::int n from public.email_outbox where template='idea_launched'`)).rows[0].n, 1, 'launch emails: the author (Lucas); Carla voted but launched it herself');
 await ok('rename column', () => rpc(carla, 'rename_roadmap_column', [board, 'ahora', 'Q4']));
 
 console.log('\n# downgrade');

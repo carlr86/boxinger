@@ -19,7 +19,7 @@ const Like = ({ down }: { down?: boolean }) => (
 
 export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; onClose: () => void }) {
   const toast = useToast();
-  const { t, dshort, exact, rel } = useI18n();
+  const { t, dshort, exact, rel, plural } = useI18n();
   const { isMobile, isTablet } = useGridCols();
   const [idea, setIdea] = useState<IdeaDetail | null>(null);
   const [missing, setMissing] = useState(false);
@@ -50,6 +50,13 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
     if (mail) flushEmails();
     await Promise.all([load(), api.reload()]);
     return r;
+  };
+  // Entering the Roadmap tells whoever proposed or voted for the idea.
+  const moveRm = async (col: string | null, ok: string) => {
+    const told = await api.run(rpc<number>('move_roadmap', { p_id: id, p_col: col, p_before: null }));
+    if (told) { toast.ok(t('{ok} · Le avisamos a {who} que la propusieron o votaron', { ok, who: plural(told, 'persona', 'personas') })); flushEmails(); }
+    else if (told !== undefined) toast.ok(ok);
+    await Promise.all([load(), api.reload()]);
   };
 
   const width = isMobile ? '100%' : isTablet ? '70%' : 480;
@@ -190,7 +197,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Roadmap <ProPill /></span>
                   <select className="bx-select" style={{ alignSelf: 'flex-start', minWidth: 200 }} value={i.rm_col || ''} disabled={!api.canWrite}
-                    onChange={(e) => { const k = e.target.value; act(rpc('move_roadmap', { p_id: i.id, p_col: k || null, p_before: null }), k ? t('Movida a {col}', { col: rmNames[k] || t(RM_COLS.find((c) => c.k === k)!.l) }) : 'Volvió al Backlog'); }}>
+                    onChange={(e) => { const k = e.target.value; moveRm(k || null, k ? t('Movida a {col}', { col: rmNames[k] || t(RM_COLS.find((c) => c.k === k)!.l) }) : t('Volvió al Backlog')); }}>
                     <option value="">{t('Backlog')}</option>
                     {RM_COLS.map((c) => <option key={c.k} value={c.k}>{rmNames[c.k] || t(c.l)}</option>)}
                   </select>

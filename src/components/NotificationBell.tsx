@@ -42,6 +42,8 @@ function describe(n: Notice, t: T): { text: React.ReactNode; href: string } {
       return { text: tags(t('El Equipo respondió tu comentario en {title}'), { title: s(p.title) }), href: idea };
     case 'idea_status':
       return { text: tags(t('Tu idea {title} pasó a {status}'), { title: s(p.title), status: IDEA_STATUS[s(p.to)] ? t(IDEA_STATUS[s(p.to)].l) : s(p.to) }), href: idea };
+    case 'idea_planned':
+      return { text: tags(t(p.mine ? '{title}, tu idea, está en el Roadmap' : '{title}, una idea que votaste, está en el Roadmap'), { title: s(p.title) }), href: idea };
     case 'idea_launched':
       return { text: tags(t(p.mine ? 'Se lanzó {title}, tu idea' : 'Se lanzó {title}, una idea que votaste'), { title: s(p.title) }), href: idea };
     default:

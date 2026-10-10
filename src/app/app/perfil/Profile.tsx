@@ -167,7 +167,7 @@ function Notifs() {
   const rows: [string, string, string][] = [
     ['comments', 'Nuevos comentarios en mis ideas', 'Cuando alguien comenta una idea que cargaste.'],
     ['replies', 'Respuestas del Equipo', 'Cuando el Equipo responde uno de tus comentarios.'],
-    ['status', 'Cambios de estado', 'Cuando una idea tuya pasa a En revisión, Aprobada o Rechazada, o se lanza una que votaste.'],
+    ['status', 'Cambios de estado', 'Cuando una idea tuya pasa a En revisión, Aprobada o Rechazada, y cuando una idea tuya o que votaste entra al Roadmap o se lanza.'],
   ];
   if (isTeam) rows.push(['digest', 'Resumen diario del buzón', 'Un email por día con los comentarios nuevos en todas las ideas.']);
   if (ctx!.teams.some((x) => x.is_admin || x.can_create_boards)) rows.push(['requests', 'Solicitudes de acceso a mis buzones', 'Cuando alguien pide sumarse como invitado a un buzón que administrás.']);
