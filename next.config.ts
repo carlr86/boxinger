@@ -4,7 +4,7 @@ const dev = process.env.NODE_ENV !== 'production';
 
 // Content-Security-Policy. The app loads no third-party scripts (PayPal / Mercado Pago / Creem
 // open by full-page redirect, not embedded), so the only outside origin the browser talks to is
-// Supabase (REST + realtime websockets) and its Storage images. antd 6 and Next inject inline
+// Supabase (REST + realtime websockets) and its Storage images, plus Google profile photos. antd 6 and Next inject inline
 // styles and inline hydration scripts, so 'unsafe-inline' is needed for style/script; prod does
 // NOT need eval, but `next dev` (HMR / React Refresh) does, so eval is allowed in development only.
 // frame-ancestors 'self' blocks clickjacking. NOTE: when the embeddable widget ships, that one
@@ -13,7 +13,8 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.supabase.co",
+  // Google sign-in profile photos come from lh3.googleusercontent.com.
+  "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com",
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
   "frame-ancestors 'self'",
