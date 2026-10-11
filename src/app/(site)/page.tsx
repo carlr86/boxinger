@@ -1,28 +1,40 @@
 import Link from 'next/link';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import s from './landing.module.css';
+import { AbcTabs } from './AbcTabs';
 import { getPublicEnterprisePrice, getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
 import ContactForm from '@/components/ContactForm';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
 import { getT } from '@/lib/i18n/server';
 
-// Texts below are the Spanish source; the page shows them through t() (src/lib/i18n).
+// Landing: Trello-style layout and creatives with Boxinger's colors. Texts are the Spanish source, shown through t() (src/lib/i18n).
 
-// Same colors as the app (src/lib/constants.ts: IDEA_STATUS and ORIGIN).
-const ST = {
-  ok: { bd: '#b7eb8f', bg: '#f6ffed', fg: '#389e0d' },
-  rev: { bd: '#ffd591', bg: '#fff7e6', fg: '#d46b08' },
-  pend: { bd: '#d9d9d9', bg: '#fafafa', fg: 'rgba(0,0,0,0.65)' },
-} as const;
-const ORI = {
-  Comunidad: { bd: '#d3adf7', bg: '#f9f0ff', fg: '#531dab' },
-  Equipo: { bd: '#93c5fd', bg: '#eff6ff', fg: '#3b82f6' },
-} as const;
+// Headings in a display font, self-hosted by Next (the CSP only allows fonts from this site).
+const display = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['600', '700', '800'], variable: '--display' });
 
+const ORI = { Comunidad: s.tagCom, Equipo: s.tagTeam } as const;
 const DEMO = [
-  { title: 'Exportar movimientos a Excel', origin: 'Comunidad' as const, cat: 'Feature', st: ST.ok, status: 'Aprobada', votes: 48, comments: 12, author: 'Lucía Fernández', ini: 'LF', color: '#a8487a' },
-  { title: 'Notificación cuando se acredita un pago', origin: 'Comunidad' as const, cat: 'Mejora', st: ST.rev, status: 'En revisión', votes: 31, comments: 7, author: 'Martín Gómez', ini: 'MG', color: '#3a78b5' },
-  { title: 'Conciliación automática con el banco', origin: 'Equipo' as const, cat: 'Propuesta', st: ST.pend, status: 'Pendiente de revisión', votes: 19, comments: 4, author: 'Sofía Ruiz', ini: 'SR', color: '#5b8a3a' },
+  { title: 'Exportar movimientos a Excel', origin: 'Comunidad' as const, cat: 'Feature', st: s.tagOk, status: 'Aprobada', votes: 48, comments: 12, author: 'Lucía Fernández', ini: 'LF', color: '#a8487a' },
+  { title: 'Notificación cuando se acredita un pago', origin: 'Comunidad' as const, cat: 'Mejora', st: s.tagRev, status: 'En revisión', votes: 31, comments: 7, author: 'Martín Gómez', ini: 'MG', color: '#3a78b5' },
+  { title: 'Conciliación automática con el banco', origin: 'Equipo' as const, cat: 'Propuesta', st: s.tagN, status: 'Pendiente de revisión', votes: 19, comments: 4, author: 'Sofía Ruiz', ini: 'SR', color: '#5b8a3a' },
+];
+
+const I = {
+  inbox: <path d="M4 13l2.5-7h11L20 13v5a1 1 0 01-1 1H5a1 1 0 01-1-1zM4 13h4.5l1 2h5l1-2H20" />,
+  rank: <path d="M6 20v-6M12 20V6M18 20v-9" />,
+  backlog: <path d="M5 6h14M5 12h14M5 18h9" />,
+  matrix: <path d="M4 4v16h16M8 14l3-3 3 2 5-6" />,
+  roadmap: <path d="M4 6h7M4 12h11M4 18h5M15 4v4M19 10v4M13 16v4" />,
+  status: <path d="M12 3a9 9 0 109 9h-9z M14 3.2A9 9 0 0120.8 10H14z" />,
+};
+const FEATURES = [
+  { t: 'Buzón', d: 'Todas las ideas del buzón, con filtros por categoría y estado, votos y comentarios.', pro: false, icon: I.inbox, tone: s.icoGreen },
+  { t: 'Ranking', d: 'Las 10 ideas con mayor puntaje entre las que están pendientes o en revisión.', pro: false, icon: I.rank, tone: s.icoViolet },
+  { t: 'Backlog', d: 'Las ideas aprobadas por el equipo, candidatas para el roadmap.', pro: false, icon: I.backlog, tone: s.icoBlue },
+  { t: 'Matriz', d: 'Esfuerzo contra impacto para detectar victorias rápidas y grandes apuestas.', pro: true, icon: I.matrix, tone: s.icoAmber },
+  { t: 'Roadmap', d: 'Columnas propias, prioridad Alta, Media o Baja y estado de diseño y PRD por tarjeta.', pro: true, icon: I.roadmap, tone: s.icoTeal },
+  { t: 'Status', d: 'Cuántas ideas se aprobaron, cuántas están en desarrollo y cuáles ya se lanzaron.', pro: true, icon: I.status, tone: s.icoPink },
 ];
 
 function Sparkle({ size = 12 }: { size?: number }) {
@@ -33,23 +45,6 @@ function Sparkle({ size = 12 }: { size?: number }) {
     </svg>
   );
 }
-
-const STEPS = [
-  { n: '01', t: 'Recibí ideas', d: 'Invitá a tus clientes y a tu equipo. Cargan propuestas con título, descripción y categoría, y solo ven el buzón quienes invitás.' },
-  { n: '02', t: 'La comunidad vota', d: 'Cada idea se vota como Importante, Interesante o No importante. El Ranking muestra las que más interesan.' },
-  { n: '03', t: 'El equipo revisa', d: 'El equipo aprueba o rechaza cada idea con un motivo visible. Las aprobadas pasan al Backlog.' },
-  { n: '04', t: 'Priorizá y lanzá', d: 'Calificá esfuerzo e impacto, ordená el Roadmap y seguí en Status cuántas ideas terminan lanzadas.' },
-];
-
-const FEATURES = [
-  { t: 'Buzón', d: 'Todas las ideas del buzón, con filtros por categoría y estado, votos y comentarios.', pro: false },
-  { t: 'Ranking', d: 'Las 10 ideas con mayor puntaje entre las que están pendientes o en revisión.', pro: false },
-  { t: 'Backlog', d: 'Las ideas aprobadas por el equipo, candidatas para el roadmap.', pro: false },
-  { t: 'Matriz', d: 'Esfuerzo contra impacto para detectar victorias rápidas y grandes apuestas.', pro: true },
-  { t: 'Roadmap', d: 'Columnas propias, prioridad Alta, Media o Baja y estado de diseño y PRD por tarjeta.', pro: true },
-  { t: 'Status', d: 'Cuántas ideas se aprobaron, cuántas están en desarrollo y cuáles ya se lanzaron.', pro: true },
-];
-
 function Check() {
   return (
     <svg className={s.check} width="16" height="16" viewBox="0 0 16 16" aria-hidden>
@@ -57,248 +52,263 @@ function Check() {
     </svg>
   );
 }
+const Scribble = ({ d, className }: { d: string; className: string }) => (
+  <svg className={className} viewBox="0 0 120 80" fill="none" aria-hidden><path d={d} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
 
 export default async function Landing() {
   const [usd, entUsd, { t, locale }] = await Promise.all([getPublicProPrice(), getPublicEnterprisePrice(), getT()]);
   const plans = [
-    {
-      name: 'Free', price: 'USD 0', per: 'para siempre', bd: '#f0f0f0',
-      items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog'],
-      cta: 'Empezar gratis', ctaBg: '#fff', ctaFg: 'rgba(0,0,0,0.88)', ctaBd: '#d9d9d9',
-    },
-    {
-      name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', bd: '#059669',
-      items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel'],
-      cta: 'Crear cuenta', ctaBg: '#059669', ctaFg: '#fff', ctaBd: '#059669',
-    },
-    {
-      name: 'Enterprise', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', bd: '#c7d2fe', badge: 'Con IA',
-      items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'],
-      note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', noteHref: '#contacto-enterprise',
-      cta: 'Contratar Enterprise', ctaBg: '#4338ca', ctaFg: '#fff', ctaBd: '#4338ca', href: '/app/perfil?tab=sub&contratar=enterprise',
-    },
+    { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
+    { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
+    { name: 'Enterprise', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', cta: 'Contratar Enterprise', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=enterprise' },
   ];
 
   return (
-    <div className={s.page}>
+    <div className={`${s.page} ${display.variable}`}>
       <header className={s.header}>
         <div className={s.headerIn}>
-          <a href="#top" className={s.brand}>
-            <img src="/logo.svg" alt="" width={30} height={30} className={s.logo} />
-            <span className={s.brandName}>Boxinger</span>
-          </a>
+          <a href="#top" className={s.brand}><img src="/logo.svg" alt="" width={30} height={30} /><span>Boxinger</span></a>
           <nav className={s.nav}>
-            <a href="#como" className={s.navLink}>{t('Cómo funciona')}</a>
-            <a href="#funciones" className={s.navLink}>{t('Funciones')}</a>
-            <a href="#planes" className={s.navLink}>{t('Planes')}</a>
-            <a href="#contacto" className={s.navLink}>{t('Contacto')}</a>
+            <a href="#como">{t('Cómo funciona')}</a>
+            <a href="#funciones">{t('Funciones')}</a>
+            <a href="#planes">{t('Planes')}</a>
+            <a href="#contacto">{t('Contacto')}</a>
           </nav>
           <div className={s.headerCtas}>
-            <Link href="/app/ingresar" className={s.btnSm}>{t('Ingresar')}</Link>
-            <Link href="/app/registro" className={s.btnSmPrimary}>{t('Crear cuenta')}</Link>
+            <Link href="/app/ingresar" className={s.login}>{t('Ingresar')}</Link>
+            <Link href="/app/registro" className={s.headerCta}>{t('Crear cuenta gratis')}</Link>
           </div>
         </div>
       </header>
 
+      {/* ── Hero ── */}
       <section id="top" className={s.hero}>
         <div className={s.heroIn}>
           <div className={s.heroText}>
-            <span className={s.eyebrow}>PRODUCT DISCOVERY</span>
             <h1 className={s.h1}>{t('Las ideas de tus usuarios, ordenadas en un solo buzón.')}</h1>
-            <p className={s.lead}>
-              {t('Boxinger reúne las propuestas de tu comunidad y de tu equipo. La comunidad vota, el equipo revisa y las ideas aprobadas pasan al backlog, la matriz de esfuerzo e impacto y el roadmap.')}
-            </p>
+            <p className={s.lead}>{t('Tu comunidad propone y vota, tu equipo decide. Sin planillas sueltas ni pedidos perdidos en el chat.')}</p>
             <div className={s.ctaRow}>
-              <Link href="/app/registro" className={s.btnLgPrimary}>{t('Crear cuenta gratis')}</Link>
-              <Link href="/app/ingresar" className={s.btnLg}>{t('Ya tengo cuenta')}</Link>
-            </div>
-            <div className={s.heroFoot}>
-              <span className={s.note}>{t('Plan Free sin tarjeta de crédito.')}</span>
+              <Link href="/app/registro" className={s.btnPrimary}>{t('Crear cuenta gratis')}</Link>
               <a href="#video" className={s.videoLink}>
+                {t('Ver el video')}
                 <span className={s.playDot} aria-hidden><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 1.5v7l6-3.5z" fill="currentColor" /></svg></span>
-                {t('Mirá cómo funciona en 1:40')}
               </a>
             </div>
+            <span className={s.note}>{t('Plan Free sin tarjeta de crédito.')}</span>
           </div>
 
-          <div className={s.mockWrap} aria-hidden>
-            <div className={s.mock}>
-              <div className={s.mockHead}>
-                <span className={s.mockLogo}>PP</span>
-                <span className={s.mockName}>Pampa Pagos</span>
-                <div className={s.mockTabs}>
-                  <span className={s.mockTabActive}>{t('Buzón')}</span><span>{t('Ranking')}</span><span>{t('Backlog')}</span><span>{t('Roadmap')}</span>
-                </div>
+          <div className={s.heroArt} aria-hidden>
+            <div className={s.blob} />
+            <div className={`${s.chip} ${s.heroChipA}`}><b>✉️ Email</b><span>“{t('¿Pueden agregar exportar a Excel?')}”</span></div>
+            <div className={`${s.chip} ${s.heroChipB}`}><b>💬 WhatsApp</b><span>“{t('Estaría bueno un aviso de pago')}”</span></div>
+            <Scribble className={s.heroArrow} d="M10 10 C 30 50, 70 70, 104 58 M92 50 l12 8 l-10 10" />
+            <div className={s.board}>
+              <div className={s.boardHead}>
+                <span className={s.boardLogo}>PP</span><span className={s.boardName}>Pampa Pagos</span>
+                <div className={s.boardTabs}><span className={s.boardTabOn}>{t('Buzón')}</span><span>{t('Ranking')}</span><span>{t('Backlog')}</span></div>
               </div>
-              <div className={s.mockList}>
+              <div className={s.boardList}>
                 {DEMO.map((d) => (
-                  <div key={d.title} className={s.mockCard}>
-                    <div className={s.voteBox}>
-                      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 2l4 5H2z" fill="#059669" /></svg>
-                      <span className={s.voteN}>{d.votes}</span>
-                    </div>
-                    <div className={s.mockBody}>
-                      <div className={s.tags}>
-                        <span className={s.tag} style={{ borderColor: ORI[d.origin].bd, background: ORI[d.origin].bg, color: ORI[d.origin].fg }}>{t(d.origin)}</span>
-                        <span className={s.tag}>{t(d.cat)}</span>
-                        <span className={s.tag} style={{ borderColor: d.st.bd, background: d.st.bg, color: d.st.fg }}>{t(d.status)}</span>
-                      </div>
-                      <span className={s.mockTitle}>{t(d.title)}</span>
-                      <div className={s.mockMeta}>
-                        <span className={s.mockAvatar} style={{ background: d.color }}>{d.ini}</span>
-                        <span>{d.author}</span>
-                        <span className={s.mockDot}>·</span>
-                        <span className={s.mockComments}>
-                          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>
-                          {d.comments}
-                        </span>
-                      </div>
+                  <div key={d.title} className={s.idea}>
+                    <div className={s.voteBox}><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 2l4 5H2z" fill="#059669" /></svg><span>{d.votes}</span></div>
+                    <div className={s.ideaBody}>
+                      <div className={s.tagsRow}><span className={ORI[d.origin]}>{t(d.origin)}</span><span className={s.tagN}>{t(d.cat)}</span><span className={d.st}>{t(d.status)}</span></div>
+                      <span className={s.ideaTitle}>{t(d.title)}</span>
+                      <div className={s.ideaMeta}><span className={s.avatar} style={{ background: d.color }}>{d.ini}</span>{d.author}<span>·</span>💬 {d.comments}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            {/* Enterprise AI assistant: what the team sees when it asks for the best candidate. */}
+            <div className={`${s.sticker} ${s.heroSticker}`}>+1 {t('Importante')}</div>
             <div className={s.aiCard}>
               <span className={s.aiHead}><Sparkle />{t('Asistente IA')}<span className={s.aiPill}>Enterprise</span></span>
               <span className={s.aiLabel}>{t('Mejor candidata para el Backlog')}</span>
               <span className={s.aiTitle}>{t('Notificación cuando se acredita un pago')}</span>
               <span className={s.aiWhy}>{t('31 votos y 7 comentarios: es lo que más piden y baja las consultas al soporte, el objetivo del trimestre.')}</span>
-              <div className={s.aiFoot}>
-                <span className={s.tag} style={{ borderColor: '#b7eb8f', background: '#f6ffed', color: '#389e0d' }}>{t('Confianza alta')}</span>
-                <span className={s.aiBtn}>{t('Aprobar')}</span>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* ── ABC (tabs) ── */}
       <section id="como" className={s.section}>
-        <div className={s.sectionHead}>
-          <h2 className={s.h2}>{t('Cómo funciona')}</h2>
-          <p className={s.sub}>{t('Cada idea sigue el mismo recorrido, desde que alguien la propone hasta que se lanza.')}</p>
+        <div className={s.head}>
+          <span className={s.kicker}>{t('El ABC de Boxinger')}</span>
+          <h2 className={s.h2}>{t('Cada idea sigue el mismo recorrido, desde que alguien la propone hasta que se lanza.')}</h2>
         </div>
-        <figure id="video" className={s.video}>
-          {/* preload="none": the 7 MB file only downloads when someone presses play */}
-          <video controls playsInline preload="none" poster="/video/boxinger-como-funciona.jpg" width={1920} height={1080}
-            aria-label={t('Video: cómo funciona Boxinger')}>
-            <source src="/video/boxinger-como-funciona.mp4" type="video/mp4" />
-          </video>
-          {locale === 'en' && <figcaption className={s.note}>Video in Spanish, with on-screen captions.</figcaption>}
-        </figure>
-        <div className={s.steps}>
-          {STEPS.map((st) => (
-            <div key={st.n} className={s.step}>
-              <span className={s.stepN}>{st.n}</span>
-              <span className={s.stepT}>{t(st.t)}</span>
-              <p className={s.stepD}>{t(st.d)}</p>
-            </div>
-          ))}
+        <AbcTabs />
+      </section>
+
+      {/* ── Video ── */}
+      <section className={s.videoSec}>
+        <div className={s.videoIn}>
+          <div className={s.head} style={{ alignItems: 'center', textAlign: 'center', margin: '0 auto' }}>
+            <h2 className={s.h2}>{t('Conocé Boxinger')}</h2>
+            <p className={s.sub}>{t('Un recorrido rápido por el buzón, los votos, el Backlog y el Roadmap.')}</p>
+          </div>
+          <figure id="video" className={s.videoFrame}>
+            <div className={s.videoDeco} aria-hidden />
+            <video controls playsInline preload="none" poster="/video/boxinger-como-funciona.jpg" width={1920} height={1080} aria-label={t('Video: cómo funciona Boxinger')}>
+              <source src="/video/boxinger-como-funciona.mp4" type="video/mp4" />
+            </video>
+            {locale === 'en' && <figcaption className={s.note}>Video in Spanish, with on-screen captions.</figcaption>}
+          </figure>
         </div>
       </section>
 
-      <section id="funciones" className={s.dark}>
-        <div className={s.section} style={{ maxWidth: 1120 }}>
-          <div className={s.sectionHead}>
-            <h2 className={s.h2}>{t('Todo el recorrido en un lugar')}</h2>
-            <p className={s.subDark}>{t('Cada buzón tiene seis secciones. La comunidad participa en las tres primeras y el equipo gestiona el resto.')}</p>
+      {/* ── Green band with cards ── */}
+      <section className={s.band}>
+        <div className={s.bandIn}>
+          <div className={s.head} style={{ alignItems: 'center', textAlign: 'center', margin: '0 auto' }}>
+            <h2 className={s.h2Light}>{t('De la sugerencia suelta a la decisión')}</h2>
+            <p className={s.subLight}>{t('Traé lo que ya tenés, dejá que la IA te ayude a elegir y avisale a tu comunidad cuando sus ideas avanzan.')}</p>
           </div>
-          <div className={s.features}>
-            {FEATURES.map((f) => (
-              <div key={f.t} className={s.feature}>
-                <div className={s.featureHead}>
-                  <span className={s.featureT}>{t(f.t)}</span>
-                  {f.pro && <span className={s.pro}>PRO</span>}
-                </div>
-                <p className={s.featureD}>{t(f.d)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section id="planes" className={s.section}>
-        <div className={s.sectionHead}>
-          <h2 className={s.h2}>{t('Planes')}</h2>
-          <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o a Enterprise para equipos más grandes y el Asistente IA.')}</p>
-        </div>
-        <div className={s.plans}>
-          {plans.map((p) => (
-            <div key={p.name} className={s.plan} style={{ border: '1px solid ' + p.bd }}>
-              <div className={s.planHead}>
-                <span className={s.planName} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{p.name}{'badge' in p && p.badge && <span className={s.enterpriseBadge}>{t(p.badge)}</span>}</span>
-                <div className={s.priceRow}><span className={s.price}>{t(p.price)}</span><span className={s.per}>{p.per && t(p.per)}</span></div>
-              </div>
-              <div className={s.items}>
-                {p.items.map((it) => (
-                  <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>
+          <div className={s.card}>
+            <div className={`${s.cardArt} ${s.artMint}`} aria-hidden>
+              <div className={`${s.paper} ${s.sheet}`}>
+                <div className={s.sheetHead}><span>A</span><span>B</span><span>C</span></div>
+                {['Exportar a Excel', 'Aviso de pago', 'Modo oscuro', 'Pagar con QR'].map((r, n) => (
+                  <div key={r} className={s.sheetRow}><span>{n + 2}</span><span>{t(r)}</span><span>{['15/03', '02/05', '11/06', '20/07'][n]}</span></div>
                 ))}
               </div>
-              {'note' in p && p.note && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', textWrap: 'pretty' }}>{t(p.note)} <a href={p.noteHref} style={{ color: '#4338ca' }}>{t('Contactanos')}</a></span>}
-              {'href' in p && p.href
-                ? <a href={p.href} className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</a>
-                : <Link href="/app/registro" className={s.planCta} style={{ background: p.ctaBg, color: p.ctaFg, border: '1px solid ' + p.ctaBd }}>{t(p.cta)}</Link>}
+              <Scribble className={s.cardArrow} d="M8 40 C 40 10, 76 10, 108 36 M96 30 l12 6 l-6 12" />
+              <div className={`${s.paper} ${s.imported}`}>
+                <div className={s.miniIdea}><span className={s.tagImp}>{t('Importada')}</span>{t('Exportar a Excel')}</div>
+                <div className={s.miniIdea}><span className={s.tagImp}>{t('Importada')}</span>{t('Aviso de pago')}</div>
+              </div>
+            </div>
+            <div className={s.cardText}>
+              <span className={s.cardKicker}><span className={s.kickIco}>⬆</span>{t('Importar ideas')}</span>
+              <p className={s.cardP}>{t('¿Tenés opiniones en planillas, encuestas o tu sistema de soporte? Subí un CSV o Excel y entran al buzón con su fecha original, listas para votar.')}</p>
+              <span className={s.planHint}>Pro · Enterprise</span>
+            </div>
+          </div>
+
+          <div className={`${s.card} ${s.cardFlip}`}>
+            <div className={`${s.cardArt} ${s.artViolet}`} aria-hidden>
+              <div className={`${s.paper} ${s.aiPanel}`}>
+                <span className={s.aiHead}><Sparkle />{t('Asistente IA')}</span>
+                {[['Recordatorio de vencimientos', 'Lo piden clientes de cobranzas'], ['Exportar a contabilidad', 'Ahorra tiempo al cierre de mes'], ['Pagos recurrentes', 'Alineado con retener clientes']].map(([ti, why]) => (
+                  <div key={ti} className={s.aiSug}><b>{t(ti)}</b><span>{t(why)}</span><i>{t('Agregar al buzón')}</i></div>
+                ))}
+              </div>
+              <div className={`${s.sticker} ${s.stickerAi}`}><Sparkle size={14} /> {t('Sugerencias según tu producto')}</div>
+            </div>
+            <div className={s.cardText}>
+              <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickViolet}`}><Sparkle size={12} /></span>{t('Asistente IA')}</span>
+              <p className={s.cardP}>{t('Contale de qué se trata tu producto y te sugiere ideas nuevas, o analiza el buzón y te dice cuáles conviene pasar al Backlog y por qué.')}</p>
+              <span className={`${s.planHint} ${s.planHintViolet}`}>Enterprise</span>
+            </div>
+          </div>
+
+          <div className={s.card}>
+            <div className={`${s.cardArt} ${s.artAmber}`} aria-hidden>
+              <div className={`${s.paper} ${s.mail}`}>
+                <span className={s.mailFrom}><img src="/logo.svg" alt="" width={18} height={18} />Boxinger</span>
+                <b>{t('Tu idea está en el Roadmap')}</b>
+                <span>{t('El Equipo de Pampa Pagos sumó «Exportar a Excel» a su Roadmap. Te avisamos cuando se lance.')}</span>
+                <i>{t('Ver la idea')}</i>
+              </div>
+              <div className={`${s.paper} ${s.bell}`}>🔔 <span>{t('¡Se lanzó «Exportar a Excel»!')}</span></div>
+            </div>
+            <div className={s.cardText}>
+              <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickAmber}`}>🔔</span>{t('Reconocimiento')}</span>
+              <p className={s.cardP}>{t('Cuando una idea entra al Roadmap y cuando se lanza, Boxinger le avisa a quien la propuso y a quienes la votaron. Tu comunidad ve que la escuchás.')}</p>
+              <span className={s.planHint}>Pro · Enterprise</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Features ── */}
+      <section id="funciones" className={s.section}>
+        <div className={s.head}>
+          <span className={s.kicker}>{t('Funciones')}</span>
+          <h2 className={s.h2}>{t('Todo el recorrido en un lugar')}</h2>
+          <p className={s.sub}>{t('Cada buzón tiene seis secciones. La comunidad participa en las tres primeras y el equipo gestiona el resto.')}</p>
+        </div>
+        <div className={s.features}>
+          {FEATURES.map((f) => (
+            <div key={f.t} className={s.feature}>
+              <span className={`${s.ico} ${f.tone}`}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{f.icon}</svg></span>
+              <div className={s.featureHead}><span className={s.featureT}>{t(f.t)}</span>{f.pro && <span className={s.pro}>PRO</span>}</div>
+              <p className={s.featureD}>{t(f.d)}</p>
             </div>
           ))}
         </div>
-        {/* How Pro and Enterprise are paid. */}
-        <div className={s.payInfo}>
-          <div className={s.payWays}>
-            {[
-              ['Mercado Pago', 'Para pagos en Argentina, en pesos.', 'Todas las tarjetas de crédito.'],
-              ['Creem', 'Para pagos internacionales, en dólares, desde cualquier país.', 'Todas las tarjetas de crédito, Apple Pay y Google Pay.'],
-            ].map(([n, d, c]) => (
-              <div key={n} className={s.payWay}>
-                {n === 'Creem'
-                  ? <img src="/pay/creem.svg" alt="Creem" className={s.payLogo} width={93} height={20} />
-                  : <span className={s.payName}><img src="/pay/mercadopago.svg" alt="" width={24} height={24} />{n}</span>}
-                <span>{t(d)}</span>
-                <span className={s.payCards}>{t(c)}</span>
+      </section>
+
+      {/* ── Plans ── */}
+      <section id="planes" className={s.plansSec}>
+        <div className={s.section}>
+          <div className={s.head} style={{ alignItems: 'center', textAlign: 'center', margin: '0 auto' }}>
+            <h2 className={s.h2}>{t('Planes')}</h2>
+            <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o a Enterprise para equipos más grandes y el Asistente IA.')}</p>
+          </div>
+          <div className={s.plans}>
+            {plans.map((p) => (
+              <div key={p.name} className={`${s.plan} ${p.cls}`}>
+                <div className={s.planHead}>
+                  <span className={s.planName}>{p.name}{'badge' in p && p.badge && <span className={s.entBadge}><Sparkle size={11} />{t(p.badge)}</span>}</span>
+                  <div className={s.priceRow}><span className={s.price}>{t(p.price)}</span><span className={s.per}>{t(p.per)}</span></div>
+                </div>
+                <div className={s.items}>{p.items.map((it) => <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>)}</div>
+                {'note' in p && p.note && <span className={s.planNote}>{t(p.note)} <a href="#contacto-enterprise">{t('Contactanos')}</a></span>}
+                {'href' in p && p.href
+                  ? <a href={p.href} className={`${s.planCta} ${p.ctaCls}`}>{t(p.cta)}</a>
+                  : <Link href="/app/registro" className={`${s.planCta} ${p.ctaCls}`}>{t(p.cta)}</Link>}
               </div>
             ))}
+          </div>
+          <div className={s.payWays}>
+            <div className={s.payWay}><span className={s.payName}><img src="/pay/mercadopago.svg" alt="" width={24} height={24} />Mercado Pago</span><span>{t('Para pagos en Argentina, en pesos.')}</span><span className={s.payCards}>{t('Todas las tarjetas de crédito.')}</span></div>
+            <div className={s.payWay}><img src="/pay/creem.svg" alt="Creem" className={s.payLogo} width={93} height={20} /><span>{t('Para pagos internacionales, en dólares, desde cualquier país.')}</span><span className={s.payCards}>{t('Todas las tarjetas de crédito, Apple Pay y Google Pay.')}</span></div>
           </div>
           <p className={s.payNote}><Check />{t('Pago mensual recurrente: se cobra solo cada mes y podés cancelar cuando quieras desde Mi perfil, sin costo.')}</p>
         </div>
       </section>
 
+      {/* ── Contact ── */}
       <section id="contacto" className={s.contact}>
         <div className={s.contactIn}>
           <div className={s.contactText}>
             <span id="contacto-enterprise" className={s.anchor} />
             <h2 className={s.h2}>{t('Hablemos')}</h2>
             <p className={s.sub}>{t('¿Tenés una duda, necesitás ayuda o querés conocer el plan Enterprise para tu empresa? Escribinos y te respondemos por email.')}</p>
-            <div className={s.contactAlt}>
-              <span>{t('También podés escribirnos a')}</span>
-              <a href="mailto:hola@boxinger.com">hola@boxinger.com</a>
-            </div>
+            <div className={s.contactAlt}><span>{t('También podés escribirnos a')}</span><a href="mailto:hola@boxinger.com">hola@boxinger.com</a></div>
           </div>
-          <div className={s.contactCard}>
-            <ContactForm hashTopic />
-          </div>
+          <div className={s.contactCard}><ContactForm hashTopic /></div>
         </div>
       </section>
 
-      <section className={s.band}>
-        <div className={s.bandIn}>
-          <h2 className={s.bandH}>{t('Abrí tu primer buzón hoy.')}</h2>
-          <div className={s.ctaRow}>
-            <Link href="/app/registro" className={s.btnLgPrimary}>{t('Crear cuenta gratis')}</Link>
-            <Link href="/app/ingresar" className={s.btnLg}>{t('Ingresar')}</Link>
-          </div>
+      {/* ── Final CTA ── */}
+      <section className={s.final}>
+        <div className={`${s.chip} ${s.finalChipA}`} aria-hidden><b>💡 {t('Idea')}</b><span>“{t('Pagar con QR sería ideal')}”</span></div>
+        <div className={`${s.sticker} ${s.finalSticker}`} aria-hidden>✓ {t('Aprobada')}</div>
+        <h2 className={s.finalH}>{t('Abrí tu primer buzón hoy.')}</h2>
+        <p className={s.sub}>{t('Plan Free sin tarjeta de crédito.')}</p>
+        <div className={s.ctaRow} style={{ justifyContent: 'center' }}>
+          <Link href="/app/registro" className={s.btnPrimary}>{t('Crear cuenta gratis')}</Link>
+          <Link href="/app/ingresar" className={s.btnGhostLg}>{t('Ingresar')}</Link>
         </div>
       </section>
 
       <footer className={s.footer}>
         <div className={s.footerIn}>
-          <span style={{ flex: 1 }}>© 2026 Boxinger · www.boxinger.com</span>
-          <div className={s.footerLinks}>
-            <Link href="/terminos" className={s.footerLink}>{t('Términos')}</Link>
-            <Link href="/privacidad" className={s.footerLink}>{t('Privacidad')}</Link>
-            <Link href="/seguridad" className={s.footerLink}>{t('Seguridad')}</Link>
-            <a href="#contacto" className={s.footerLink}>{t('Contacto')}</a>
-            <Link href="/arrepentimiento" className={s.footerLink}>{t('Botón de arrepentimiento')}</Link>
-            <LanguageSwitch />
+          <div className={s.footBrand}>
+            <span className={s.brand}><img src="/logo.svg" alt="" width={28} height={28} /><span>Boxinger</span></span>
+            <span className={s.footTag}>{t('Buzón de ideas para equipos de producto.')}</span>
           </div>
+          <div className={s.footCol}><b>{t('Producto')}</b><a href="#como">{t('Cómo funciona')}</a><a href="#funciones">{t('Funciones')}</a><a href="#planes">{t('Planes')}</a></div>
+          <div className={s.footCol}><b>{t('Legales')}</b><Link href="/terminos">{t('Términos')}</Link><Link href="/privacidad">{t('Privacidad')}</Link><Link href="/seguridad">{t('Seguridad')}</Link><Link href="/arrepentimiento">{t('Botón de arrepentimiento')}</Link></div>
+          <div className={s.footCol}><b>{t('Contacto')}</b><a href="mailto:hola@boxinger.com">hola@boxinger.com</a><a href="#contacto">{t('Escribinos')}</a></div>
+        </div>
+        <div className={s.footBottom}>
+          <span>© 2026 Boxinger · www.boxinger.com</span>
+          <LanguageSwitch style={{ color: 'rgba(255,255,255,0.7)' }} />
         </div>
       </footer>
     </div>
