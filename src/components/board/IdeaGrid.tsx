@@ -8,6 +8,7 @@ import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
 import { AiButton, AiPanel, AiTag } from './AiPanel';
 import { ImportButton, ImportModal } from './ImportModal';
+import { ExportButton } from './ExportButton';
 
 const PAGE = 20;
 const LAYOUT_KEY = 'bx-ideas-layout';
@@ -107,6 +108,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
             {!backlog && api.data.role === 'admin' && <AiButton onClick={() => setAiOpen(true)} />}
             <LayoutToggle value={layout} onChange={setLayout} />
             {!backlog && !isMobile && api.isAdmin && <ImportButton api={api} onClick={() => setImportOpen(true)} />}
+            {!backlog && !isMobile && api.isAdmin && <ExportButton api={api} />}
             {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ {t('Nueva idea')}</button>}
           </div>
         }

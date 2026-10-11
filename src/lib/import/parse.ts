@@ -1,3 +1,5 @@
+import { csvSep, toCsv } from '@/lib/csv';
+
 // Reading an ideas file (CSV or .xlsx) in the browser, before sending it to import_ideas.
 // The rules here mirror the server's (supabase/migrations/…048_import_ideas.sql), so the preview matches the result.
 
@@ -88,7 +90,7 @@ export function guessColumns(headers: string[]): Mapping {
 }
 
 const STATUS: Record<string, string> = {
-  pendiente: 'pendiente', pending: 'pendiente', nuevo: 'pendiente', nueva: 'pendiente', new: 'pendiente', 'pendiente de revision': 'pendiente',
+  pendiente: 'pendiente', pending: 'pendiente', nuevo: 'pendiente', nueva: 'pendiente', new: 'pendiente', 'pendiente de revision': 'pendiente', 'pending review': 'pendiente',
   'en revision': 'en_revision', 'in review': 'en_revision', review: 'en_revision', revision: 'en_revision', 'under review': 'en_revision',
   aprobada: 'aprobada', aprobado: 'aprobada', approved: 'aprobada', backlog: 'aprobada', planned: 'aprobada', planificada: 'aprobada',
 };
@@ -119,7 +121,8 @@ export function toDate(v: Cell, locale: 'es' | 'en'): string | null {
   return dayFirst ? ymd(y, b, a) : ymd(y, a, b);
 }
 
-const text = (v: Cell) => (v == null ? '' : v instanceof Date ? v.toISOString().slice(0, 10) : String(v)).trim();
+// A leading ' before = + - @ is the guard our export adds against formulas (src/lib/csv.ts): drop it on the way back in.
+const text = (v: Cell) => (v == null ? '' : v instanceof Date ? v.toISOString().slice(0, 10) : String(v)).trim().replace(/^'(?=[=+\-@])/, '');
 
 /** Applies the mapping and the server's rules: what will be imported and what is skipped (and why). */
 export function normalizeRows(sheet: Sheet, map: Mapping, existingTitles: string[], locale: 'es' | 'en'): { rows: ImportRow[]; skipped: Skipped[] } {
@@ -157,7 +160,7 @@ export function normalizeRows(sheet: Sheet, map: Mapping, existingTitles: string
 /** A sample file to fill in, with the column names Boxinger recognizes. */
 export function templateCsv(locale: 'es' | 'en'): Blob {
   const es = locale === 'es';
-  const sep = es ? ';' : ','; // Excel in Spanish opens ;-separated files in columns
+  const sep = csvSep(locale);
   const rows = es
     ? [['Título', 'Descripción', 'Categoría', 'Fecha', 'Nombre', 'Email', 'Estado'],
        ['Exportar reportes a Excel', 'Necesito bajar los reportes para compartirlos con mi equipo.', 'Feature', '15/03/2024', 'Juan Pérez', 'juan@cliente.com', 'Pendiente'],
@@ -165,6 +168,5 @@ export function templateCsv(locale: 'es' | 'en'): Blob {
     : [['Title', 'Description', 'Category', 'Date', 'Name', 'Email', 'Status'],
        ['Export reports to Excel', 'I need to download reports to share them with my team.', 'Feature', '2024-03-15', 'John Smith', 'john@client.com', 'Pending'],
        ['Dark mode', 'I use the app at night and the screen is too bright.', 'Improvement', '2024-05-02', 'Ann Lee', '', 'In review']];
-  const cell = (c: string) => (/[";,\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c);
-  return new Blob(['﻿' + rows.map((r) => r.map(cell).join(sep)).join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' });
+  return toCsv(rows, sep);
 }

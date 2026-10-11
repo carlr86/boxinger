@@ -1409,6 +1409,18 @@ export const EN: Record<string, string> = {
   "Modo oscuro": "Dark mode",
   "Reportes en PDF": "PDF reports",
   "Después": "Later",
+  // ── Exportar ideas ──
+  "Descargar todas las ideas del buzón en un archivo para Excel o Google Sheets": "Download every idea on the board as a file for Excel or Google Sheets",
+  "Exportamos {ideas}.": "We exported {ideas}.",
+  "Exportando…": "Exporting…",
+  "Exportar": "Export",
+  "El buzón todavía no tiene ideas: el archivo solo tiene los títulos de las columnas.": "The board has no ideas yet: the file only has the column headers.",
+  "ID": "ID",
+  "Lanzada el": "Launched on",
+  "Aprobada el": "Approved on",
+  "Sugerida por IA": "Suggested by AI",
+  "Link": "Link",
+  "Solo el Admin del equipo puede exportar las ideas.": "Only the team Admin can export the ideas.",
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

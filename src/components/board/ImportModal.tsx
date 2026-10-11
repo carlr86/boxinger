@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Popconfirm } from 'antd';
 import { rpc } from '@/lib/rpc';
+import { downloadBlob } from '@/lib/csv';
 import { Choice, Note, ProPill, SectionLabel } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { useI18n } from '@/lib/i18n/client';
@@ -71,13 +72,7 @@ export function ImportModal({ api, open, onClose, isMobile }: { api: BoardApi; o
     }
   }
 
-  function downloadTemplate() {
-    const url = URL.createObjectURL(templateCsv(locale));
-    const a = document.createElement('a');
-    a.href = url; a.download = locale === 'en' ? 'ideas-template.csv' : 'plantilla-ideas.csv';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
+  const downloadTemplate = () => downloadBlob(templateCsv(locale), locale === 'en' ? 'ideas-template.csv' : 'plantilla-ideas.csv');
 
   const plan = useMemo(() => (sheet ? normalizeRows(sheet, map, api.data.ideas.map((i) => i.title), locale) : { rows: [], skipped: [] }), [sheet, map, api.data.ideas, locale]);
   const catName = (name: string) => cats.find((c) => c.name.trim().toLowerCase() === name.trim().toLowerCase())?.name;
