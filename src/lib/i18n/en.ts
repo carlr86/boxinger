@@ -1422,6 +1422,9 @@ export const EN: Record<string, string> = {
   "Link": "Link",
   "Solo el Admin del equipo puede exportar las ideas.": "Only the team Admin can export the ideas.",
   // ── Unir ideas ──
+  "Más acciones": "More actions",
+  "Ocultar para la Comunidad": "Hide from the Community",
+  "Se borran también sus votos y comentarios, y no se puede deshacer. Si es una idea repetida, mejor usá Unir con otra idea: no se pierde nada.": "Its votes and comments are deleted too, and it can't be undone. If it's a repeated idea, better use Merge with another idea: nothing is lost.",
   "Buscar idea por título": "Search ideas by title",
   "Elegir otra": "Pick another",
   "Elegí la idea principal, la que queda. «{title}» se une a ella.": "Pick the main idea, the one that stays. “{title}” merges into it.",

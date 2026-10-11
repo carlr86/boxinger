@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { Drawer, Popconfirm, Tooltip } from 'antd';
+import { App, Drawer, Dropdown, Popconfirm, Tooltip } from 'antd';
+import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, MergeCellsOutlined } from '@ant-design/icons';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Avatar, Bar, Choice, Dots, Help, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE_KEYS, statusTone } from '@/lib/constants';
@@ -12,6 +13,8 @@ import { MergeModal } from './MergeModal';
 import { quadrant, rateOf, voteMode, type BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
 
+const More = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>);
+
 const Like = ({ down }: { down?: boolean }) => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden style={down ? { transform: 'rotate(180deg)' } : undefined}>
     <path d="M5 7v6.5H2.5V7zM5 7l2.5-4.5c1 0 1.7.8 1.5 1.8L8.6 6.5h3.9c.8 0 1.4.8 1.2 1.6l-1 4.2c-.2.7-.8 1.2-1.5 1.2H5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
@@ -20,6 +23,7 @@ const Like = ({ down }: { down?: boolean }) => (
 
 export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; onClose: () => void }) {
   const toast = useToast();
+  const { modal } = App.useApp();
   const { t, dshort, exact, rel, plural, ddmmyyyy } = useI18n();
   const { isMobile, isTablet } = useGridCols();
   const [idea, setIdea] = useState<IdeaDetail | null>(null);
@@ -200,30 +204,25 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                   {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{t(v.l)}</option>)}
                 </select>
                 <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => api.openEdit(i)}>{t('Editar')}</button>
-                <button type="button" className="bx-btn" disabled={!api.canWrite}
-                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: !i.hidden }), i.hidden ? 'La idea vuelve a ser visible' : 'Idea oculta para la Comunidad')}>
-                  {i.hidden ? t('Mostrar idea') : t('Ocultar idea')}
-                </button>
-                {api.isAdmin && (
-                  <Popconfirm
-                    title={t('¿Eliminar esta idea?')}
-                    description={<span style={{ display: 'block', maxWidth: 280 }}>{t('Se borran también sus votos y comentarios, y no se puede deshacer. Si solo querés que la Comunidad no la vea, usá Ocultar.')}</span>}
-                    okText={t('Eliminar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }} disabled={!api.canWrite}
-                    onConfirm={async () => {
-                      const r = await api.run(rpc('delete_idea', { p_id: i.id }), 'Idea eliminada');
-                      if (r !== undefined) { onClose(); api.reload(); }
-                    }}>
-                    <button type="button" className="bx-btn" disabled={!api.canWrite} style={{ color: '#cf1322', borderColor: '#ffccc7' }}>{t('Eliminar idea')}</button>
-                  </Popconfirm>
-                )}
-                {api.isAdmin && (
-                  <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => (api.pro ? setMergeOpen(true) : api.goPro())}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    {t('Unir con otra idea')}{!api.pro && <ProPill />}
-                  </button>
-                )}
+                {/* Less frequent actions in the "…" menu, with icons like the other menus; Eliminar last, in red, with confirmation. */}
+                <Dropdown trigger={['click']} placement="bottomRight" disabled={!api.canWrite} menu={{ items: [
+                  { key: 'hide', icon: i.hidden ? <EyeOutlined /> : <EyeInvisibleOutlined />, label: i.hidden ? t('Mostrar idea') : t('Ocultar para la Comunidad'),
+                    onClick: () => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: !i.hidden }), i.hidden ? 'La idea vuelve a ser visible' : 'Idea oculta para la Comunidad') },
+                  ...(api.isAdmin ? [
+                    { key: 'merge', icon: <MergeCellsOutlined />, label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>{t('Unir con otra idea')}{!api.pro && <ProPill />}</span>,
+                      onClick: () => (api.pro ? setMergeOpen(true) : api.goPro()) },
+                    { type: 'divider' as const },
+                    { key: 'delete', icon: <DeleteOutlined />, danger: true, label: t('Eliminar idea'), onClick: () => modal.confirm({
+                      title: t('¿Eliminar esta idea?'), content: t('Se borran también sus votos y comentarios, y no se puede deshacer. Si es una idea repetida, mejor usá Unir con otra idea: no se pierde nada.'),
+                      okText: t('Eliminar'), cancelText: t('Cancelar'), okButtonProps: { danger: true },
+                      onOk: async () => { const r = await api.run(rpc('delete_idea', { p_id: i.id }), 'Idea eliminada'); if (r !== undefined) { onClose(); api.reload(); } },
+                    }) },
+                  ] : []),
+                ] }}>
+                  <button type="button" className="bx-btn" disabled={!api.canWrite} aria-label={t('Más acciones')} title={t('Más acciones')}
+                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 36, padding: 0 }}><More /></button>
+                </Dropdown>
               </div>
-              {api.isAdmin && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Ocultar la saca de la vista de la Comunidad. Para ideas repetidas usá Unir: no se pierden los votos ni los comentarios. Eliminar la borra para siempre.')}</span>}
               {api.pro && i.status === 'aprobada' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Roadmap <ProPill /></span>
