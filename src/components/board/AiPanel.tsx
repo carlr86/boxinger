@@ -8,6 +8,7 @@ import { rpc } from '@/lib/rpc';
 import { statusTone } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
+import { MergeModal } from './MergeModal';
 
 // Enterprise AI assistant on a board: suggest new ideas and pick the best pending ones for the Backlog.
 // The model runs in /api/ai; this panel shows the product description, uses left and the last results.
@@ -137,7 +138,7 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
                 <RunBar busy={busy === 'rank'} ready={ready} left={left('rank')} at={st.last_rank?.at} rel={rel}
                   label={st.last_rank ? t('Analizar de nuevo') : t('Analizar ideas')} onRun={() => run('rank')} />
                 {busy === 'rank' && <Working text={t('Leyendo las ideas… puede tardar hasta un minuto.')} />}
-                {st.last_rank && busy !== 'rank' && <RankView api={api} r={st.last_rank.result} />}
+                {st.last_rank && busy !== 'rank' && <RankView api={api} r={st.last_rank.result} isMobile={isMobile} />}
               </section>
             ) : (
               <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -210,9 +211,15 @@ function Working({ text }: { text: string }) {
   );
 }
 
-function RankView({ api, r }: { api: BoardApi; r: Rank }) {
+function RankView({ api, r, isMobile }: { api: BoardApi; r: Rank; isMobile: boolean }) {
   const { t } = useI18n();
   const byId = new Map(api.data.ideas.map((i) => [i.id, i]));
+  // "Unir" on a group of repeated ideas: the one with the most votes stays, the next one merges into it.
+  const [merge, setMerge] = useState<{ src: number; dst: number } | null>(null);
+  const pair = (ids: number[]) => {
+    const live = ids.map((id) => byId.get(id)).filter((x) => !!x).sort((a, b) => b!.votes - a!.votes);
+    return live.length >= 2 ? { src: live[1]!.id, dst: live[0]!.id } : null;
+  };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {r.summary && <span style={{ fontSize: 14, lineHeight: 1.55 }}>{r.summary}</span>}
@@ -250,10 +257,14 @@ function RankView({ api, r }: { api: BoardApi; r: Rank }) {
               <span style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {d.idea_ids.map((id) => byId.get(id) && <a key={id} style={{ color: '#059669' }} onClick={() => api.openIdea(id)}>{byId.get(id)!.title}</a>)}
               </span>
+              {api.isAdmin && api.canWrite && pair(d.idea_ids) && (
+                <button type="button" className="bx-btn" style={{ alignSelf: 'flex-start', height: 28, fontSize: 13, marginTop: 2 }} onClick={() => setMerge(pair(d.idea_ids))}>{t('Unir')}</button>
+              )}
             </div>
           ))}
         </div>
       )}
+      {merge && <MergeModal api={api} open sourceId={merge.src} targetId={merge.dst} onClose={() => setMerge(null)} isMobile={isMobile} />}
     </div>
   );
 }

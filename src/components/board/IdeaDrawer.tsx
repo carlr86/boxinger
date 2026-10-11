@@ -6,8 +6,9 @@ import { Avatar, Bar, Choice, Dots, Help, ProPill, Tag, TeamIcon, CommunityIcon 
 import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import { boardUrl } from '@/lib/env';
-import type { Comment, IdeaDetail } from '@/lib/types';
+import type { Comment, IdeaDetail, MergedIdea } from '@/lib/types';
 import { OriginTag, useGridCols } from './IdeaGrid';
+import { MergeModal } from './MergeModal';
 import { quadrant, rateOf, voteMode, type BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
 
@@ -19,7 +20,7 @@ const Like = ({ down }: { down?: boolean }) => (
 
 export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; onClose: () => void }) {
   const toast = useToast();
-  const { t, dshort, exact, rel, plural } = useI18n();
+  const { t, dshort, exact, rel, plural, ddmmyyyy } = useI18n();
   const { isMobile, isTablet } = useGridCols();
   const [idea, setIdea] = useState<IdeaDetail | null>(null);
   const [missing, setMissing] = useState(false);
@@ -30,10 +31,14 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
   const [editText, setEditText] = useState('');
   const [hov, setHov] = useState<{ k: 'impact' | 'effort'; n: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [showMerges, setShowMerges] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const d = await rpc<IdeaDetail | null>('get_idea', { p_id: id });
+      const d = await rpc<IdeaDetail | MergedIdea | null>('get_idea', { p_id: id });
+      // A duplicate that was merged: its old link opens the main idea.
+      if (d && 'merged_into' in d) return api.openIdea(d.merged_into);
       if (!d) setMissing(true);
       setIdea(d);
     } catch (e) {
@@ -123,6 +128,20 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span></span>
           </div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'rgba(0,0,0,0.78)', overflowWrap: 'anywhere' }}>{i.description}</p>
+          {!!i.merges?.length && (
+            <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <strong style={{ fontWeight: 600, fontSize: 14, flex: 1 }}>{t('También la pidieron como')}</strong>
+                <a onClick={() => setShowMerges(!showMerges)}>{showMerges ? t('Ocultar detalle') : t('Ver detalle')}</a>
+              </div>
+              {i.merges.map((m, k) => (
+                <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span><b style={{ fontWeight: 500 }}>«{m.title}»</b> <span style={{ color: 'rgba(0,0,0,0.45)' }}>· {t(m.author_name)} · {ddmmyyyy(m.created_at)}</span></span>
+                  {showMerges && m.description && <span style={{ color: 'rgba(0,0,0,0.65)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.description}</span>}
+                </div>
+              ))}
+            </div>
+          )}
           {i.status === 'rechazada' && (
             <div style={{ background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 8, padding: '10px 14px', fontSize: 14, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <strong style={{ fontWeight: 600 }}>{t('Motivo del rechazo')}</strong><span>{i.reject_reason}</span>
@@ -197,8 +216,14 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                     <button type="button" className="bx-btn" disabled={!api.canWrite} style={{ color: '#cf1322', borderColor: '#ffccc7' }}>{t('Eliminar idea')}</button>
                   </Popconfirm>
                 )}
+                {api.isAdmin && (
+                  <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => (api.pro ? setMergeOpen(true) : api.goPro())}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    {t('Unir con otra idea')}{!api.pro && <ProPill />}
+                  </button>
+                )}
               </div>
-              {api.isAdmin && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Ocultar la saca de la vista de la Comunidad. Eliminar la borra para siempre: sirve para ideas repetidas.')}</span>}
+              {api.isAdmin && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Ocultar la saca de la vista de la Comunidad. Para ideas repetidas usá Unir: no se pierden los votos ni los comentarios. Eliminar la borra para siempre.')}</span>}
               {api.pro && i.status === 'aprobada' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Roadmap <ProPill /></span>
@@ -328,6 +353,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                       )}
                       <span title={exact(c.created_at)} style={{ color: 'rgba(0,0,0,0.45)' }}>{rel(c.created_at)}{c.edited ? ' ' + t('(editado)') : ''}</span>
                       {c.hidden && <span style={{ color: 'rgba(0,0,0,0.45)' }}>· {t('Oculto')}</span>}
+                      {c.merged_from_title && <span style={{ color: 'rgba(0,0,0,0.45)' }}>· {t('En «{title}»', { title: c.merged_from_title })}</span>}
                     </div>
                     {editing === c.id ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -416,6 +442,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
           </div>
         </div>
       )}
+      {i && api.isAdmin && api.pro && <MergeModal api={api} open={mergeOpen} sourceId={i.id} onClose={() => setMergeOpen(false)} isMobile={isMobile} />}
     </Drawer>
   );
 }

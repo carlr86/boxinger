@@ -55,12 +55,16 @@ export interface Comment {
   id: number; author_id: string | null; author_name: string; author_avatar: string | null; author_team: boolean;
   body: string | null; deleted: boolean; edited: boolean; hidden: boolean; created_at: string;
   likes: number; dislikes: number; my_reaction: 'like' | 'no_like' | null; reply: Reply | null;
+  merged_from_title?: string | null; // came from a duplicate merged into this idea
 }
 export interface IdeaDetail extends Idea {
   board_slug: string;
   comment_list: Comment[];
   history: { from: IdeaStatus; to: IdeaStatus; at: string; reason: string | null }[] | null;
+  merges?: { title: string; description: string; author_name: string; created_at: string; merged_at: string }[]; // duplicates merged into it
 }
+/** get_idea of a duplicate that was merged: where it lives now. */
+export type MergedIdea = { merged_into: number };
 
 export type Visibility = 'public' | 'invite' | 'private';
 
