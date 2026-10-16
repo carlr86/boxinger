@@ -183,6 +183,7 @@
 .sheetRow span:first-child{background:#f9fafb;color:rgba(0,0,0,0.4)}
 .cardArrow{position:absolute;left:42%;top:10%;width:100px;color:var(--ink);opacity:0.7;z-index:3}
 .imported{right:6%;bottom:12%;width:42%;transform:rotate(2deg)}
+.stickerExport{right:6%;top:8%;background:#fff;color:var(--gd);font-size:13px;transform:rotate(4deg)}
 .aiPanel{left:8%;right:8%;top:12%;gap:8px}
 .aiSug{display:grid;grid-template-columns:1fr auto;gap:2px 10px;border:1px solid #e0e7ff;border-radius:9px;padding:9px 11px}
 .aiSug b{font-size:13px}
@@ -317,7 +318,7 @@
   .mail{width:84%}
   .features{grid-template-columns:1fr}
   .payWays{grid-template-columns:1fr}
-  .finalChipA,.finalSticker{display:none}
+  .finalChipA,.finalSticker,.stickerExport{display:none}
   .footerIn{grid-template-columns:1fr}
 }
 @media (max-width:420px){ .login{display:none} }

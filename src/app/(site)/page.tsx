@@ -27,6 +27,9 @@ const I = {
   matrix: <path d="M4 4v16h16M8 14l3-3 3 2 5-6" />,
   roadmap: <path d="M4 6h7M4 12h11M4 18h5M15 4v4M19 10v4M13 16v4" />,
   status: <path d="M12 3a9 9 0 109 9h-9z M14 3.2A9 9 0 0120.8 10H14z" />,
+  news: <path d="M4 10v4h3l7 4.5v-13L7 10H4zM17.5 9a4.5 4.5 0 010 6" />,
+  merge: <path d="M6 4v4a5 5 0 005 5h1M18 4v4a5 5 0 01-5 5h-1M12 13v7" />,
+  sheet: <path d="M8 4v12m0 0l-3-3m3 3l3-3M16 20V8m0 0l-3 3m3-3l3 3" />,
 };
 const FEATURES = [
   { t: 'Buzón', d: 'Todas las ideas del buzón, con filtros por categoría y estado, votos y comentarios.', pro: false, icon: I.inbox, tone: s.icoGreen },
@@ -35,6 +38,9 @@ const FEATURES = [
   { t: 'Matriz', d: 'Esfuerzo contra impacto para detectar victorias rápidas y grandes apuestas.', pro: true, icon: I.matrix, tone: s.icoAmber },
   { t: 'Roadmap', d: 'Columnas propias, prioridad Alta, Media o Baja y estado de diseño y PRD por tarjeta.', pro: true, icon: I.roadmap, tone: s.icoTeal },
   { t: 'Status', d: 'Cuántas ideas se aprobaron, cuántas están en desarrollo y cuáles ya se lanzaron.', pro: true, icon: I.status, tone: s.icoPink },
+  { t: 'Novedades', d: 'La página de lanzamientos del buzón: cada idea lanzada aparece sola, con quién la propuso, y avisamos a toda la comunidad.', pro: true, icon: I.news, tone: s.icoGreen },
+  { t: 'Unir ideas', d: 'Juntá las ideas repetidas en una sola: pasan los votos y comentarios, y nadie pierde su lugar.', pro: true, icon: I.merge, tone: s.icoViolet },
+  { t: 'Importar y exportar', d: 'Exportá todas tus ideas a Excel cuando quieras. Con Pro, importá las que ya tenés en planillas o encuestas.', pro: false, icon: I.sheet, tone: s.icoBlue },
 ];
 
 function Sparkle({ size = 12 }: { size?: number }) {
@@ -59,7 +65,7 @@ const Scribble = ({ d, className }: { d: string; className: string }) => (
 export default async function Landing() {
   const [usd, entUsd, { t, locale }] = await Promise.all([getPublicProPrice(), getPublicEnterprisePrice(), getT()]);
   const plans = [
-    { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
+    { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog', 'Exportá tus ideas a Excel'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
     { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel', 'Uní ideas repetidas sin perder votos', 'Novedades: lo que lanzaste, para toda tu comunidad'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
     { name: 'Enterprise', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', cta: 'Contratar Enterprise', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=enterprise' },
   ];
@@ -179,11 +185,12 @@ export default async function Landing() {
                 <div className={s.miniIdea}><span className={s.tagImp}>{t('Importada')}</span>{t('Exportar a Excel')}</div>
                 <div className={s.miniIdea}><span className={s.tagImp}>{t('Importada')}</span>{t('Aviso de pago')}</div>
               </div>
+              <div className={`${s.sticker} ${s.stickerExport}`}>⬇ {t('Exportar a Excel')}</div>
             </div>
             <div className={s.cardText}>
-              <span className={s.cardKicker}><span className={s.kickIco}>⬆</span>{t('Importar ideas')}</span>
-              <p className={s.cardP}>{t('¿Tenés opiniones en planillas, encuestas o tu sistema de soporte? Subí un CSV o Excel y entran al buzón con su fecha original, listas para votar.')}</p>
-              <span className={s.planHint}>Pro · Enterprise</span>
+              <span className={s.cardKicker}><span className={s.kickIco}>⇅</span>{t('Importar y exportar')}</span>
+              <p className={s.cardP}>{t('¿Tenés opiniones en planillas, encuestas o tu sistema de soporte? Subí un CSV o Excel y entran al buzón con su fecha original, listas para votar. Y cuando quieras, exportá todas tus ideas a Excel.')}</p>
+              <span className={s.planHint}>{t('Exportar: todos los planes · Importar: Pro y Enterprise')}</span>
             </div>
           </div>
 
@@ -215,8 +222,8 @@ export default async function Landing() {
               <div className={`${s.paper} ${s.bell}`}>🔔 <span>{t('¡Se lanzó «Exportar a Excel»!')}</span></div>
             </div>
             <div className={s.cardText}>
-              <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickAmber}`}>🔔</span>{t('Reconocimiento')}</span>
-              <p className={s.cardP}>{t('Cuando una idea entra al Roadmap y cuando se lanza, Boxinger le avisa a quien la propuso y a quienes la votaron. Tu comunidad ve que la escuchás.')}</p>
+              <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickAmber}`}>🔔</span>{t('Reconocimiento y Novedades')}</span>
+              <p className={s.cardP}>{t('Cuando una idea entra al Roadmap y cuando se lanza, Boxinger le avisa a quien la propuso y a quienes la votaron, y la suma a Novedades, la página de lanzamientos de tu buzón. Tu comunidad ve que la escuchás.')}</p>
               <span className={s.planHint}>Pro · Enterprise</span>
             </div>
           </div>
@@ -228,7 +235,7 @@ export default async function Landing() {
         <div className={s.head}>
           <span className={s.kicker}>{t('Funciones')}</span>
           <h2 className={s.h2}>{t('Todo el recorrido en un lugar')}</h2>
-          <p className={s.sub}>{t('Cada buzón tiene seis secciones. La comunidad participa en las tres primeras y el equipo gestiona el resto.')}</p>
+          <p className={s.sub}>{t('Todo lo que necesitás para escuchar a tu comunidad, decidir qué construir y mostrar lo que lanzaste.')}</p>
         </div>
         <div className={s.features}>
           {FEATURES.map((f) => (

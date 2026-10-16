@@ -10,7 +10,7 @@ const STEPS = [
   { k: 'in', t: 'Recibí ideas', d: 'Invitá a tus clientes y a tu equipo. Cargan propuestas con título, descripción y categoría, y solo ven el buzón quienes invitás.' },
   { k: 'vote', t: 'La comunidad vota', d: 'Cada idea se vota como Importante, Interesante o No importante. El Ranking muestra las que más interesan.' },
   { k: 'review', t: 'El equipo revisa', d: 'El equipo aprueba o rechaza cada idea con un motivo visible. Las aprobadas pasan al Backlog.' },
-  { k: 'ship', t: 'Priorizá y lanzá', d: 'Calificá esfuerzo e impacto, ordená el Roadmap y avisá a quienes la pidieron cuando se lanza.' },
+  { k: 'ship', t: 'Priorizá y lanzá', d: 'Calificá esfuerzo e impacto y ordená el Roadmap. Al lanzar, la idea aparece en Novedades y avisamos a quienes la pidieron.' },
 ] as const;
 
 const Arrow = ({ d, className }: { d: string; className?: string }) => (
