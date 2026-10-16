@@ -46,6 +46,8 @@ function describe(n: Notice, t: T): { text: React.ReactNode; href: string } {
       return { text: tags(t(p.mine ? '{title}, tu idea, está en el Roadmap' : '{title}, una idea que votaste, está en el Roadmap'), { title: s(p.title) }), href: idea };
     case 'idea_merged':
       return { text: tags(t(p.mine ? 'Tu idea {from} se unió con {title}, que pedía lo mismo' : '{from}, que votaste, se unió con {title}, que pedía lo mismo'), { from: s(p.from_title), title: s(p.title) }), href: idea };
+    case 'board_update':
+      return { text: tags(t('Novedad en {board}: se lanzó {title}'), { board: s(p.board_name), title: s(p.title) }), href: board + '/novedades' };
     case 'idea_launched':
       return { text: tags(t(p.mine ? 'Se lanzó {title}, tu idea' : 'Se lanzó {title}, una idea que votaste'), { title: s(p.title) }), href: idea };
     default:

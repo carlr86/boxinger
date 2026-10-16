@@ -3,7 +3,7 @@ import type { BoardData, Category, Idea } from '@/lib/types';
 
 export type IdeaDraft = { title: string; description: string; category_id: string; ai?: boolean; suggestion?: string };
 
-export type View = 'buzon' | 'ranking' | 'backlog' | 'matriz' | 'roadmap' | 'status' | 'config';
+export type View = 'buzon' | 'ranking' | 'backlog' | 'matriz' | 'roadmap' | 'status' | 'novedades' | 'config';
 
 export interface BoardApi {
   data: BoardData;

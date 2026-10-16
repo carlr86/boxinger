@@ -12,12 +12,13 @@ import { Ranking } from './Ranking';
 import { IdeaDrawer } from './IdeaDrawer';
 import { IdeaForm, RejectModal } from './Modals';
 import { Roadmap } from './Roadmap';
+import { Novedades } from './Novedades';
 import { Matrix, Status } from './Insights';
 import { BoardConfig } from './BoardConfig';
 import type { BoardApi, IdeaDraft, View } from './shared';
 import { useI18n } from '@/lib/i18n/client';
 
-const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'matriz', 'roadmap', 'status', 'config'];
+const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'matriz', 'roadmap', 'status', 'novedades', 'config'];
 const TEAM_VIEWS: View[] = ['matriz', 'roadmap', 'status', 'config'];
 
 function parse(path: string): { view: View; idea: number | null } {
@@ -88,7 +89,8 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
 
   const push = (url: string) => window.history.pushState(null, '', url);
   // The Community only gets the Roadmap (read only) when the board shares it; other team views stay closed.
-  const canSee = (v: View) => isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap);
+  // Novedades: everyone who can see the board, on paid plans (the team also sees it on Free, with the Pro lock).
+  const canSee = (v: View) => (v === 'novedades' ? isTeam || b.pro : isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap));
   const setView = (v: View) => {
     if (!canSee(v)) return;
     setViewState(v); setSelId(null);
@@ -140,7 +142,8 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
 
   const tabs = [{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }]
     .concat(isTeam ? [{ key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
-      : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : []);
+      : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : [])
+    .concat(isTeam || b.pro ? [{ key: 'novedades', label: t('Novedades') }] : []);
   const shownView = canSee(view) ? view : 'buzon';
 
   return (
@@ -161,6 +164,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
         {shownView === 'roadmap' && <Roadmap api={api} />}
         {shownView === 'matriz' && <Matrix api={api} />}
         {shownView === 'status' && <Status api={api} />}
+        {shownView === 'novedades' && <Novedades api={api} />}
         {shownView === 'config' && <BoardConfig api={api} />}
       </main>
 
