@@ -2,6 +2,7 @@
 
     python3 scripts/demo-vitrina/cargar.py cargar --email dueña@ejemplo.com
     python3 scripts/demo-vitrina/cargar.py borrar --email dueña@ejemplo.com
+    (con --buzon <slug> se usa un buzón vacío que ya existe en vez de crear el equipo «Vitrina» y su buzón)
 
 Qué crea, en la cuenta de ese email (tiene que ser Pro o Enterprise):
   · un equipo «Vitrina» con dos personas del equipo de producto inventadas, y el buzón público «Ideas para Vitrina»;
@@ -144,31 +145,59 @@ def demo_boards(cx, account):
                       (account, D.TEAM_NAME, D.BOARD_NAME)).fetchall()
 
 
-def cargar(email):
+def existing_board(cx, account, slug):
+    b = cx.execute("""select b.id, b.slug, b.team_id team, b.description from public.boards b join public.teams t on t.id = b.team_id
+                      where b.slug = %s and t.account_id = %s""", (slug, account)).fetchone()
+    if not b:
+        raise SystemExit(f'No encontré el buzón «{slug}» en esa cuenta.')
+    return b
+
+
+def cargar(email, buzon=None):
     check_data()
     with db() as cx:
         acc = owner_account(cx, email)
         if not acc['pro']:
             raise SystemExit('La cuenta tiene que ser Pro o Enterprise para mostrar Roadmap, Novedades e imágenes.')
-        if demo_boards(cx, acc['account']):
+        if buzon:
+            b = existing_board(cx, acc['account'], buzon)
+            if cx.execute('select 1 from public.ideas where board_id = %s limit 1', (b['id'],)).fetchone():
+                raise SystemExit('Ese buzón ya tiene ideas. El demo se carga solo en un buzón vacío.')
+        elif demo_boards(cx, acc['account']):
             raise SystemExit('El demo ya está cargado en esta cuenta. Para empezar de nuevo, corré primero «borrar».')
         ids = ensure_people(cx)
         owner = acc['uid']
         cx.commit()
 
-        # equipo y buzón
-        team = cx.execute("""insert into public.teams (account_id, name, color) values (%s, %s, '#0f766e') returning id""",
-                          (acc['account'], D.TEAM_NAME)).fetchone()['id']
-        cx.execute("insert into public.team_members (team_id, user_id, role, joined_at) values (%s, %s, 'admin', %s)",
-                   (team, owner, datetime(2026, 5, 20, 10, tzinfo=AR)))
-        for k in D.TEAM:
-            cx.execute("insert into public.team_members (team_id, user_id, role, joined_at) values (%s, %s, 'member', %s)",
-                       (team, ids[k], datetime(2026, 5, 21, 11, tzinfo=AR)))
-        b = cx.execute("select id, slug from public.new_board(%s, %s, 'public', %s)", (team, D.BOARD_NAME, D.BOARD_DESC)).fetchone()
-        board, slug = b['id'], b['slug']
-        cx.execute("""update public.boards set created_by = %s, color = '#0f766e', guests_can_view_roadmap = true,
-                        created_at = %s where id = %s""", (owner, datetime(2026, 6, 1, 10, tzinfo=AR), board))
+        if buzon:
+            # buzón que ya existe: el equipo de producto inventado entra al equipo del buzón, con acceso solo a este buzón
+            board, slug, team = b['id'], b['slug'], b['team']
+            for k in D.TEAM:
+                cx.execute("""insert into public.team_members (team_id, user_id, role, all_boards, joined_at)
+                              values (%s, %s, 'member', false, %s) on conflict do nothing""",
+                           (team, ids[k], datetime(2026, 5, 21, 11, tzinfo=AR)))
+                cx.execute("""insert into public.board_member_access (board_id, user_id, has_access) values (%s, %s, true)
+                              on conflict (board_id, user_id) do update set has_access = true""", (board, ids[k]))
+            placeholder = b['description'].startswith('Buzón nuevo.')
+            cx.execute("""update public.boards set guests_can_view_roadmap = true, description = %s where id = %s""",
+                       (D.BOARD_DESC if placeholder else b['description'], board))
+        else:
+            # equipo y buzón nuevos
+            team = cx.execute("""insert into public.teams (account_id, name, color) values (%s, %s, '#0f766e') returning id""",
+                              (acc['account'], D.TEAM_NAME)).fetchone()['id']
+            cx.execute("insert into public.team_members (team_id, user_id, role, joined_at) values (%s, %s, 'admin', %s)",
+                       (team, owner, datetime(2026, 5, 20, 10, tzinfo=AR)))
+            for k in D.TEAM:
+                cx.execute("insert into public.team_members (team_id, user_id, role, joined_at) values (%s, %s, 'member', %s)",
+                           (team, ids[k], datetime(2026, 5, 21, 11, tzinfo=AR)))
+            b = cx.execute("select id, slug from public.new_board(%s, %s, 'public', %s)", (team, D.BOARD_NAME, D.BOARD_DESC)).fetchone()
+            board, slug = b['id'], b['slug']
+            cx.execute("""update public.boards set created_by = %s, color = '#0f766e', guests_can_view_roadmap = true,
+                            created_at = %s where id = %s""", (owner, datetime(2026, 6, 1, 10, tzinfo=AR), board))
         cats = {r['name']: r['id'] for r in cx.execute('select id, name from public.categories where board_id = %s', (board,))}
+        missing = {i['cat'] for i in D.IDEAS} - set(cats)
+        if missing:
+            raise SystemExit(f'Al buzón le faltan las categorías: {", ".join(sorted(missing))}.')
         community = list(D.COMMUNITY)
         first_seen = {}
 
@@ -293,26 +322,49 @@ def cargar(email):
                                  (select count(*) from public.comments c join public.ideas i on i.id = c.idea_id where i.board_id = %(b)s) comentarios,
                                  count(*) filter (where image_path is not null) imagenes
                                from public.ideas where board_id = %(b)s""", {'b': board}).fetchone()
-    site = ENV.get('NEXT_PUBLIC_SITE_URL', 'https://www.boxinger.com').rstrip('/')
+    site = ENV.get('NEXT_PUBLIC_SITE_URL', '').rstrip('/')
+    if not site or 'localhost' in site:
+        site = 'https://www.boxinger.com'
     print(f"Listo: {counts['ideas']} ideas, {counts['votos']} votos, {counts['comentarios']} comentarios y {counts['imagenes']} imágenes.")
     print(f'Buzón: {site}/app/b/{slug}')
 
 
 # ───────────────────────── borrar ─────────────────────────
-def borrar(email):
+def remove_images(cx, board):
+    names = [r['name'] for r in cx.execute(
+        "select name from storage.objects where bucket_id = %s and name like %s", (BUCKET, f'{board}/%'))]
+    if names:
+        http('DELETE', f'/storage/v1/object/{BUCKET}', {'prefixes': names})
+
+
+def borrar(email, buzon=None):
+    """Sin --buzon borra el equipo «Vitrina» con su buzón. Con --buzon vacía ese buzón (deja el buzón y su equipo)
+    y saca de su equipo al equipo de producto inventado. Las personas inventadas se borran cuando ya no queda ningún demo."""
     with db() as cx:
         acc = owner_account(cx, email)
-        for b in demo_boards(cx, acc['account']):
-            names = [r['name'] for r in cx.execute(
-                "select name from storage.objects where bucket_id = %s and name like %s", (BUCKET, f"{b['id']}/%"))]
-            if names:
-                http('DELETE', f'/storage/v1/object/{BUCKET}', {'prefixes': names})
-            cx.execute('delete from public.teams where id = %s', (b['team'],))
-            print(f"Borrado el buzón {b['slug']} y su equipo.")
+        people = [r['id'] for r in cx.execute('select id from public.profiles where lower(email) like %s', (f'%@{D.EMAIL_DOMAIN}',))]
+        if buzon:
+            b = existing_board(cx, acc['account'], buzon)
+            remove_images(cx, b['id'])
+            cx.execute('delete from public.ideas where board_id = %s', (b['id'],))
+            cx.execute('delete from public.board_guests where board_id = %s and user_id = any(%s)', (b['id'], people))
+            cx.execute('delete from public.board_member_access where board_id = %s and user_id = any(%s)', (b['id'], people))
+            cx.execute('delete from public.team_members where team_id = %s and user_id = any(%s)', (b['team'], people))
+            print(f"Vaciado el buzón {b['slug']}.")
+        else:
+            for b in demo_boards(cx, acc['account']):
+                remove_images(cx, b['id'])
+                cx.execute('delete from public.teams where id = %s', (b['team'],))
+                print(f"Borrado el buzón {b['slug']} y su equipo.")
         cx.commit()
-        people = cx.execute('select id from public.profiles where lower(email) like %s', (f'%@{D.EMAIL_DOMAIN}',)).fetchall()
+        in_use = cx.execute("""select exists (select 1 from public.team_members where user_id = any(%(p)s))
+                                   or exists (select 1 from public.board_guests where user_id = any(%(p)s)) used""",
+                            {'p': people}).fetchone()['used']
+    if in_use:
+        print('Las personas inventadas quedan, porque otro buzón de demo las usa.')
+        return
     for p in people:
-        http('DELETE', f"/auth/v1/admin/users/{p['id']}")
+        http('DELETE', f'/auth/v1/admin/users/{p}')
     print(f'Borradas {len(people)} personas inventadas.')
 
 
@@ -320,6 +372,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description='Buzón de demo «Ideas para Vitrina».')
     ap.add_argument('accion', choices=['cargar', 'borrar', 'revisar'])
     ap.add_argument('--email', help='Email de la cuenta de Boxinger donde va el demo')
+    ap.add_argument('--buzon', help='Slug de un buzón vacío que ya existe (si no, se crea el equipo «Vitrina» con su buzón)')
     a = ap.parse_args()
     if a.accion == 'revisar':
         check_data()
@@ -327,4 +380,4 @@ if __name__ == '__main__':
     elif not a.email:
         ap.error('falta --email')
     else:
-        (cargar if a.accion == 'cargar' else borrar)(a.email)
+        (cargar if a.accion == 'cargar' else borrar)(a.email, a.buzon)
