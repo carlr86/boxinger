@@ -210,6 +210,13 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
         subject: `Pago fallido: ${s(p.name)}`,
         html: layout('Falló el cobro de una suscripción Pro', `No se pudo cobrar la suscripción de <b>${esc(p.name)}</b> (${esc(p.email)}) con ${esc(p.provider)}.`, { label: 'Ver suscripciones', url: `${SITE_URL}/app/admin?tab=suscripciones` }, 'Notificación del panel de Admin de plataforma.'),
       };
+    case 'admin_storage':
+      return {
+        subject: `Almacenamiento al ${Math.round((Number(p.used_mb) / Number(p.limit_mb)) * 100)}%: ${s(p.used_mb)} MB de ${s(p.limit_mb)} MB`,
+        html: layout('El espacio de Supabase se está llenando',
+          `Las imágenes y logos ocupan <b>${esc(p.used_mb)} MB</b> de los <b>${esc(p.limit_mb)} MB</b> del plan actual de Supabase. Conviene pasar a Supabase Pro (USD 25/mes, 100 GB) antes de llegar al tope; cuando lo hagas, cargá <code>NEXT_PUBLIC_STORAGE_LIMIT_MB=102400</code> en Hostinger para que este aviso use el nuevo límite.`,
+          { label: 'Ver Admin', url: `${SITE_URL}/app/admin` }, 'Notificación del panel de Admin de plataforma.'),
+      };
     case 'admin_churn':
       return {
         subject: `Riesgo alto de churn: ${s(p.name)}`,

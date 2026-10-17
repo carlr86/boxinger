@@ -101,6 +101,20 @@ export async function GET(req: NextRequest) {
   await admin.from('app_errors').delete().lt('resolved_at', new Date(now.getTime() - 30 * 864e5).toISOString());
   await admin.from('app_errors').delete().lt('last_at', new Date(now.getTime() - 90 * 864e5).toISOString());
 
+  // 7d. Idea images nobody uses any more (changed, removed, idea deleted), then the space check against the Supabase plan.
+  const { data: orphans } = await admin.rpc('cleanup_idea_images');
+  const names = ((orphans || []) as unknown[]).map((x) => (typeof x === 'string' ? x : Object.values(x as object)[0] as string)).filter(Boolean);
+  for (let i = 0; i < names.length; i += 100) await admin.storage.from('idea-images').remove(names.slice(i, i + 100));
+  log.images_removed = names.length;
+  const { data: usage } = await admin.rpc('storage_usage');
+  const limitMb = Number(process.env.NEXT_PUBLIC_STORAGE_LIMIT_MB) || 1024; // Supabase Free: 1 GB
+  const usedMb = Math.round(Number(usage?.total_bytes || 0) / 1048576);
+  log.storage_mb = usedMb;
+  if (usedMb >= limitMb * 0.7) {
+    // once a week at most while it stays above 70%
+    await admin.rpc('notify_super_admins', { p_pref: 'storage', p_template: 'admin_storage', p_payload: { used_mb: usedMb, limit_mb: limitMb }, p_dedupe: 'storage:' + day.slice(0, 7) + ':' + Math.floor(now.getUTCDate() / 7) });
+  }
+
   // 8. Send everything queued.
   let sent = 0;
   for (let i = 0; i < 10; i++) { const r = await dispatchOutbox(50); sent += r.sent; if (r.sent + r.failed < 50) break; }

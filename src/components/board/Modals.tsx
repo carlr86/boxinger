@@ -1,24 +1,44 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from 'antd';
-import { Choice, Field } from '@/components/ui';
+import { Choice, Field, ProPill } from '@/components/ui';
+import { MAX_INPUT_BYTES, signedImageUrl, thumbPath } from '@/lib/images';
 import type { Category, Idea } from '@/lib/types';
 import { useI18n } from '@/lib/i18n/client';
 
-export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, isMobile }: {
+/** image: a new file to attach, null to remove the current one, undefined to leave it as is. */
+export type IdeaFormValue = { title: string; description: string; category_id: string; image?: File | null };
+
+export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, isMobile, imageMode = 'off', onPro }: {
   open: boolean; idea: Idea | null; draft?: { title: string; description: string; category_id: string }; cats: Category[]; isTeam: boolean; isMobile: boolean;
-  onClose: () => void; onSubmit: (v: { title: string; description: string; category_id: string }) => Promise<boolean>;
+  onClose: () => void; onSubmit: (v: IdeaFormValue) => Promise<boolean>;
+  /** on: can attach an image (paid plan) · pro: show the option with the Pro pill (team on Free) · off: hide it */
+  imageMode?: 'on' | 'pro' | 'off'; onPro?: () => void;
 }) {
   const { t } = useI18n();
   const [f, setF] = useState({ title: '', description: '', category_id: '' });
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Image: the picked file (or null = removed) and what the preview shows.
+  const [img, setImg] = useState<File | null | undefined>(undefined);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [imgErr, setImgErr] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (open) {
       setF(idea ? { title: idea.title, description: idea.description, category_id: idea.category_id } : draft ? { ...draft } : { title: '', description: '', category_id: '' });
       setTried(false);
+      setImg(undefined); setImgErr(''); setPreview(null);
+      if (idea?.image_path) signedImageUrl(thumbPath(idea.image_path)).then((u) => setPreview((p) => p ?? u));
     }
   }, [open, idea, draft]);
+  function pick(file: File | undefined) {
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return setImgErr(t('Elegí una imagen JPG, PNG o WebP.'));
+    if (file.size > MAX_INPUT_BYTES) return setImgErr(t('La imagen puede pesar hasta 10 MB.'));
+    setImgErr(''); setImg(file); setPreview(URL.createObjectURL(file));
+    if (fileRef.current) fileRef.current.value = '';
+  }
 
   const tl = f.title.trim().length, d = f.description.trim().length;
   const e = {
@@ -31,7 +51,7 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
     setTried(true);
     if (e.title || e.desc || e.cat || busy) return;
     setBusy(true);
-    const ok = await onSubmit(f);
+    const ok = await onSubmit({ ...f, image: img });
     setBusy(false);
     if (ok) onClose();
   }
@@ -53,6 +73,28 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
           <Choice options={cats.map((c) => [c.id, c.name] as [string, string])} value={f.category_id} onChange={(v) => setF({ ...f, category_id: v })} />
           {tried && e.cat && <span style={{ fontSize: 13, color: '#ff4d4f' }}>{e.cat}</span>}
         </div>
+        {imageMode !== 'off' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>
+            {t('Imagen (opcional)')}
+            {imageMode === 'pro' ? (
+              <button type="button" className="bx-btn" onClick={onPro} style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6 }}>{t('Adjuntar imagen')} <ProPill /></button>
+            ) : preview ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <img src={preview} alt="" style={{ width: 96, height: 72, objectFit: 'cover', borderRadius: 6, border: '1px solid #f0f0f0' }} />
+                <a onClick={() => fileRef.current?.click()}>{t('Cambiar')}</a>
+                <a style={{ color: '#cf1322' }} onClick={() => { setImg(idea?.image_path ? null : undefined); setPreview(null); }}>{t('Quitar')}</a>
+              </div>
+            ) : (
+              <button type="button" className="bx-btn" onClick={() => fileRef.current?.click()} style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" /><circle cx="9" cy="10" r="1.6" fill="currentColor" /><path d="M4 17l5-5 4 4 3-3 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
+                {t('Adjuntar imagen')}
+              </button>
+            )}
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => pick(e.target.files?.[0])} />
+            {imgErr ? <span style={{ fontSize: 13, color: '#ff4d4f' }}>{imgErr}</span>
+              : imageMode === 'on' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Una captura o foto que muestre la idea. JPG, PNG o WebP, hasta 10 MB: la achicamos antes de subirla.')}</span>}
+          </div>
+        )}
         {!idea && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{isTeam ? t('Se publica al instante con estado Pendiente de revisión y tag Equipo.') : t('Se publica al instante con estado Pendiente de revisión y tag Comunidad.')}</span>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button type="button" className="bx-btn" onClick={onClose}>{t('Cancelar')}</button>

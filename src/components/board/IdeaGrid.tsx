@@ -56,6 +56,18 @@ export function useGridCols() {
 }
 
 /** Ideas brought in from a CSV/Excel file. */
+/** Small marker on cards and rows: the idea has an image (the image itself only loads in the detail). */
+function ImageIcon() {
+  const { t } = useI18n();
+  return (
+    <Tooltip title={t('Tiene una imagen adjunta')}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-label={t('Tiene una imagen adjunta')} style={{ flex: 'none' }}>
+        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" /><circle cx="9" cy="10" r="1.6" fill="currentColor" /><path d="M4 17l5-5 4 4 3-3 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      </svg>
+    </Tooltip>
+  );
+}
+
 export function ImportedTag() {
   const { t } = useI18n();
   return <Tag tone={{ l: '', bg: '#f5f5f5', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.6)' }} title={t('Idea importada desde un archivo, con su fecha original')}>{t('Importada')}</Tag>;
@@ -274,6 +286,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, color: 'rgba(0,0,0,0.45)', flex: 'none', marginLeft: 'auto' }}>
         <Tooltip title={t('Votaciones')}><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CommentIcon />{i.comments}</span>
+        {i.image_path && <ImageIcon />}
         <span title={exact(i.created_at)} style={{ whiteSpace: 'nowrap' }}>{backlog && i.approved_at ? t('Aprobada el {date}', { date: dshort(i.approved_at) }) : relShort(i.created_at)}</span>
         {!backlog && <span style={{ minWidth: 0 }}><VoteControl api={api} i={i} /></span>}
       </div>
@@ -322,6 +335,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'rgba(0,0,0,0.45)', borderTop: '1px solid #f0f0f0', paddingTop: 12, flexWrap: 'nowrap' }}>
         <Tooltip title={t('Votaciones')}><span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><VoteIcon />{i.votes}</span></Tooltip>
         <span style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 'none' }}><CommentIcon />{i.comments}</span>
+        {i.image_path && <ImageIcon />}
         <Tooltip title={exact(i.created_at)}><span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{relShort(i.created_at)}</span></Tooltip>
         {!backlog && <VoteControl api={api} i={i} />}
       </div>

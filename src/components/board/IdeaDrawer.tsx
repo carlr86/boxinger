@@ -1,7 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { App, Drawer, Dropdown, Popconfirm, Tooltip } from 'antd';
-import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, MergeCellsOutlined } from '@ant-design/icons';
+import { App, Drawer, Dropdown, Image, Popconfirm, Tooltip } from 'antd';
+import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined, MergeCellsOutlined, PictureOutlined } from '@ant-design/icons';
+import { signedImageUrl, thumbPath } from '@/lib/images';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Avatar, Bar, Choice, Dots, Help, ProPill, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, VOTE_KEYS, statusTone } from '@/lib/constants';
@@ -36,6 +37,15 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
   const [hov, setHov] = useState<{ k: 'impact' | 'effort'; n: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [mergeOpen, setMergeOpen] = useState(false);
+  const [imgUrls, setImgUrls] = useState<{ thumb: string; full: string } | null>(null);
+  const imagePath = idea?.image_path || null;
+  useEffect(() => {
+    if (!imagePath) { setImgUrls(null); return; }
+    let live = true;
+    Promise.all([signedImageUrl(thumbPath(imagePath)), signedImageUrl(imagePath)])
+      .then(([thumb, full]) => { if (live && thumb && full) setImgUrls({ thumb, full }); });
+    return () => { live = false; };
+  }, [imagePath]);
   const [showMerges, setShowMerges] = useState(false);
 
   const load = useCallback(async () => {
@@ -132,6 +142,10 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span></span>
           </div>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'rgba(0,0,0,0.78)', overflowWrap: 'anywhere' }}>{i.description}</p>
+          {imgUrls && (
+            <Image src={imgUrls.thumb} preview={{ src: imgUrls.full }} alt={t('Imagen de la idea')}
+              style={{ maxWidth: '100%', maxHeight: 260, objectFit: 'contain', borderRadius: 8, border: '1px solid #f0f0f0', cursor: 'zoom-in', background: '#fafafa' }} />
+          )}
           {!!i.merges?.length && (
             <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -208,6 +222,9 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                 <Dropdown trigger={['click']} placement="bottomRight" disabled={!api.canWrite} menu={{ items: [
                   { key: 'hide', icon: i.hidden ? <EyeOutlined /> : <EyeInvisibleOutlined />, label: i.hidden ? t('Mostrar idea') : t('Ocultar para la Comunidad'),
                     onClick: () => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: !i.hidden }), i.hidden ? 'La idea vuelve a ser visible' : 'Idea oculta para la Comunidad') },
+                  ...(i.image_path ? [{ key: 'img', icon: <PictureOutlined />, label: t('Quitar imagen'),
+                    onClick: () => modal.confirm({ title: t('¿Quitar la imagen de esta idea?'), content: t('La idea queda igual, sin la imagen.'), okText: t('Quitar'), cancelText: t('Cancelar'),
+                      onOk: () => act(rpc('set_idea_image', { p_id: i.id, p_path: null }), 'Imagen quitada') }) }] : []),
                   ...(api.isAdmin ? [
                     { key: 'merge', icon: <MergeCellsOutlined />, label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>{t('Unir con otra idea')}{!api.pro && <ProPill />}</span>,
                       onClick: () => (api.pro ? setMergeOpen(true) : api.goPro()) },

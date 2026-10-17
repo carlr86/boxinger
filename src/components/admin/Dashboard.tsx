@@ -65,6 +65,8 @@ export function Dashboard({ period, openClient, openBoard }: { period: '7' | '30
         </div>
       </div>
 
+      <Storage />
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12 }}>
         <span style={{ fontSize: 18, fontWeight: 600 }}>Ventas</span>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>Suscripciones Pro activas y su última actividad, para detectar churn temprano.</span>
@@ -186,3 +188,29 @@ function Signups() {
   );
 }
 
+
+/** Space used in Supabase Storage (idea images, logos) against the plan's limit; the daily cron emails at 70%. */
+function Storage() {
+  const [u, setU] = useState<{ total_bytes: number; buckets: { bucket: string; files: number; bytes: number }[] } | null>(null);
+  useEffect(() => { rpc<typeof u>('admin_storage_usage').then(setU).catch(() => {}); }, []);
+  if (!u) return null;
+  const limit = Number(process.env.NEXT_PUBLIC_STORAGE_LIMIT_MB) || 1024;
+  const mb = (b: number) => Math.round((Number(b) / 1048576) * 10) / 10;
+  const used = mb(u.total_bytes), pct = Math.min(100, Math.round((used / limit) * 100));
+  const name: Record<string, string> = { 'idea-images': 'Imágenes de ideas', media: 'Logos y fotos de perfil' };
+  return (
+    <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 16, fontWeight: 600 }}>Almacenamiento (Supabase)</span>
+        <span style={{ fontSize: 14, color: pct >= 70 ? '#cf1322' : 'rgba(0,0,0,0.65)' }}>{used.toLocaleString('es-AR')} MB de {limit >= 1024 ? (limit / 1024).toLocaleString('es-AR') + ' GB' : limit + ' MB'} · {pct}%</span>
+      </div>
+      <div style={{ height: 8, background: '#f5f5f5', borderRadius: 4, overflow: 'hidden' }}>
+        <div style={{ width: pct + '%', height: '100%', background: pct >= 90 ? '#cf1322' : pct >= 70 ? '#fa8c16' : '#059669' }} />
+      </div>
+      <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+        {u.buckets.map((b) => `${name[b.bucket] || b.bucket}: ${plural(Number(b.files), 'archivo', 'archivos')}, ${mb(b.bytes).toLocaleString('es-AR')} MB`).join(' · ') || 'Sin archivos todavía.'}
+        {pct >= 70 && ' · Conviene pasar a Supabase Pro antes de llegar al tope.'}
+      </span>
+    </div>
+  );
+}

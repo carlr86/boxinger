@@ -13,6 +13,7 @@ import { IdeaDrawer } from './IdeaDrawer';
 import { IdeaForm, RejectModal } from './Modals';
 import { Roadmap } from './Roadmap';
 import { Novedades } from './Novedades';
+import { prepareImage, uploadIdeaImage } from '@/lib/images';
 import { Matrix, Status } from './Insights';
 import { BoardConfig } from './BoardConfig';
 import type { BoardApi, IdeaDraft, View } from './shared';
@@ -140,6 +141,18 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
     },
   };
 
+  // Attach (File), remove (null) or leave (undefined) an idea's image. The idea is already saved: a failed upload only warns.
+  async function saveImage(id: number, image: File | null | undefined) {
+    if (image === undefined) return;
+    try {
+      if (image === null) { await rpc('set_idea_image', { p_id: id, p_path: null }); return; }
+      const path = await uploadIdeaImage(b.id, await prepareImage(image));
+      await rpc('set_idea_image', { p_id: id, p_path: path });
+    } catch (e) {
+      toast.err(new Error(t('La idea se guardó, pero no pudimos subir la imagen: {error}', { error: e instanceof Error ? e.message : String(e) })));
+    }
+  }
+
   const tabs = [{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }]
     .concat(isTeam ? [{ key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
       : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : [])
@@ -177,10 +190,12 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
 
       <IdeaForm open={form.open} idea={form.idea} draft={form.draft} cats={cats} isTeam={isTeam} isMobile={isMobile}
         onClose={() => setForm({ open: false, idea: null })}
+        imageMode={b.pro ? 'on' : isTeam ? 'pro' : 'off'} onPro={api.goPro}
         onSubmit={async (v) => {
           if (!canWrite) { toast.info('Este buzón está en solo lectura.'); return false; }
           if (form.idea) {
             const r = await run(rpc('update_idea', { p_id: form.idea.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea actualizada');
+            if (r !== undefined) await saveImage(form.idea.id, v.image);
             await reload();
             return r !== undefined;
           }
@@ -188,6 +203,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
             ? rpc<number>('create_ai_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id, p_suggestion: form.draft.suggestion ?? null })
             : rpc<number>('create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea publicada · Pendiente de revisión');
           if (id === undefined) return false;
+          await saveImage(id, v.image);
           form.onDone?.();
           await reload();
           if (!role) refreshCtx();
