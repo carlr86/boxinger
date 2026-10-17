@@ -16,6 +16,7 @@ export function PrivacyEn() {
         <li><b>Account:</b> name, email, password (stored encrypted; we can’t see it) and, if you sign in with Google, your Google name, email and profile photo.</li>
         <li><b>Profile and preferences:</b> the photo or logo you upload, your notification preferences and your interface language.</li>
         <li><b>Content and activity:</b> ideas, votes, comments, reactions, the boards and teams you create or join, invitations you send (the invitee’s email) and activity dates.</li>
+        <li><b>Integrations:</b> if a board’s Team connects Zapier, Make, Google Forms or another tool, the ideas that arrive that way, with the name and email of whoever asked for them (only the Team sees them). If it connects Slack, we keep the private address of the chosen channel and the names of the channel and workspace.</li>
         <li><b>Subscription:</b> plan, status, amounts, billing dates and the subscription identifiers in Creem or Mercado Pago, including the Mercado Pago account email you enter when paying. Your card details are processed by Creem or Mercado Pago and never reach Boxinger.</li>
         <li><b>Contact:</b> what you send us through the contact form or the withdrawal button (name, email, company, message).</li>
         <li><b>Technical data:</b> what is needed to keep your session and protect the service. From public forms we only keep an encrypted identifier of the connection to prevent abuse, never your IP address.</li>
@@ -46,6 +47,7 @@ export function PrivacyEn() {
         <li><b>Hostinger:</b> website hosting and email delivery.</li>
         <li><b>Google:</b> sign-in with Google, if you choose it.</li>
         <li><b>Anthropic:</b> on the Enterprise plan, when the Team uses the AI assistant, it processes the product description and the text of the board's ideas, with their vote and comment counts (no names or emails), to return suggestions. Anthropic does not use this data to train its models.</li>
+        <li><b>Slack:</b> only if a board’s Team connects a Slack channel. Depending on the notices it chooses, Boxinger posts in that channel the title and the beginning of the description of ideas, their category, the name of whoever posted them, the vote count and a weekly summary. Boxinger can only post in that channel: it doesn’t read messages, people or any other Slack data. What is posted is subject to Slack’s privacy policy and that team’s workspace settings.</li>
         <li><b>Creem and Mercado Pago:</b> payment processing, under their own privacy policies. Creem acts as reseller for payments in US dollars.</li>
       </ul>
       <p>Some of these providers store data outside Argentina, in countries that may not have an equivalent level of protection. By using Boxinger you consent to that transfer, which is limited to what is needed to provide the service. We may also disclose data if a competent authority requires it under the law.</p>
@@ -54,7 +56,7 @@ export function PrivacyEn() {
       <p>We use essential cookies to keep you signed in and to remember your language, and the browser’s local storage to remember interface preferences. We don’t use advertising cookies or third-party analytics tools. If you block them, you won’t be able to sign in.</p>
 
       <h2>7. How long we keep it</h2>
-      <p>We keep your data while your account is active. If you delete it from My profile, we delete your profile and your sign-in data. Ideas and comments you posted on other teams’ boards are kept as from a &quot;Deleted user&quot;, without your name or email. If you own an account, your teams and boards are deleted with all their content. Payment records are kept for as long as tax and accounting rules require.</p>
+      <p>We keep your data while your account is active. If you delete it from My profile, we delete your profile and your sign-in data. Ideas and comments you posted on other teams’ boards are kept as from a &quot;Deleted user&quot;, without your name or email. If you own an account, your teams and boards are deleted with all their content. If the Team disconnects Slack, we delete the channel address; the log of sent notices is deleted after 90 days. Payment records are kept for as long as tax and accounting rules require.</p>
 
       <h2>8. Security</h2>
       <p>We apply technical and organizational measures to protect your data: encrypted connections (HTTPS), encrypted passwords, role-based access controls in the database and restricted access to information. No system is completely infallible; if an incident affecting your data occurs, we will let you know.</p>

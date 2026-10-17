@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Popconfirm } from 'antd';
 import { rpc } from '@/lib/rpc';
 import { Note, ToggleRow } from '@/components/ui';
+import { SlackLogo } from '@/components/SlackLogo';
 import { useToast } from '@/components/Providers';
 import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
@@ -21,15 +22,6 @@ export type SlackInfo = {
 const ENABLED = !!process.env.NEXT_PUBLIC_SLACK_CLIENT_ID;
 const card: React.CSSProperties = { background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 };
 const muted: React.CSSProperties = { fontSize: 13, color: 'rgba(0,0,0,0.45)' };
-
-export const SlackLogo = ({ size = 20 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 54 54" aria-hidden style={{ flex: 'none' }}>
-    <path fill="#36C5F0" d="M19.7 0a5.4 5.4 0 1 0 0 10.8h5.4V5.4A5.4 5.4 0 0 0 19.7 0Zm0 14.4H5.4a5.4 5.4 0 1 0 0 10.8h14.3a5.4 5.4 0 1 0 0-10.8Z" />
-    <path fill="#2EB67D" d="M54 19.8a5.4 5.4 0 1 0-10.8 0v5.4h5.4a5.4 5.4 0 0 0 5.4-5.4Zm-14.4 0V5.4a5.4 5.4 0 1 0-10.8 0v14.4a5.4 5.4 0 1 0 10.8 0Z" />
-    <path fill="#ECB22E" d="M34.2 54a5.4 5.4 0 1 0 0-10.8h-5.4v5.4a5.4 5.4 0 0 0 5.4 5.4Zm0-14.4h14.4a5.4 5.4 0 1 0 0-10.8H34.2a5.4 5.4 0 1 0 0 10.8Z" />
-    <path fill="#E01E5A" d="M0 34.2a5.4 5.4 0 1 0 10.8 0v-5.4H5.4A5.4 5.4 0 0 0 0 34.2Zm14.4 0v14.4a5.4 5.4 0 1 0 10.8 0V34.2a5.4 5.4 0 1 0-10.8 0Z" />
-  </svg>
-);
 
 export function SlackCard({ api, info, reload, enabled = ENABLED }: { api: BoardApi; info: SlackInfo | null; reload: () => void; enabled?: boolean }) {
   const { t, rel } = useI18n();
@@ -96,7 +88,8 @@ export function SlackCard({ api, info, reload, enabled = ENABLED }: { api: Board
           <a href={connectUrl} className="bx-btn" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, height: 40, padding: '0 16px', fontWeight: 600, textDecoration: 'none' }}>
             <SlackLogo size={18} />{t('Conectar con Slack')}
           </a>
-          <span style={muted}>{t('Se abre Slack: elegís el canal y tocás «Permitir». Boxinger solo puede escribir en ese canal; no lee nada.')}</span>
+          <span style={muted}>{t('Se abre Slack: elegís el canal y tocás «Permitir». Boxinger solo puede escribir en ese canal; no lee nada.')}{' '}
+            <a href="/slack" target="_blank" rel="noopener">{t('Cómo funciona')}</a></span>
         </>
       ) : (
         <>

@@ -179,15 +179,19 @@
 .artMint{background:linear-gradient(135deg,#d1fae5,#a7f3d0)}
 .artViolet{background:linear-gradient(135deg,#e0e7ff,#c7d2fe)}
 .artAmber{background:linear-gradient(135deg,#fef3c7,#fde68a)}
+.artBlue{background:linear-gradient(135deg,#e0f2fe,#bae6fd)}
 .cardText{display:flex;flex-direction:column;gap:14px;padding:8px 24px 8px 0}
 .cardFlip .cardText{padding:8px 0 8px 24px}
 .cardKicker{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink)}
 .kickIco{width:30px;height:30px;border-radius:8px;background:var(--mint);color:var(--gd);display:grid;place-items:center;font-size:14px}
 .kickViolet{background:#eef2ff;color:var(--violet)}
 .kickAmber{background:#fef3c7}
+.kickBlue{background:#e0f2fe}
 .cardP{margin:0;font-size:19px;line-height:1.55;color:var(--ink);text-wrap:pretty}
 .planHint{align-self:flex-start;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--mint);color:var(--gd)}
 .planHintViolet{background:#eef2ff;color:var(--violet)}
+.cardLink{align-self:flex-start;font-size:15px;font-weight:600;color:var(--gd)}
+.cardLink:hover{color:var(--gdd)}
 .sheet{left:5%;top:14%;width:50%;padding:0;gap:0;overflow:hidden;transform:rotate(-3deg)}
 .sheetHead,.sheetRow{display:grid;grid-template-columns:24px 1fr 52px;font-size:12px}
 .sheetHead{background:#f3f4f6;color:rgba(0,0,0,0.45);font-weight:700}
@@ -208,6 +212,16 @@
 .mail i{align-self:flex-start;font-style:normal;font-size:12px;font-weight:600;background:var(--g);color:#fff;border-radius:6px;padding:6px 12px;margin-top:4px}
 .mailFrom{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px;color:rgba(0,0,0,0.55) !important}
 .bell{right:6%;bottom:12%;flex-direction:row;align-items:center;gap:8px;font-weight:700;transform:rotate(3deg)}
+.slackMsg{left:7%;right:7%;top:12%;gap:12px;transform:rotate(-1.5deg)}
+.slackChan{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;padding-bottom:10px;border-bottom:1px solid #eef0ef}
+.slackRow{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.slackRow img{border-radius:6px}
+.slackRow div{display:flex;flex-direction:column;gap:3px;line-height:1.45;min-width:0}
+.slackWho{font-weight:800}
+.slackWho i{font-style:normal;font-size:9px;font-weight:700;color:rgba(0,0,0,0.5);background:#f1f1f1;border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:2px}
+.slackLink{color:#1264a3;font-weight:700}
+.slackMeta{font-size:12px;color:rgba(0,0,0,0.5)}
+.stickerTools{right:6%;bottom:9%;background:#fff;color:var(--ink);font-size:13px;transform:rotate(3deg)}
 
 /* ── Features ── */
 .features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
@@ -331,6 +345,8 @@
   .notice{left:6%;right:6%}
   .sheet,.imported{width:60%}
   .mail{width:84%}
+  .slackMsg{left:5%;right:5%}
+  .stickerTools{font-size:12px;right:4%;bottom:6%}
   .features{grid-template-columns:1fr}
   .payWays{grid-template-columns:1fr}
   .finalChipA,.finalSticker,.stickerExport{display:none}

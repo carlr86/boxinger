@@ -7,6 +7,7 @@ import { fmtPrice } from '@/lib/format';
 import ContactForm from '@/components/ContactForm';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
 import { getT } from '@/lib/i18n/server';
+import { SlackLogo } from '@/components/SlackLogo';
 
 // Landing: Trello-style layout and creatives with Boxinger's colors. Texts are the Spanish source, shown through t() (src/lib/i18n).
 
@@ -38,6 +39,9 @@ const I = {
   news: <path d="M4 10v4h3l7 4.5v-13L7 10H4zM17.5 9a4.5 4.5 0 010 6" />,
   merge: <path d="M6 4v4a5 5 0 005 5h1M18 4v4a5 5 0 01-5 5h-1M12 13v7" />,
   sheet: <path d="M8 4v12m0 0l-3-3m3 3l3-3M16 20V8m0 0l-3 3m3-3l3 3" />,
+  image: <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2zM4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 18M15.5 8.5h.01" />,
+  chat: <path d="M5 5h14a1 1 0 011 1v9a1 1 0 01-1 1h-8l-4 3.5V16H5a1 1 0 01-1-1V6a1 1 0 011-1zM8 9.5h8M8 12.5h5" />,
+  plug: <path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 01-11 0zM12 16.5V21" />,
 };
 const FEATURES = [
   { t: 'Buzón', d: 'Todas las ideas del buzón, con filtros por categoría y estado, votos y comentarios.', pro: false, icon: I.inbox, tone: s.icoGreen },
@@ -49,6 +53,9 @@ const FEATURES = [
   { t: 'Novedades', d: 'La página de lanzamientos del buzón: cada idea lanzada aparece sola, con quién la propuso, y avisamos a toda la comunidad.', pro: true, icon: I.news, tone: s.icoGreen },
   { t: 'Unir ideas', d: 'Juntá las ideas repetidas en una sola: pasan los votos y comentarios, y nadie pierde su lugar.', pro: true, icon: I.merge, tone: s.icoViolet },
   { t: 'Importar y exportar', d: 'Exportá todas tus ideas a Excel cuando quieras. Con Pro, importá las que ya tenés en planillas o encuestas.', pro: false, icon: I.sheet, tone: s.icoBlue },
+  { t: 'Imagen en cada idea', d: 'Una captura o una foto vale más que mil palabras: quien carga la idea puede adjuntar una imagen.', pro: true, icon: I.image, tone: s.icoAmber },
+  { t: 'Avisos en Slack', d: 'Las ideas nuevas, las que pasan al Roadmap y las lanzadas llegan al canal de Slack que elijas, con un resumen cada lunes.', pro: true, icon: I.chat, tone: s.icoTeal },
+  { t: 'Integraciones', d: 'Conectá Zapier, Make, Google Forms o tu propio sistema y las ideas llegan solas al buzón, listas para revisar.', pro: true, icon: I.plug, tone: s.icoPink },
 ];
 
 function Sparkle({ size = 12 }: { size?: number }) {
@@ -74,7 +81,7 @@ export default async function Landing() {
   const [usd, entUsd, { t, locale }] = await Promise.all([getPublicProPrice(), getPublicEnterprisePrice(), getT()]);
   const plans = [
     { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog', 'Exportá tus ideas a Excel'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
-    { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel', 'Uní ideas repetidas sin perder votos', 'Adjuntá una imagen a cada idea', 'Novedades: lo que lanzaste, para toda tu comunidad'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
+    { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel', 'Uní ideas repetidas sin perder votos', 'Adjuntá una imagen a cada idea', 'Novedades: lo que lanzaste, para toda tu comunidad', 'Avisos en Slack', 'Ideas desde Zapier, Make y Google Forms'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
     { name: 'Enterprise', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', cta: 'Contratar Enterprise', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=enterprise' },
   ];
 
@@ -214,7 +221,7 @@ export default async function Landing() {
         <div className={s.bandIn}>
           <div className={s.head} style={{ alignItems: 'center', textAlign: 'center', margin: '0 auto' }}>
             <h2 className={s.h2Light}>{t('De la sugerencia suelta a la decisión')}</h2>
-            <p className={s.subLight}>{t('Traé lo que ya tenés, dejá que la IA te ayude a elegir y avisale a tu comunidad cuando sus ideas avanzan.')}</p>
+            <p className={s.subLight}>{t('Traé lo que ya tenés, conectá tus herramientas, dejá que la IA te ayude a elegir y avisale a tu comunidad cuando sus ideas avanzan.')}</p>
           </div>
 
           <div className={s.card}>
@@ -270,6 +277,30 @@ export default async function Landing() {
               <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickAmber}`}>🔔</span>{t('Reconocimiento y Novedades')}</span>
               <p className={s.cardP}>{t('Cuando una idea entra al Roadmap y cuando se lanza, Boxinger le avisa a quien la propuso y a quienes la votaron, y la suma a Novedades, la página de lanzamientos de tu buzón. Tu comunidad ve que la escuchás.')}</p>
               <span className={s.planHint}>Pro · Enterprise</span>
+            </div>
+          </div>
+
+          <div className={`${s.card} ${s.cardFlip}`}>
+            <div className={`${s.cardArt} ${s.artBlue}`} aria-hidden>
+              <div className={`${s.paper} ${s.slackMsg}`}>
+                <span className={s.slackChan}><SlackLogo size={14} />#ideas-clientes</span>
+                <div className={s.slackRow}>
+                  <img src="/logo.svg" alt="" width={30} height={30} />
+                  <div>
+                    <span className={s.slackWho}>Boxinger <i>APP</i></span>
+                    <span>💡 <b>{t('Nueva idea')}</b> {t('en Pampa Pagos')}</span>
+                    <span className={s.slackLink}>{t('Exportar movimientos a Excel')}</span>
+                    <span className={s.slackMeta}>{t('Comunidad · por Lucía Fernández')}</span>
+                  </div>
+                </div>
+              </div>
+              <div className={`${s.sticker} ${s.stickerTools}`}>Zapier · Make · Google Forms</div>
+            </div>
+            <div className={s.cardText}>
+              <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickBlue}`}>⚡</span>{t('Integraciones')}</span>
+              <p className={s.cardP}>{t('Tu equipo se entera en Slack cuando llega una idea, pasa al Roadmap o se lanza. Y con Zapier, Make o Google Forms, las ideas de otras herramientas llegan solas al buzón, listas para revisar.')}</p>
+              <span className={s.planHint}>Pro · Enterprise</span>
+              <Link href="/slack" className={s.cardLink}>{t('Cómo funciona con Slack')} →</Link>
             </div>
           </div>
         </div>
@@ -354,7 +385,7 @@ export default async function Landing() {
             <span className={s.brand}><img src="/logo.svg" alt="" width={28} height={28} /><span>Boxinger</span></span>
             <span className={s.footTag}>{t('Buzón de ideas para equipos de producto.')}</span>
           </div>
-          <div className={s.footCol}><b>{t('Producto')}</b><a href="#como">{t('Cómo funciona')}</a><a href="#funciones">{t('Funciones')}</a><a href={SAMPLE_BOARD} target="_blank" rel="noopener">{t('Buzón de ejemplo')}</a><a href="#planes">{t('Planes')}</a></div>
+          <div className={s.footCol}><b>{t('Producto')}</b><a href="#como">{t('Cómo funciona')}</a><a href="#funciones">{t('Funciones')}</a><a href={SAMPLE_BOARD} target="_blank" rel="noopener">{t('Buzón de ejemplo')}</a><a href="#planes">{t('Planes')}</a><Link href="/slack">{t('Boxinger para Slack')}</Link></div>
           <div className={s.footCol}><b>{t('Legales')}</b><Link href="/terminos">{t('Términos')}</Link><Link href="/privacidad">{t('Privacidad')}</Link><Link href="/seguridad">{t('Seguridad')}</Link><Link href="/arrepentimiento">{t('Botón de arrepentimiento')}</Link></div>
           <div className={s.footCol}><b>{t('Contacto')}</b><a href="mailto:hola@boxinger.com">hola@boxinger.com</a><a href="#contacto">{t('Escribinos')}</a></div>
         </div>

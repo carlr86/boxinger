@@ -27,6 +27,7 @@ export default async function Privacidad() {
         <li><b>Cuenta:</b> nombre, email, contraseña (guardada cifrada; no la podemos ver) y, si entrás con Google, tu nombre, email y foto de perfil de Google.</li>
         <li><b>Perfil y preferencias:</b> foto o logo que subas, tus preferencias de notificaciones y el idioma de la interfaz.</li>
         <li><b>Contenido y actividad:</b> ideas, votos, comentarios, reacciones, buzones y equipos que creás o a los que te sumás, invitaciones que enviás (email del invitado) y fechas de actividad.</li>
+        <li><b>Integraciones:</b> si el Equipo de un buzón conecta Zapier, Make, Google Forms u otra herramienta, las ideas que llegan por ahí, con el nombre y el email de quien la pidió (solo los ve el Equipo). Si conecta Slack, guardamos la dirección privada del canal elegido y el nombre del canal y del espacio de trabajo.</li>
         <li><b>Suscripción:</b> plan, estado, importes, fechas de cobro y los identificadores de la suscripción en Creem o Mercado Pago, incluido el email de la cuenta de Mercado Pago que indicás al pagar. Los datos de tu tarjeta los procesan Creem o Mercado Pago y nunca llegan a Boxinger.</li>
         <li><b>Contacto:</b> lo que nos escribís por el formulario de contacto o el botón de arrepentimiento (nombre, email, empresa, mensaje).</li>
         <li><b>Datos técnicos:</b> los necesarios para mantener tu sesión y proteger el servicio. De los formularios públicos guardamos solo un identificador cifrado de la conexión para evitar abusos, nunca tu dirección IP.</li>
@@ -57,6 +58,7 @@ export default async function Privacidad() {
         <li><b>Hostinger:</b> alojamiento de la web y envío de emails.</li>
         <li><b>Google:</b> inicio de sesión con Google, si lo elegís.</li>
         <li><b>Anthropic:</b> en el plan Enterprise, cuando el Equipo usa el asistente de IA, procesa la descripción del producto y el texto de las ideas del buzón, con sus votos y comentarios contados (sin nombres ni emails), para devolver sugerencias. Anthropic no usa estos datos para entrenar sus modelos.</li>
+        <li><b>Slack:</b> solo si el Equipo de un buzón conecta un canal de Slack. Según los avisos que elija, Boxinger publica en ese canal el título y el comienzo de la descripción de las ideas, la categoría, el nombre de quien la cargó, la cantidad de votos y un resumen semanal. Boxinger solo puede escribir en ese canal: no lee mensajes, personas ni otros datos de Slack. Lo publicado queda sujeto a la política de privacidad de Slack y a la configuración del espacio de trabajo de ese equipo.</li>
         <li><b>Creem y Mercado Pago:</b> procesamiento de pagos, según sus propias políticas de privacidad. Creem actúa como revendedor en los pagos en dólares.</li>
       </ul>
       <p>Algunos de estos proveedores guardan los datos fuera de Argentina, en países que pueden no tener un nivel de protección equivalente. Al usar Boxinger prestás tu consentimiento para esa transferencia, que se limita a lo necesario para prestar el servicio. También podemos revelar datos si lo exige una autoridad competente conforme a la ley.</p>
@@ -65,7 +67,7 @@ export default async function Privacidad() {
       <p>Usamos cookies esenciales para mantener tu sesión iniciada y recordar tu idioma, y almacenamiento local del navegador para recordar preferencias de la interfaz. No usamos cookies de publicidad ni herramientas de analítica de terceros. Si las bloqueás, no vas a poder iniciar sesión.</p>
 
       <h2>7. Cuánto tiempo los guardamos</h2>
-      <p>Guardamos tus datos mientras tengas la cuenta activa. Si la borrás desde Mi perfil, eliminamos tu perfil y tus datos de acceso. Las ideas y comentarios que publicaste en buzones de otros equipos se conservan como de un &quot;Usuario eliminado&quot;, sin tu nombre ni tu email. Si sos dueño de una cuenta, se borran tus equipos y buzones con todo su contenido. Los registros de pagos se conservan el tiempo que exija la normativa fiscal y contable.</p>
+      <p>Guardamos tus datos mientras tengas la cuenta activa. Si la borrás desde Mi perfil, eliminamos tu perfil y tus datos de acceso. Las ideas y comentarios que publicaste en buzones de otros equipos se conservan como de un &quot;Usuario eliminado&quot;, sin tu nombre ni tu email. Si sos dueño de una cuenta, se borran tus equipos y buzones con todo su contenido. Si el Equipo desconecta Slack, borramos la dirección del canal; el registro de avisos enviados se borra a los 90 días. Los registros de pagos se conservan el tiempo que exija la normativa fiscal y contable.</p>
 
       <h2>8. Seguridad</h2>
       <p>Aplicamos medidas técnicas y organizativas para proteger tus datos: conexiones cifradas (HTTPS), contraseñas cifradas, controles de acceso por rol en la base de datos y acceso restringido a la información. Ningún sistema es completamente infalible; si ocurriera un incidente que afecte tus datos, te vamos a avisar.</p>

@@ -1,0 +1,44 @@
+/* /slack: the Slack integration page. Uses landing.module.css for the header, hero and sections. */
+.badge{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding:6px 12px;border-radius:999px;background:#fff;border:1px solid rgba(11,43,34,0.12);color:var(--ink)}
+
+.art{position:relative;padding:28px 0}
+.art::before{content:'';position:absolute;inset:4% 2% 4% 10%;border-radius:40% 60% 55% 45%;background:linear-gradient(135deg,#bae6fd,#a7f3d0);z-index:0}
+.window{position:relative;z-index:1;background:#fff;border-radius:14px;box-shadow:0 30px 60px -28px rgba(0,0,0,0.45);padding:16px 18px;display:flex;flex-direction:column;gap:16px;max-width:520px;margin-left:auto;transform:rotate(-1deg)}
+.chan{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;padding-bottom:12px;border-bottom:1px solid #eef0ef}
+.msg{display:grid;grid-template-columns:34px 1fr;gap:10px;font-size:14px}
+.msg img{border-radius:7px}
+.msg div{display:flex;flex-direction:column;gap:3px;line-height:1.45;min-width:0}
+.who{font-weight:800}
+.who i{font-style:normal;font-size:9px;font-weight:700;color:rgba(0,0,0,0.5);background:#f1f1f1;border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:2px}
+.link{color:#1264a3;font-weight:700}
+.quote{border-left:3px solid #ddd;padding-left:10px;color:rgba(0,0,0,0.65)}
+.meta{font-size:12px;color:rgba(0,0,0,0.5)}
+
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.item{border:1px solid #e8eeeb;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.5;color:var(--text2)}
+.item b{font-size:17px;color:var(--ink)}
+.emoji{font-size:26px}
+
+.band{background:#f7fcfa}
+.steps{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.step{background:#fff;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.5;color:var(--text2);box-shadow:0 20px 40px -30px rgba(11,43,34,0.4)}
+.step b{font-size:17px;color:var(--ink)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--mint2);color:var(--gd);font-weight:800;display:grid;place-items:center}
+
+.faq{display:flex;flex-direction:column;gap:10px;max-width:820px}
+.q{border:1px solid #e8eeeb;border-radius:12px;padding:16px 20px;background:#fff}
+.q summary{cursor:pointer;font-weight:700;font-size:16px;color:var(--ink)}
+.q p{margin:10px 0 0;font-size:15px;line-height:1.6;color:var(--text2)}
+.help{margin:0;font-size:15px;color:var(--text2)}
+
+@media (max-width:960px){
+  .steps{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .item:last-child{grid-column:1 / -1}
+  .window{margin:0 auto}
+}
+@media (max-width:640px){
+  .art{padding:12px 0}
+  .grid{grid-template-columns:1fr}
+  .window{transform:none;padding:14px}
+}
