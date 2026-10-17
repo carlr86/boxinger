@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
-import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, VOTE_KEYS, statusTone } from '@/lib/constants';
+import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, SOURCE_TAG, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import { rateOf, voteMode, type BoardApi } from './shared';
@@ -73,10 +73,28 @@ export function ImportedTag() {
   return <Tag tone={{ l: '', bg: '#f5f5f5', bd: '#d9d9d9', fg: 'rgba(0,0,0,0.6)' }} title={t('Idea importada desde un archivo, con su fecha original')}>{t('Importada')}</Tag>;
 }
 
-export function OriginTag({ origin, ai, imported }: { origin: string; ai?: boolean; imported?: boolean }) {
+/** Ideas that came in through an integration (only the team gets `source`). */
+export function SourceTag({ source }: { source: string }) {
+  const { t } = useI18n();
+  return <Tag tone={{ l: '', bg: '#eff6ff', bd: '#93c5fd', fg: '#2563eb' }} title={t('Llegó sola por una integración: revisala y publicala para que la vea la Comunidad')}>{t(SOURCE_TAG[source] || 'Por integración')}</Tag>;
+}
+
+export function OriginTag({ origin, ai, imported, source }: { origin: string; ai?: boolean; imported?: boolean; source?: string | null }) {
   const { t } = useI18n();
   const o = ORIGIN[origin];
-  return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}{imported && <ImportedTag />}</>;
+  return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}{imported && <ImportedTag />}{source && <SourceTag source={source} />}</>;
+}
+
+/** "Por revisar (N)": ideas that came in through an integration and are still hidden. Team only. */
+function InboxToggle({ n, on, onChange }: { n: number; on: boolean; onChange: (v: boolean) => void }) {
+  const { t } = useI18n();
+  return (
+    <button type="button" aria-pressed={on} onClick={() => onChange(!on)} title={t('Ideas que llegaron por integraciones y todavía no ve la Comunidad')}
+      style={{ height: 32, padding: '0 12px', borderRadius: 6, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: 'flex-start',
+        border: '1px solid ' + (on ? '#2563eb' : '#93c5fd'), background: on ? '#2563eb' : '#eff6ff', color: on ? '#fff' : '#2563eb', fontWeight: 600 }}>
+      {t('Por revisar ({n})', { n })}
+    </button>
+  );
 }
 
 export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean }) {
@@ -90,10 +108,13 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   const [limit, setLimit] = useState(PAGE);
   const [aiOpen, setAiOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [inbox, setInbox] = useState(false);
+  const toReview = api.isTeam ? api.data.ideas.filter((i) => i.source && i.hidden).length : 0;
+  useEffect(() => { if (!toReview) setInbox(false); }, [toReview]);
 
   const list = useMemo(() => {
     const qq = q.trim().toLowerCase();
-    let l = api.data.ideas.filter((i) => (fCat === 'all' || i.category_id === fCat) && (fOri === 'all' || i.origin === fOri));
+    let l = api.data.ideas.filter((i) => (fCat === 'all' || i.category_id === fCat) && (fOri === 'all' || i.origin === fOri) && (!inbox || (!!i.source && i.hidden)));
     if (backlog) {
       // With Pro, ideas on the Roadmap leave the Backlog.
       l = l.filter((i) => i.status === 'aprobada' && !(api.pro && i.rm_col)).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
@@ -104,11 +125,11 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       l.sort(sort === 'votes' ? (a, b) => b.votes - a.votes : sort === 'comments' ? (a, b) => b.comments - a.comments : (a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     }
     return l;
-  }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fSt, sort]);
+  }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fSt, sort, inbox]);
 
-  useEffect(() => setLimit(PAGE), [q, fCat, fOri, fSt, sort, backlog]);
+  useEffect(() => setLimit(PAGE), [q, fCat, fOri, fSt, sort, backlog, inbox]);
   const [layout, setLayout] = useLayout();
-  const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fSt !== 'all';
+  const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fSt !== 'all' || inbox;
 
   return (
     <>
@@ -134,6 +155,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         // Phones: one column, full-width controls, everything left-aligned.
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ width: '100%', height: 36 }} />}
+          {!backlog && toReview > 0 && <InboxToggle n={toReview} on={inbox} onChange={setInbox} />}
           <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'flex-start' }} />
           <div style={{ display: 'grid', gridTemplateColumns: backlog ? '1fr' : '1fr 1fr', gap: 10 }}>
             <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
@@ -160,6 +182,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       ) : (
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />}
+        {!backlog && toReview > 0 && <InboxToggle n={toReview} on={inbox} onChange={setInbox} />}
         <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'auto' }} />
         <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)}>
           <option value="all">{t('Todas las categorías')}</option>
@@ -276,7 +299,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
       <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{i.title}</span>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} />
+          <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
           <Tag>{api.catL(i.category_id)}</Tag>
           <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
           {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
@@ -302,7 +325,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
   return (
     <div className="bx-card" onClick={() => api.openIdea(i.id)} style={{ opacity: i.hidden ? 0.55 : 1 }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} />
+        <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
         <Tag>{api.catL(i.category_id)}</Tag>
         <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
         {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}

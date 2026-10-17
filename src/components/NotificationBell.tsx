@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Dropdown, Tooltip } from 'antd';
 import { rpc } from '@/lib/rpc';
 import { useSession } from '@/components/Providers';
-import { IDEA_STATUS, SHADOW_POP } from '@/lib/constants';
+import { IDEA_STATUS, SHADOW_POP, SOURCE_L } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { T } from '@/lib/i18n';
 
@@ -36,6 +36,8 @@ function describe(n: Notice, t: T): { text: React.ReactNode; href: string } {
       return { text: tags(t('Ya tenés acceso a {board}'), { board: s(p.board_name) }), href: board };
     case 'new_idea':
       return { text: tags(t('{author} cargó una idea nueva: {title}'), { author: s(p.author), title: s(p.title) }), href: idea };
+    case 'new_idea_inbox':
+      return { text: tags(t('Llegó una idea por {source} para revisar: {title}'), { source: SOURCE_L[s(p.source)] ? t(SOURCE_L[s(p.source)]) : s(p.source), title: s(p.title) }), href: idea };
     case 'new_comment':
       return { text: tags(t('{author} comentó tu idea {title}'), { author: s(p.author), title: s(p.title) }), href: idea };
     case 'team_reply':

@@ -11,24 +11,26 @@ import type { BoardApi } from './shared';
 import { useSession, useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
 import { ExportButton } from './ExportButton';
+import { Integrations } from './Integrations';
 import { VISIBILITY, VOTE, VOTE_KEYS, VOTE_LABEL_MAX, VOTE_LABEL_MIN } from '@/lib/constants';
 
-type Tab = 'general' | 'cats' | 'com';
+type Tab = 'general' | 'cats' | 'com' | 'integ';
 const SUB: Record<Tab, string> = {
   general: 'Nombre, descripción y logo que ve la Comunidad.',
   cats: 'Categorías para clasificar las ideas de este buzón.',
   com: 'Invitaciones e invitados de la Comunidad.',
+  integ: 'Ideas que llegan solas desde Zapier, Make, Google Forms y otras herramientas.',
 };
 
 export function BoardConfig({ api }: { api: BoardApi }) {
-  // ?seccion=comunidad (access-request email and notifications) opens the Community tab.
+  // ?seccion=comunidad (access-request email and notifications) opens the Community tab; ?seccion=integraciones, Integrations.
   const seccion = useSearchParams().get('seccion');
   const { t } = useI18n();
-  const [tab, setTab] = useState<Tab>(!api.isAdmin || seccion === 'comunidad' ? 'com' : 'general');
-  useEffect(() => { if (seccion === 'comunidad') setTab('com'); }, [seccion]);
+  const [tab, setTab] = useState<Tab>(!api.isAdmin || seccion === 'comunidad' ? 'com' : seccion === 'integraciones' ? 'integ' : 'general');
+  useEffect(() => { if (seccion === 'comunidad') setTab('com'); else if (seccion === 'integraciones' && api.isAdmin) setTab('integ'); }, [seccion, api.isAdmin]);
   const pend = api.data.board.pending_requests || 0;
   const comL = pend ? `${t('Comunidad')} (${pend})` : t('Comunidad');
-  const tabs: [Tab, string][] = api.isAdmin ? [['general', t('General')], ['cats', t('Categorías')], ['com', comL]] : [['com', comL]];
+  const tabs: [Tab, string][] = api.isAdmin ? [['general', t('General')], ['cats', t('Categorías')], ['com', comL], ['integ', t('Integraciones')]] : [['com', comL]];
   return (
     <>
       <PageHead title={t('Configuración del buzón')} sub={t(SUB[tab])} />
@@ -37,6 +39,7 @@ export function BoardConfig({ api }: { api: BoardApi }) {
         {tab === 'general' && <General api={api} />}
         {tab === 'cats' && <Categories api={api} />}
         {tab === 'com' && <Community api={api} />}
+        {tab === 'integ' && <Integrations api={api} />}
       </div>
     </>
   );

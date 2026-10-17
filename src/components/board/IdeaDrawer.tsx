@@ -72,9 +72,9 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
   };
   // Imported ideas with no account behind them: the team sees who asked for it (name and email from the file).
   const byLine = (x: IdeaDetail) => {
-    if (x.author_id || !x.imported) return t('Por {name}', { name: x.author_id ? x.author_name : t(x.author_name) });
+    if (x.author_id || (!x.imported && !x.source)) return t('Por {name}', { name: x.author_id ? x.author_name : t(x.author_name) });
     const who = x.requester_name && x.requester_email ? `${x.requester_name} (${x.requester_email})` : x.requester_name || x.requester_email;
-    return who ? t('Pedida por {name}', { name: who }) : t('Importada');
+    return who ? t('Pedida por {name}', { name: who }) : t(x.imported ? 'Importada' : 'Recibida por el Equipo');
   };
   // Entering the Roadmap tells whoever proposed or voted for the idea.
   const moveRm = async (col: string | null, ok: string) => {
@@ -132,11 +132,22 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
       {i && (
         <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} />
+            <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
             <Tag>{api.catL(i.category_id)}</Tag>
             <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
             {i.hidden && <Tag>{t('Oculta para la Comunidad')}</Tag>}
           </div>
+          {team && i.hidden && i.source && (
+            // Came in through an integration: the team reviews it and publishes it.
+            <div style={{ background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
+              <span>{t('Llegó por una integración y la Comunidad todavía no la ve. Revisala, editala si hace falta y publicala.')}</span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button type="button" className="bx-btn-primary" disabled={!api.canWrite}
+                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad')}>{t('Publicar')}</button>
+                <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => api.openEdit(i)}>{t('Editar')}</button>
+              </div>
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, lineHeight: 1.4, textWrap: 'pretty', overflowWrap: 'anywhere' }}>{i.title}</h2>
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span></span>

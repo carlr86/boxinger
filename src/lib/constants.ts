@@ -28,6 +28,10 @@ export const ORIGIN: Record<string, Tone> = {
   comunidad: { l: 'Comunidad', bg: '#f9f0ff', bd: '#d3adf7', fg: '#531dab' },
 };
 
+/** Where an idea came in from, for integrations (Spanish source; screens show it through t()). */
+export const SOURCE_L: Record<string, string> = { api: 'una integración', slack: 'Slack', widget: 'el widget' };
+export const SOURCE_TAG: Record<string, string> = { api: 'Por integración', slack: 'Por Slack', widget: 'Por el widget' };
+
 export const VOTE: Record<string, string> = { importante: 'Importante', interesante: 'Interesante', no_importante: 'No importante' };
 /** Board-renamed vote options: 2 to 16 characters each, so the three fit side by side. */
 export const VOTE_LABEL_MIN = 2, VOTE_LABEL_MAX = 16;
