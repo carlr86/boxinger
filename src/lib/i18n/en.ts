@@ -1604,6 +1604,7 @@ export const EN: Record<string, string> = {
   "Sigue activo el buzón {name}, con sus ideas, votos y comentarios. Nada se borra.": "The {name} board stays active, with its ideas, votes and comments. Nothing is deleted.",
   "Nada se borra: todo queda guardado.": "Nothing is deleted: everything is kept.",
   // Integrations (board settings, «Por revisar», bell)
+  "Ordenar: {order}": "Sort: {order}",
   "Archivada": "Archived",
   "Archivar": "Archive",
   "Desarchivar": "Unarchive",

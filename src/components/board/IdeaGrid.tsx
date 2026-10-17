@@ -85,6 +85,31 @@ export function OriginTag({ origin, ai, imported, source }: { origin: string; ai
   return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}{imported && <ImportedTag />}{source && <SourceTag source={source} />}</>;
 }
 
+type Sort = 'recent' | 'votes' | 'comments';
+const SortIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M4.5 2.5v11m0 0L2 11m2.5 2.5L7 11M9 4h5M9 7.5h3.5M9 11h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>);
+
+/** Sort as an icon with a menu, so the filters fit in one line. Green when it isn't the default order. */
+function SortMenu({ value, onChange, height = 32 }: { value: Sort; onChange: (v: Sort) => void; height?: number }) {
+  const { t } = useI18n();
+  const opts: [Sort, string][] = [['recent', t('Más recientes')], ['votes', t('Más votadas')], ['comments', t('Más comentadas')]];
+  const label = t('Ordenar: {order}', { order: opts.find(([k]) => k === value)![1] });
+  const on = value !== 'recent';
+  return (
+    <Tooltip title={label}>
+      <span style={{ display: 'inline-flex', flex: 'none', alignSelf: 'flex-start' }}>
+        <Dropdown trigger={['click']} placement="bottomRight"
+          menu={{ items: opts.map(([k, l]) => ({ key: k, label: l })), selectable: true, selectedKeys: [value], onClick: ({ key }) => onChange(key as Sort) }}>
+          <button type="button" aria-label={label}
+            style={{ width: height + 2, height, borderRadius: 6, cursor: 'pointer', display: 'grid', placeItems: 'center',
+              border: '1px solid ' + (on ? '#059669' : '#d9d9d9'), background: on ? '#d1fae5' : '#fff', color: on ? '#059669' : 'rgba(0,0,0,0.65)' }}>
+            <SortIcon />
+          </button>
+        </Dropdown>
+      </span>
+    </Tooltip>
+  );
+}
+
 /** Came in through an integration and nobody decided yet: still hidden, not rejected, not archived. */
 export const toReviewIdea = (i: Idea) => !!i.source && i.hidden && !i.archived && i.status !== 'rechazada';
 
@@ -107,7 +132,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   const [fCat, setFCat] = useState('all');
   const [fOri, setFOri] = useState<'all' | 'equipo' | 'comunidad'>('all');
   const [fSt, setFSt] = useState('all');
-  const [sort, setSort] = useState<'recent' | 'votes' | 'comments'>('recent');
+  const [sort, setSort] = useState<Sort>('recent');
   const [limit, setLimit] = useState(PAGE);
   const [aiOpen, setAiOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -169,7 +194,10 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ width: '100%', height: 36 }} />}
           {toggles}
-          <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'flex-start' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'center' }} />
+            {!backlog && <span style={{ marginLeft: 'auto', display: 'flex' }}><SortMenu value={sort} onChange={setSort} height={36} /></span>}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: backlog ? '1fr' : '1fr 1fr', gap: 10 }}>
             <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
               <option value="all">{t('Categorías')}</option>
@@ -183,14 +211,6 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
               </select>
             )}
           </div>
-          {!backlog && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>
-              {t('Ordenar')}
-              <select className="bx-select" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} style={{ height: 36 }}>
-                <option value="recent">{t('Más recientes')}</option><option value="votes">{t('Más votadas')}</option><option value="comments">{t('Más comentadas')}</option>
-              </select>
-            </label>
-          )}
         </div>
       ) : (
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -208,12 +228,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
               {Object.entries(IDEA_STATUS).map(([k, v]) => <option key={k} value={k}>{t(v.l)}</option>)}
                 <option value="lanzada">{t(LAUNCHED.l)}</option>
             </select>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-              <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Ordenar')}</span>
-              <select className="bx-select" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
-                <option value="recent">{t('Más recientes')}</option><option value="votes">{t('Más votadas')}</option><option value="comments">{t('Más comentadas')}</option>
-              </select>
-            </div>
+            <SortMenu value={sort} onChange={setSort} />
           </>
         )}
       </div>
