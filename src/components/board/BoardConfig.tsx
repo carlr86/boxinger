@@ -10,6 +10,7 @@ import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
 import { useSession, useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
+import { ExportButton } from './ExportButton';
 import { VISIBILITY, VOTE, VOTE_KEYS, VOTE_LABEL_MAX, VOTE_LABEL_MIN } from '@/lib/constants';
 
 type Tab = 'general' | 'cats' | 'com';
@@ -54,6 +55,7 @@ function General({ api }: { api: BoardApi }) {
   const [busy, setBusy] = useState(false);
   const [paidNote, setPaidNote] = useState(false);
   const [visOpen, setVisOpen] = useState(false);
+  const [emptyOpen, setEmptyOpen] = useState(false);
 
   async function upload(file: File) {
     if (!/^image\/(png|jpeg)$/.test(file.type)) return toast.err(new Error(t('Elegí una imagen PNG o JPG')));
@@ -146,6 +148,19 @@ function General({ api }: { api: BoardApi }) {
       <Section title={t('Opciones de voto')} desc={t('Cómo se llaman los tres votos en este buzón (de {min} a {max} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}>
         <VoteLabels api={api} />
       </Section>
+
+      <Section title={t('Zona de peligro')} desc={t('Acciones que no se pueden deshacer.')}>
+        <div style={{ border: '1px solid #ffccc7', background: '#fff2f0', borderRadius: 8, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 240, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Vaciar buzón')}</span>
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)' }}>{t('Borra todas las ideas, con sus votos, comentarios e imágenes. Se mantienen la configuración, las categorías, los miembros y los invitados.')}</span>
+          </div>
+          <button type="button" className="bx-btn" disabled={!api.canWrite || api.data.ideas.length === 0} onClick={() => setEmptyOpen(true)}
+            style={{ color: '#cf1322', borderColor: '#ffa39e', background: '#fff' }}>{t('Vaciar buzón')}</button>
+        </div>
+        {api.data.ideas.length === 0 && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('El buzón no tiene ideas.')}</span>}
+      </Section>
+      <EmptyBoardModal api={api} open={emptyOpen} onClose={() => setEmptyOpen(false)} />
       {paidNote && <Note>{t('Buzones ilimitados en el plan Pro.')} <a onClick={api.goPro}>{t('Ver planes')}</a></Note>}
       <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
         onClose={() => setVisOpen(false)} onDone={() => api.reload()} onGoPro={api.goPro} />
@@ -190,6 +205,57 @@ function VoteLabels({ api }: { api: BoardApi }) {
 }
 
 /** A settings block separated from the previous one by a line, with its own title. */
+/** "Vaciar buzón": explains what goes, offers a copy first and asks for the board's name before deleting every idea. */
+function EmptyBoardModal({ api, open, onClose }: { api: BoardApi; open: boolean; onClose: () => void }) {
+  const { t, plural } = useI18n();
+  const toast = useToast();
+  const b = api.data.board;
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (open) setName(''); }, [open]);
+  const ideas = api.data.ideas;
+  const votes = ideas.reduce((n, i) => n + (i.votes || 0), 0), comments = ideas.reduce((n, i) => n + (i.comments || 0), 0);
+  const match = name.trim() === b.name;
+
+  async function go() {
+    if (!match || busy) return;
+    setBusy(true);
+    const n = await api.run(rpc<number>('empty_board', { p_board: b.id, p_confirm: name.trim() }));
+    setBusy(false);
+    if (n === undefined) return;
+    toast.ok(t('Buzón vaciado: se borraron {ideas}.', { ideas: plural(n, 'idea', 'ideas') }));
+    onClose();
+    api.reload();
+  }
+
+  return (
+    <Modal open={open} onCancel={onClose} footer={null} title={t('Vaciar buzón')} destroyOnHidden width={520}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8, fontSize: 14 }}>
+        <Note tone="error">
+          {t('Se borran para siempre {ideas} de {board}, con {votes} y {comments}. No se puede deshacer.', {
+            ideas: plural(ideas.length, 'idea', 'ideas'), board: b.name, votes: plural(votes, 'voto', 'votos'), comments: plural(comments, 'comentario', 'comentarios') })}
+        </Note>
+        <span style={{ color: 'rgba(0,0,0,0.65)' }}>{t('Se mantienen la configuración del buzón, sus categorías, los miembros, los invitados y el link. No se le avisa a nadie.')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 12px' }}>
+          <span style={{ flex: 1, minWidth: 200, color: 'rgba(0,0,0,0.65)' }}>{t('Recomendado: descargá una copia de las ideas antes de vaciarlo.')}</span>
+          <ExportButton api={api} />
+        </div>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {t('Para confirmar, escribí el nombre del buzón: {name}', { name: b.name })}
+          <input className={'bx-input' + (name && !match ? ' err' : '')} autoFocus value={name} placeholder={b.name} onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') go(); }} />
+          {name && !match && <span style={{ fontSize: 13, color: '#ff4d4f' }}>{t('El nombre no coincide')}</span>}
+        </label>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button type="button" className="bx-btn" onClick={onClose}>{t('Cancelar')}</button>
+          <button type="button" className="bx-btn" disabled={!match || busy} onClick={go}
+            style={match ? { background: '#cf1322', borderColor: '#cf1322', color: '#fff' } : undefined}>{busy ? t('Vaciando…') : t('Vaciar buzón')}</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
   return (
     <section style={{ borderTop: '1px solid #f0f0f0', paddingTop: 20, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 12 }}>
