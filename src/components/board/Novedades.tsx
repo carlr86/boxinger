@@ -1,11 +1,15 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { Dropdown } from 'antd';
+import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { Avatar, Empty, Help, PageHead, ProLock, Tag } from '@/components/ui';
 import { LAUNCHED } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import type { BoardApi } from './shared';
 import { OriginTag } from './IdeaGrid';
+import { downloadChangelogCsv, downloadChangelogPdf, type ChangelogCtx } from '@/lib/changelog-export';
+import { useToast } from '@/components/Providers';
 
 // Novedades (changelog): the board's launched ideas, newest first and grouped by month. It builds itself from the
 // ideas marked as launched (no editing). Visible to everyone who can see the board, on Pro and Enterprise.
@@ -14,6 +18,8 @@ const TZ = 'America/Argentina/Buenos_Aires';
 
 export function Novedades({ api }: { api: BoardApi }) {
   const { t, locale, plural } = useI18n();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
   const tag = locale === 'en' ? 'en-US' : 'es-AR';
 
   const months = useMemo(() => {
@@ -30,11 +36,30 @@ export function Novedades({ api }: { api: BoardApi }) {
   }, [api.data.ideas, tag]);
   const total = months.reduce((n, m) => n + m.ideas.length, 0);
 
+  // Anyone who sees Novedades can download it: only what the page shows, no emails.
+  async function download(kind: 'csv' | 'pdf') {
+    const b = api.data.board;
+    const ctx: ChangelogCtx = { board: { name: b.name, slug: b.slug, logo_url: b.logo_url }, ideas: months.flatMap((m) => m.ideas), catL: api.catL, t, locale, origin: window.location.origin };
+    if (kind === 'csv') return downloadChangelogCsv(ctx);
+    setBusy(true);
+    try { await downloadChangelogPdf(ctx); } catch (e) { toast.err(e); } finally { setBusy(false); }
+  }
+
   const head = (
     <PageHead title={t('Novedades')} sub={t('Lo que el equipo ya lanzó, a partir de las ideas de la comunidad.')}
       right={
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {api.pro && total > 0 && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(total, 'lanzamiento', 'lanzamientos')}</span>}
+          {api.pro && total > 0 && (
+            <Dropdown trigger={['click']} placement="bottomRight" menu={{ items: [
+              { key: 'csv', icon: <FileExcelOutlined />, label: t('Excel (CSV)'), onClick: () => download('csv') },
+              { key: 'pdf', icon: <FilePdfOutlined />, label: t('PDF para compartir'), onClick: () => download('pdf') },
+            ] }}>
+              <button type="button" className="bx-btn" disabled={busy} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <DownloadOutlined />{busy ? t('Armando el PDF…') : t('Descargar')}
+              </button>
+            </Dropdown>
+          )}
           {api.isTeam && <Help label={t('Cómo funciona')}>{t('Aparece acá, sola, cada idea que el equipo marca como lanzada (desde el Roadmap o el detalle de la idea). Al lanzarla avisamos en la campanita a toda la comunidad del buzón, y por email a quien la propuso o votó. Las ideas ocultas no se muestran.')}</Help>}
         </div>
       } />
