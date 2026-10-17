@@ -1,0 +1,215 @@
+<!doctype html>
+<!-- Carrusel de LinkedIn 1080 × 1350, 7 diapositivas · Boxinger para Slack (boxinger.com/slack).
+     PNG de una diapositiva: abrí carrusel.html#3 (sin número se ven todas).
+     Exportar: python3 .claude/skills/boxinger-brand/scripts/render.py "docs/brand/carrusel-slack/carrusel.html#3" 03.png --width 1080 --height 1350 --scale 2 -->
+<html lang="es"><head><meta charset="utf-8">
+<title>Carrusel Slack</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+html,body{margin:0;padding:0}
+body{width:1080px;background:#ffffff;font-family:"Plus Jakarta Sans",-apple-system,"Segoe UI",Arial,sans-serif;color:#0f172a}
+.solo .s{display:none}.solo .s.on{display:flex}
+
+.s{box-sizing:border-box;width:1080px;height:1350px;overflow:hidden;position:relative;padding:65px;display:flex;flex-direction:column}
+.blanco{background:#ffffff}.niebla{background:#f5f7f6}.verde{background:#059669;color:#ffffff}
+.top{display:flex;align-items:center;justify-content:space-between;height:52px}
+.eye{font-size:32px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#047857}
+.pag{font-size:30px;font-weight:700;color:#64748b;font-variant-numeric:tabular-nums}
+.verde .pag{color:#d1fae5}
+h1{margin:40px 0 0;font-size:92px;font-weight:800;letter-spacing:-0.035em;line-height:1.04;text-wrap:balance}
+.pt{margin-left:-.07em}
+.sub{margin-top:26px;font-size:40px;font-weight:500;line-height:1.35;color:#475569;text-wrap:pretty}
+.verde .sub{color:#d1fae5}
+.pill{display:inline-block;background:#d1fae5;color:#047857;font-weight:800;font-size:30px;padding:12px 30px;border-radius:999px;letter-spacing:.02em}
+
+.foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;font-size:32px;font-weight:600;color:#475569}
+.verde .foot{color:#ffffff}
+.brand{display:flex;align-items:center;gap:17px;font-weight:800;font-size:47px;letter-spacing:-0.03em;color:#0f172a}
+.verde .brand{color:#ffffff}
+.brand svg{width:69px;height:69px}
+.desliza{color:#047857;font-weight:700}
+
+/* Panel donde van las piezas */
+.panel{flex:1;min-height:0;margin:44px 0 40px;border-radius:44px;background:#f5f7f6;position:relative}
+.niebla .panel{background:transparent}
+.ui{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#0f172a}
+.paper{position:absolute;background:#ffffff;border:1px solid #e8eeeb;border-radius:28px;box-shadow:0 30px 60px -28px rgba(11,43,34,.35)}
+
+/* Canal de chat */
+.ch{display:flex;align-items:center;gap:10px;padding:24px 34px;border-bottom:1px solid #edf1ef;font-size:26px;font-weight:700}
+.ch span{color:#64748b;font-weight:500}
+.msg{display:flex;gap:18px;padding:22px 34px}
+.msg + .msg{padding-top:6px}
+.av{width:56px;height:56px;border-radius:12px;background:#ecfdf5;display:grid;place-items:center;flex:none}
+.av svg{width:40px;height:40px}
+.who{font-size:22px;font-weight:700;display:flex;align-items:center;gap:10px}
+.app{font-size:14px;font-weight:700;color:#64748b;background:#eef1f4;padding:3px 7px;border-radius:5px;letter-spacing:.04em}
+.hr{font-size:18px;color:#94a3b8;font-weight:500}
+.att{margin-top:10px;border-left:5px solid #059669;padding:4px 0 4px 18px}
+.att .k{font-size:21px;color:#334155}
+.att .t{font-size:26px;font-weight:700;color:#047857;margin-top:6px;line-height:1.25}
+.att .d{font-size:21px;color:#475569;margin-top:6px;line-height:1.4}
+.att .m{font-size:19px;color:#64748b;margin-top:8px}
+
+/* Avisos con interruptor */
+.row{display:flex;align-items:center;gap:20px;padding:22px 0;border-top:1px solid #edf1ef}
+.row:first-child{border-top:0}
+.ic{width:58px;height:58px;border-radius:16px;background:#ecfdf5;display:grid;place-items:center;font-size:28px;flex:none}
+.row .tx{flex:1}
+.row .tx b{display:block;font-size:27px}
+.row .tx span{display:block;font-size:20px;color:#64748b;margin-top:4px;line-height:1.35}
+.sw{width:74px;height:42px;border-radius:999px;background:#059669;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:5px;right:5px;width:32px;height:32px;border-radius:50%;background:#fff}
+.sw.off{background:#cbd5e1}.sw.off::after{right:auto;left:5px}
+
+/* Pasos */
+.step{display:flex;gap:30px;align-items:flex-start;padding:48px 0;border-top:1px solid #e2e8f0}
+.step:first-child{border-top:0;padding-top:6px}
+.step .n{font-size:110px;font-weight:800;line-height:.8;letter-spacing:-0.05em;color:#059669;width:84px;flex:none}
+.step b{display:block;font-size:40px;font-weight:800;letter-spacing:-0.02em}
+.step .tx{display:block;font-size:30px;color:#475569;margin-top:12px;line-height:1.45}
+.kbd{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:26px;background:#ecfdf5;color:#047857;padding:2px 10px;border-radius:8px}
+
+/* Permiso */
+.perm{font-size:24px;color:#334155;line-height:1.4}
+.ok{display:flex;gap:16px;align-items:center;background:#ecfdf5;border-radius:16px;padding:20px 22px;margin-top:20px;font-size:25px;font-weight:600;color:#065f46}
+.no{display:flex;gap:16px;align-items:center;padding:14px 22px;font-size:23px;color:#64748b}
+
+.sticker{position:absolute;font-family:"Plus Jakarta Sans",sans-serif;font-weight:800;font-size:31px;padding:13px 26px;border-radius:999px;box-shadow:0 14px 30px -14px rgba(0,0,0,.35);z-index:2}
+.amarillo{background:#fde68a;color:#78350f}
+.st-blanco{background:#ffffff;color:#047857}
+
+.ilus{position:relative;flex:1;min-height:0;margin:44px 0 40px;background:#ffffff;border-radius:54px}
+.ilus img{position:absolute;inset:40px;width:calc(100% - 80px);height:calc(100% - 80px);object-fit:contain}
+.cta{background:#ffffff;color:#047857;font-weight:800;font-size:40px;padding:22px 48px;border-radius:999px}
+</style></head>
+<body>
+
+<!-- 1 · Portada -->
+<section class="s blanco">
+  <div class="top"><span class="pill">Novedad</span><span class="pag">1 / 7</span></div>
+  <h1 style="font-size:112px;margin-top:60px">Boxinger ahora avisa en Slack.</h1>
+  <div class="sub" style="font-size:44px">Las ideas de tus usuarios, en el canal de tu equipo.</div>
+  <div class="panel ui">
+    <div class="paper" style="zoom:1.3;left:27px;width:676px;top:40px">
+      <div class="ch"># ideas-clientes</div>
+      <div class="msg"><span class="av" data-logo></span><div style="flex:1">
+        <div class="who">Boxinger <span class="app">APP</span> <span class="hr">10:42</span></div>
+        <div class="att"><div class="k">💡 Nueva idea en Pampa Pagos</div><div class="t">Exportar movimientos a Excel</div>
+        <div class="d">Necesito bajar los movimientos del mes para pasárselos al contador.</div>
+        <div class="m">Comunidad · Reportes · por Lucía Fernández</div></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span class="desliza">Deslizá →</span></div>
+</section>
+
+<!-- 2 · Qué llega -->
+<section class="s niebla">
+  <div class="top"><span class="eye">En el chat</span><span class="pag">2 / 7</span></div>
+  <h1>Tu equipo se entera sin cambiar de pestaña.</h1>
+  <div class="sub">Cuando llega una idea, cuando pasa al Roadmap y cuando se lanza. Cada aviso abre la idea con un clic.</div>
+  <div class="panel ui">
+    <div class="paper" style="zoom:1.22;left:0;width:778px;top:10px;padding-bottom:12px">
+      <div class="ch"># ideas-clientes</div>
+      <div class="msg"><span class="av" data-logo></span><div style="flex:1">
+        <div class="who">Boxinger <span class="app">APP</span> <span class="hr">lunes</span></div>
+        <div class="att"><div class="k">🗺️ Pasó al Roadmap en Pampa Pagos</div><div class="t">Notificación cuando se acredita un pago</div><div class="m">31 votos</div></div>
+      </div></div>
+      <div class="msg"><span class="av" data-logo></span><div style="flex:1">
+        <div class="who">Boxinger <span class="app">APP</span> <span class="hr">jueves</span></div>
+        <div class="att"><div class="k">🚀 Se lanzó en Pampa Pagos</div><div class="t">Conciliación automática con el banco</div><div class="m">48 votos · Le avisamos a quienes la propusieron o votaron.</div></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 3 · Qué avisa -->
+<section class="s blanco">
+  <div class="top"><span class="eye">Qué avisa</span><span class="pag">3 / 7</span></div>
+  <h1>Elegís qué llega al canal.</h1>
+  <div class="sub">Cada aviso se prende o se apaga desde Boxinger.</div>
+  <div class="panel ui">
+    <div class="paper" style="left:44px;right:44px;top:44px;bottom:44px;padding:14px 36px">
+      <div class="row"><span class="ic">💡</span><div class="tx"><b>Idea nueva</b><span>Cuando alguien carga una idea en el buzón.</span></div><span class="sw"></span></div>
+      <div class="row"><span class="ic">📥</span><div class="tx"><b>Idea para revisar</b><span>Cuando llega desde Zapier, Make o Google Forms.</span></div><span class="sw"></span></div>
+      <div class="row"><span class="ic">🗺️</span><div class="tx"><b>Pasa al Roadmap</b><span>La primera vez que entra, con sus votos.</span></div><span class="sw"></span></div>
+      <div class="row"><span class="ic">🚀</span><div class="tx"><b>Idea lanzada</b><span>Y se avisa a quienes la propusieron o votaron.</span></div><span class="sw"></span></div>
+      <div class="row"><span class="ic">📊</span><div class="tx"><b>Resumen semanal</b><span>Los lunes, lo más importante de la semana.</span></div><span class="sw off"></span></div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 4 · Resumen semanal -->
+<section class="s blanco">
+  <div class="top"><span class="eye">Resumen semanal</span><span class="pag">4 / 7</span></div>
+  <h1>Cada lunes, la semana en un mensaje.</h1>
+  <div class="sub">Ideas nuevas, votos, comentarios y las más votadas.</div>
+  <div class="panel ui">
+    <div class="paper" style="zoom:1.18;left:30px;width:754px;top:50px">
+      <div class="ch"># ideas-clientes</div>
+      <div class="msg" style="padding-bottom:30px"><span class="av" data-logo></span><div style="flex:1">
+        <div class="who">Boxinger <span class="app">APP</span> <span class="hr">lunes 9:00</span></div>
+        <div class="att"><div class="k">📊 Resumen semanal de Pampa Pagos</div>
+          <div class="d" style="font-size:23px;color:#0f172a;margin-top:12px"><b>5</b> ideas nuevas · <b>64</b> votos · <b>18</b> comentarios</div>
+          <div class="k" style="margin-top:18px;font-weight:700">Las más votadas</div>
+          <div class="d" style="margin-top:8px">1. Exportar movimientos a Excel · 48 votos<br>2. Notificación cuando se acredita un pago · 31 votos<br>3. Conciliación automática con el banco · 19 votos</div>
+        </div>
+      </div></div>
+    </div>
+    <span class="sticker amarillo" style="right:20px;top:8px;transform:rotate(5deg)">Todos los lunes</span>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 5 · Cómo se conecta -->
+<section class="s niebla">
+  <div class="top"><span class="eye">Cómo se conecta</span><span class="pag">5 / 7</span></div>
+  <h1>En un minuto, sin configurar nada.</h1>
+  <div style="margin-top:70px">
+    <div class="step"><span class="n">1</span><div><b>Entrá a tu buzón</b><div class="tx">Andá a <span class="kbd">Configuración › Integraciones</span>.</div></div></div>
+    <div class="step"><span class="n">2</span><div><b>Tocá «Conectar con Slack»</b><div class="tx">Elegí tu espacio de trabajo y el canal, y tocá «Permitir».</div></div></div>
+    <div class="step"><span class="n">3</span><div><b>Listo</b><div class="tx">Llega un primer mensaje al canal. Desde ahí elegís qué avisos recibir.</div></div></div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 6 · Privacidad -->
+<section class="s blanco">
+  <div class="top"><span class="eye">Privacidad</span><span class="pag">6 / 7</span></div>
+  <h1>Solo escribe en el canal que elegís.</h1>
+  <div class="sub">Boxinger pide un único permiso y no lee tus conversaciones.</div>
+  <div class="panel ui">
+    <div class="paper" style="zoom:1.22;left:40px;width:617px;top:44px;padding:36px 40px">
+      <div class="perm"><b style="font-size:28px">Boxinger</b> pide permiso para:</div>
+      <div class="ok"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Publicar mensajes en #ideas-clientes</div>
+      <div class="perm" style="margin-top:28px">No puede:</div>
+      <div class="no" style="margin-top:6px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Leer tus mensajes ni otros canales</div>
+      <div class="no"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Ver tus contactos ni tus archivos</div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 7 · Cierre -->
+<section class="s verde">
+  <div class="top"><span class="eye" style="color:#d1fae5">Pro y Enterprise</span><span class="pag">7 / 7</span></div>
+  <h1 style="font-size:108px">Conectalo desde tu buzón.</h1>
+  <div class="sub" style="font-size:44px">Toda la info en boxinger.com/slack</div>
+  <div class="ilus"><img src="img/00-comunidad-conectada.svg" alt=""></div>
+  <div class="foot"><span class="brand" data-logo data-negativo>Boxinger</span><span class="cta">boxinger.com/slack</span></div>
+</section>
+
+<script>
+const D1='M308.74,36.87L90.77,36.88C73.25,37.77,57.85,49.15,51.9,65.56c-1.97,5.26-2.84,10.64-2.83,16.34l0.05,206.73c0,9.19,3.68,17.99,8.98,25.18c7.97,9.82,19.36,16.25,32.11,16.62l31.01,0.12l9.85,44.72c0.67,3.22,1.62,5.5,3.91,6.77c2.54,1.42,5.74,1.55,8.37-0.25l86.57-51.24l76.68-1c10.22,0,19.74-3.34,27.6-9.84c9.58-7.91,16.72-18.68,16.72-31.35l0.02-209.05C350.05,56.17,331.83,37.8,308.74,36.87z', D2='M206.57,266.88h-51.86c-7.49,0-12.83-1.68-16.03-5.04c-3.2-3.36-4.8-8.7-4.8-16.03V118.25c0-7.49,1.64-12.87,4.92-16.15s8.59-4.92,15.92-4.92h54.98c8.1,0,15.13,0.5,21.07,1.5c5.94,1,11.27,2.93,15.97,5.79c4.01,2.39,7.56,5.42,10.65,9.09c3.09,3.67,5.44,7.72,7.06,12.15c1.62,4.44,2.43,9.13,2.43,14.06c0,16.98-8.49,29.4-25.47,37.27c22.3,7.1,33.45,20.91,33.45,41.44c0,9.49-2.43,18.04-7.29,25.64c-4.86,7.6-11.42,13.22-19.68,16.84c-5.17,2.16-11.11,3.68-17.83,4.57S215.53,266.88,206.57,266.88z M168.26,123v43.87h31.48c8.57,0,15.18-0.81,19.85-2.43s8.24-4.71,10.71-9.26c1.93-3.24,2.89-6.87,2.89-10.88c0-8.57-3.05-14.26-9.14-17.07c-6.1-2.82-15.4-4.22-27.9-4.22H168.26z M204.03,191.52h-35.77v49.54h36.93c23.23,0,34.84-8.37,34.84-25.12c0-8.57-3.01-14.78-9.03-18.64C224.98,193.45,215.99,191.52,204.03,191.52z';
+document.querySelectorAll('[data-logo]').forEach(el=>{
+  const neg=el.hasAttribute('data-negativo');
+  el.insertAdjacentHTML('afterbegin',`<svg viewBox="18.5 28.6 362 362" aria-hidden="true"><path fill="${neg?'#ffffff':'#059669'}" d="${D1}"/><path fill="${neg?'#059669':'#fafafa'}" d="${D2}"/></svg>`);
+});
+document.querySelectorAll('h1').forEach(e=>{e.innerHTML=e.innerHTML.replace(/\.$/,'<span class="pt">.</span>')});
+const n=parseInt(location.hash.slice(1),10);
+if(n){document.body.classList.add('solo');document.querySelectorAll('.s')[n-1].classList.add('on');}
+</script>
+</body></html>
