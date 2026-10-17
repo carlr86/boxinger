@@ -1,0 +1,222 @@
+<!doctype html>
+<!-- Carrusel de LinkedIn 1080 × 1350, 7 diapositivas.
+     PNG de una diapositiva: abrí carrusel.html#3 (sin número se ven todas, una por página, para el PDF).
+     Exportar: python3 .claude/skills/boxinger-brand/scripts/render.py "docs/brand/carrusel-lanzamiento/carrusel.html#3" 03.png --width 1080 --height 1350 --scale 2 -->
+<html lang="es"><head><meta charset="utf-8">
+<title>Carrusel de lanzamiento</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+@page{size:1080px 1350px;margin:0}
+html,body{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{width:1080px;background:#ffffff;font-family:"Plus Jakarta Sans",-apple-system,"Segoe UI",Arial,sans-serif;color:#0f172a}
+.solo .s{display:none}.solo .s.on{display:flex}
+
+/* Diapositiva */
+.s{box-sizing:border-box;width:1080px;height:1350px;overflow:hidden;position:relative;padding:65px;display:flex;flex-direction:column;page-break-after:always;break-after:page}
+.blanco{background:#ffffff}.niebla{background:#f5f7f6}.verde{background:#059669;color:#ffffff}
+.top{display:flex;align-items:center;justify-content:space-between;height:44px}
+.eye{font-size:32px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#047857}
+.pag{font-size:30px;font-weight:700;color:#64748b;font-variant-numeric:tabular-nums}
+.verde .pag{color:#d1fae5}
+h1{margin:0;font-size:92px;font-weight:800;letter-spacing:-0.035em;line-height:1.04;text-wrap:balance}
+.sub{font-size:40px;font-weight:500;line-height:1.35;color:#475569;text-wrap:pretty}
+.verde .sub{color:#d1fae5}
+.pill{display:inline-block;background:#d1fae5;color:#047857;font-weight:800;font-size:30px;padding:12px 30px;border-radius:999px;letter-spacing:.02em}
+
+/* Número grande de los pasos */
+.paso-top{height:auto;align-items:flex-start}.paso-top .pag{margin-top:8px}
+.paso{display:flex;align-items:center;gap:30px}
+.num{font-size:170px;font-weight:800;line-height:.82;letter-spacing:-0.05em;color:#059669}
+.paso .eye{font-size:34px}
+
+/* Pie */
+.foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;font-size:32px;font-weight:600;color:#475569}
+.verde .foot{color:#ffffff}
+.brand{display:flex;align-items:center;gap:17px;font-weight:800;font-size:47px;letter-spacing:-0.03em;color:#0f172a}
+.verde .brand{color:#ffffff}
+.brand svg{width:69px;height:69px}
+.desliza{color:#047857;font-weight:700}
+
+/* Escena: piezas de la app sobre un panel */
+.panel{flex:1;min-height:0;margin:44px 0 40px;border-radius:44px;background:#f5f7f6;position:relative}
+.ui{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#0f172a}
+.pt{margin-left:-.07em}
+.paper{position:absolute;background:#ffffff;border:1px solid #e8eeeb;border-radius:28px;box-shadow:0 30px 60px -28px rgba(11,43,34,.35)}
+.sticker{position:absolute;font-family:"Plus Jakarta Sans",sans-serif;font-weight:800;font-size:32px;padding:14px 28px;border-radius:999px;box-shadow:0 14px 30px -14px rgba(0,0,0,.35)}
+.amarillo{background:#fde68a;color:#78350f}
+.st-blanco{background:#ffffff;color:#047857}
+.arrow{position:absolute;fill:none;stroke:#0b2b22;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+
+/* Cabecera del buzón de Pampa Pagos */
+.bz{display:flex;align-items:center;gap:16px;font-size:26px;font-weight:700}
+.pp{width:46px;height:46px;border-radius:12px;background:#0b2b22;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:800;letter-spacing:.02em}
+.muted{color:#64748b}
+
+/* Chips (diapositiva 2) */
+.chip{position:absolute;background:#ffffff;border-radius:22px;padding:22px 30px;box-shadow:0 22px 44px -22px rgba(11,43,34,.35);border:1px solid #e8eeeb;max-width:560px}
+.chip b{display:block;font-family:"Plus Jakarta Sans",sans-serif;font-size:26px;font-weight:800;margin-bottom:8px}
+.chip span{font-size:28px;line-height:1.35;color:#334155}
+
+/* Formulario (diapositiva 3) */
+.lbl{font-size:22px;font-weight:600;color:#64748b;margin:0 0 10px}
+.field{border:2px solid #d9e2dd;border-radius:14px;padding:18px 22px;font-size:28px;margin-bottom:24px}
+.field.focus{border-color:#059669;box-shadow:0 0 0 5px #d1fae5}
+.tag{display:inline-block;font-size:22px;font-weight:600;padding:6px 16px;border-radius:8px;border:1px solid}
+.btn{display:inline-block;background:#059669;color:#fff;font-weight:700;font-size:26px;padding:18px 34px;border-radius:12px;box-shadow:0 8px 20px -8px rgba(5,150,105,.6)}
+
+/* Ranking (diapositiva 4) */
+.rk{display:flex;align-items:center;gap:24px;padding:20px 0;border-top:1px solid #edf1ef}
+.rk:first-of-type{border-top:0}
+.pos{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:26px;font-weight:800;background:#f1f5f9;color:#475569;flex:none}
+.rk.top1 .pos{background:#059669;color:#fff}
+.rk .t{flex:1;font-size:29px;font-weight:600;line-height:1.25}
+.rk .t small{display:block;font-size:22px;font-weight:500;color:#64748b;margin-top:6px}
+.votos{text-align:center;flex:none;min-width:100px}
+.votos b{display:block;font-size:40px;font-weight:800;color:#047857;font-family:"Plus Jakarta Sans",sans-serif;line-height:1}
+.votos span{font-size:20px;color:#64748b}
+.vbar{display:flex;gap:10px;margin-top:12px}
+.vb{font-size:20px;font-weight:600;padding:6px 14px;border-radius:8px;background:#f5f7f6;color:#334155}
+.vb.sel{background:#d1fae5;color:#047857}
+
+/* Estados (diapositiva 5 y 6) */
+.estado{display:inline-block;font-size:22px;font-weight:600;padding:6px 16px;border-radius:8px;border:1px solid}
+.aprobada{background:#f6ffed;border-color:#b7eb8f;color:#389e0d}
+.rechazada{background:#fff2f0;border-color:#ffccc7;color:#cf1322}
+.lanzada{background:#ecfdf5;border-color:#6ee7b7;color:#047857}
+.comunidad{background:#f9f0ff;border-color:#d3adf7;color:#531dab}
+.motivo{background:#f5f7f6;border-radius:16px;padding:20px 24px;font-size:25px;line-height:1.4;color:#334155;margin-top:20px}
+.motivo b{color:#0f172a}
+
+/* Tarjeta de ilustración */
+.ilus{position:relative;flex:1;min-height:0;margin:44px 0 40px;background:#ffffff;border-radius:54px}
+.ilus img{position:absolute;inset:40px;width:calc(100% - 80px);height:calc(100% - 80px);object-fit:contain}
+.cta{align-self:flex-start;background:#ffffff;color:#047857;font-weight:800;font-size:40px;padding:22px 48px;border-radius:999px}
+</style></head>
+<body>
+
+<!-- 1 · Portada -->
+<section class="s blanco">
+  <div class="top"><span class="pill">Lanzamiento</span><span class="pag">1 / 7</span></div>
+  <h1 style="font-size:124px;margin-top:70px">Hoy abrimos Boxinger.</h1>
+  <div class="sub" style="font-size:46px;margin-top:34px;max-width:900px">Las ideas de tus usuarios, ordenadas en un solo buzón.</div>
+  <div style="flex:1;min-height:0;position:relative;margin:30px -20px 20px">
+    <img src="img/07-lanzamiento.svg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span class="desliza">Deslizá →</span></div>
+</section>
+
+<!-- 2 · El problema -->
+<section class="s niebla">
+  <div class="top"><span class="eye">El problema</span><span class="pag">2 / 7</span></div>
+  <h1 style="margin-top:44px">Las ideas llegan por todos lados.</h1>
+  <div class="sub" style="margin-top:28px">Mails, chats y planillas sueltas. Las buenas se pierden y nadie sabe qué pasó con ellas.</div>
+  <div style="flex:1;position:relative" class="ui">
+    <div class="chip" style="left:0;top:40px;transform:rotate(-3deg)"><b>✉️ Email</b><span>«¿Se pueden exportar los movimientos a Excel?»</span></div>
+    <div class="chip" style="right:0;top:185px;transform:rotate(3deg)"><b>💬 WhatsApp</b><span>«Estaría bueno un aviso cuando se acredita el pago.»</span></div>
+    <div class="chip" style="left:30px;top:345px;transform:rotate(-2deg)"><b>📊 Planilla</b><span>ideas_clientes_v3_FINAL.xlsx</span></div>
+    <div class="chip" style="right:20px;top:470px;transform:rotate(4deg)"><b>💡 Idea</b><span>«¿Y si conciliamos con el banco?»</span></div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 3 · Recibí ideas -->
+<section class="s blanco">
+  <div class="top paso-top"><div class="paso"><span class="num">1</span><span class="eye">Recibí ideas</span></div><span class="pag">3 / 7</span></div>
+  <h1 style="margin-top:40px">Todo llega a un solo buzón.</h1>
+  <div class="sub" style="margin-top:24px">Invitá a tus clientes y a tu equipo a proponer sus ideas.</div>
+  <div class="panel ui">
+    <div class="paper" style="left:60px;right:60px;top:52px;padding:36px 40px">
+      <div class="bz" style="margin-bottom:28px"><span class="pp">PP</span>Pampa Pagos <span class="muted" style="font-weight:500">· Nueva idea</span></div>
+      <div class="lbl">Título</div>
+      <div class="field focus">Exportar movimientos a Excel</div>
+      <div class="lbl">Descripción</div>
+      <div class="field muted" style="font-size:25px;line-height:1.4">Para pasarle los números a mi contador sin copiarlos a mano.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="tag" style="background:#eff6ff;border-color:#93c5fd;color:#1d4ed8">Feature</span>
+        <span class="btn">Enviar idea</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 4 · La comunidad vota -->
+<section class="s blanco">
+  <div class="top paso-top"><div class="paso"><span class="num">2</span><span class="eye">La comunidad vota</span></div><span class="pag">4 / 7</span></div>
+  <h1 style="margin-top:40px">Se ve qué importa de verdad.</h1>
+  <div class="sub" style="margin-top:24px">Importante, Interesante o No importante. El Ranking muestra lo que más interesa.</div>
+  <div class="panel ui">
+    <div class="paper" style="left:60px;right:60px;top:52px;padding:30px 40px 14px">
+      <div class="bz" style="margin-bottom:10px"><span class="pp">PP</span>Ranking</div>
+      <div class="rk top1"><span class="pos">1</span><div class="t">Exportar movimientos a Excel<small>12 comentarios</small><div class="vbar"><span class="vb sel">Importante</span><span class="vb">Interesante</span><span class="vb">No importante</span></div></div><div class="votos"><b>48</b><span>votos</span></div></div>
+      <div class="rk"><span class="pos">2</span><div class="t">Notificación cuando se acredita un pago<small>7 comentarios</small></div><div class="votos"><b>31</b><span>votos</span></div></div>
+      <div class="rk"><span class="pos">3</span><div class="t">Conciliación automática con el banco<small>4 comentarios</small></div><div class="votos"><b>19</b><span>votos</span></div></div>
+    </div>
+    <span class="sticker amarillo" style="right:30px;top:6px;transform:rotate(5deg)">+1 Importante</span>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 5 · El equipo revisa -->
+<section class="s blanco">
+  <div class="top paso-top"><div class="paso"><span class="num">3</span><span class="eye">El equipo revisa</span></div><span class="pag">5 / 7</span></div>
+  <h1 style="margin-top:40px">Cada decisión, con su motivo.</h1>
+  <div class="sub" style="margin-top:24px">Cada idea se aprueba o se rechaza con un motivo visible para todos.</div>
+  <div class="panel ui">
+    <div class="paper" style="left:60px;right:60px;top:52px;padding:36px 40px">
+      <div style="display:flex;gap:12px;margin-bottom:18px"><span class="estado aprobada">Aprobada</span><span class="estado comunidad">Comunidad</span></div>
+      <div style="font-size:34px;font-weight:700;line-height:1.25">Exportar movimientos a Excel</div>
+      <div class="muted" style="font-size:23px;margin-top:10px">Propuesta por Lucía Fernández · 48 votos · 12 comentarios</div>
+      <div class="motivo"><b>Motivo:</b> es la idea más votada y ahorra horas de trabajo a quienes llevan la contabilidad.</div>
+    </div>
+    <span class="sticker st-blanco" style="right:40px;bottom:46px;transform:rotate(-4deg)">✓ Pasó al Backlog</span>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 6 · Priorizá y lanzá -->
+<section class="s blanco">
+  <div class="top paso-top"><div class="paso"><span class="num">4</span><span class="eye">Priorizá y lanzá</span></div><span class="pag">6 / 7</span></div>
+  <h1 style="margin-top:40px">Tu comunidad ve que la escuchás.</h1>
+  <div class="sub" style="margin-top:24px">Ordená el Roadmap. Al lanzar, la idea aparece en Novedades y se avisa a quienes la pidieron.</div>
+  <div class="panel ui">
+    <div class="paper" style="left:60px;right:60px;top:52px;padding:32px 40px">
+      <div class="bz" style="margin-bottom:22px"><span class="pp">PP</span>Novedades <span class="muted" style="font-weight:500">· Octubre</span></div>
+      <div style="display:flex;align-items:flex-start;gap:20px">
+        <span class="estado lanzada" style="flex:none;margin-top:4px">Lanzada</span>
+        <div><div style="font-size:31px;font-weight:700;line-height:1.25">Exportar movimientos a Excel</div>
+        <div class="muted" style="font-size:23px;margin-top:8px">Propuesta por Lucía Fernández · 48 votos</div></div>
+      </div>
+    </div>
+    <div class="paper" style="left:150px;right:40px;bottom:44px;padding:24px 30px;display:flex;align-items:center;gap:20px;border-radius:22px">
+      <span style="width:58px;height:58px;border-radius:16px;background:#ecfdf5;display:grid;place-items:center;flex:none"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h3l7 4.5v-13L7 10H4zM17.5 9a4.5 4.5 0 010 6"/></svg></span>
+      <span style="font-size:26px;line-height:1.35"><b>¡Se lanzó «Exportar movimientos a Excel»!</b><br><span class="muted">La pediste vos y 47 personas más.</span></span>
+    </div>
+    <span class="sticker amarillo" style="right:30px;top:4px;transform:rotate(5deg)">🚀 Lanzada</span>
+  </div>
+  <div class="foot"><span class="brand" data-logo>Boxinger</span><span>www.boxinger.com</span></div>
+</section>
+
+<!-- 7 · Cierre -->
+<section class="s verde">
+  <div class="top"><span class="eye" style="color:#d1fae5">Empezá hoy</span><span class="pag">7 / 7</span></div>
+  <h1 style="font-size:112px;margin-top:44px">Abrí tu primer buzón hoy.</h1>
+  <div class="sub" style="font-size:46px;margin-top:26px">Plan Free sin tarjeta de crédito.</div>
+  <div class="ilus"><img src="img/11-lo-logramos.svg" alt=""></div>
+  <div class="foot"><span class="brand" data-logo data-negativo>Boxinger</span><span class="cta">www.boxinger.com</span></div>
+</section>
+
+<script>
+// Logo: principal (globo verde, B clara) y negativo (globo blanco, B verde) para el fondo verde
+const D1='M308.74,36.87L90.77,36.88C73.25,37.77,57.85,49.15,51.9,65.56c-1.97,5.26-2.84,10.64-2.83,16.34l0.05,206.73c0,9.19,3.68,17.99,8.98,25.18c7.97,9.82,19.36,16.25,32.11,16.62l31.01,0.12l9.85,44.72c0.67,3.22,1.62,5.5,3.91,6.77c2.54,1.42,5.74,1.55,8.37-0.25l86.57-51.24l76.68-1c10.22,0,19.74-3.34,27.6-9.84c9.58-7.91,16.72-18.68,16.72-31.35l0.02-209.05C350.05,56.17,331.83,37.8,308.74,36.87z';
+const D2='M206.57,266.88h-51.86c-7.49,0-12.83-1.68-16.03-5.04c-3.2-3.36-4.8-8.7-4.8-16.03V118.25c0-7.49,1.64-12.87,4.92-16.15s8.59-4.92,15.92-4.92h54.98c8.1,0,15.13,0.5,21.07,1.5c5.94,1,11.27,2.93,15.97,5.79c4.01,2.39,7.56,5.42,10.65,9.09c3.09,3.67,5.44,7.72,7.06,12.15c1.62,4.44,2.43,9.13,2.43,14.06c0,16.98-8.49,29.4-25.47,37.27c22.3,7.1,33.45,20.91,33.45,41.44c0,9.49-2.43,18.04-7.29,25.64c-4.86,7.6-11.42,13.22-19.68,16.84c-5.17,2.16-11.11,3.68-17.83,4.57S215.53,266.88,206.57,266.88z M168.26,123v43.87h31.48c8.57,0,15.18-0.81,19.85-2.43s8.24-4.71,10.71-9.26c1.93-3.24,2.89-6.87,2.89-10.88c0-8.57-3.05-14.26-9.14-17.07c-6.1-2.82-15.4-4.22-27.9-4.22H168.26z M204.03,191.52h-35.77v49.54h36.93c23.23,0,34.84-8.37,34.84-25.12c0-8.57-3.01-14.78-9.03-18.64C224.98,193.45,215.99,191.52,204.03,191.52z';
+document.querySelectorAll('[data-logo]').forEach(el=>{
+  const neg=el.hasAttribute('data-negativo');
+  el.insertAdjacentHTML('afterbegin',`<svg viewBox="18.5 28.6 362 362" aria-hidden="true"><path fill="${neg?'#ffffff':'#059669'}" d="${D1}"/><path fill="${neg?'#059669':'#fafafa'}" d="${D2}"/></svg>`);
+});
+document.querySelectorAll('h1').forEach(e=>{e.innerHTML=e.innerHTML.replace(/\.$/,'<span class="pt">.</span>')});
+// Con #n se muestra solo esa diapositiva (para exportar cada PNG)
+const n=parseInt(location.hash.slice(1),10);
+if(n){document.body.classList.add('solo');document.querySelectorAll('.s')[n-1].classList.add('on');}
+</script>
+</body></html>
