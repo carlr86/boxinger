@@ -109,6 +109,7 @@ Límites anti-bots dentro de las funciones: 5 ideas cada 10 minutos, 30 votos y 
 
 ## Pagos
 
+- **Planes visibles: Free · Pro · Team · Enterprise** (migración 057 y `planName()` en `src/lib/constants.ts`). Por dentro hay tres planes (`free`, `pro`, `enterprise`): **Team** es `enterprise` contratado en la web (Creem o Mercado Pago, precio de lista, 20 miembros, IA) y **Enterprise** es `enterprise` asignado por el Super Admin (`provider = 'manual'`, se factura por fuera, miembros y cupo de IA en «Límites del cliente»). Mercado Pago crea las suscripciones como «Boxinger Team» y `planOfPreapproval` reconoce también las viejas «Boxinger Enterprise»; en Creem el nombre sale del producto base (`CREEM_ENTERPRISE_PRODUCT_ID`).
 - **PayPal** cobra en USD con el precio de lista en USD. **Mercado Pago** cobra en ARS con el precio de lista en ARS, que el Super Admin define por separado (no hay conversión automática).
 - La activación la confirman los **webhooks** (firma verificada con la API de PayPal y con `x-signature` HMAC en Mercado Pago). Los retornos del checkout aceleran la activación.
 - **Cancelar**: el cliente cancela desde *Mi perfil › Suscripción*, después de un paso de retención que le muestra lo que pierde (`pro_usage()`, textos en `src/lib/pro-loss.ts`), le deja elegir qué buzón sigue activo en Free (`set_free_board`) y le pregunta el motivo (se ve en Admin › detalle del cliente). Sigue con Pro hasta el fin del período y el job diario lo pasa a Free.
