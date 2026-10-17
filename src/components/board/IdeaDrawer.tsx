@@ -79,8 +79,9 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
   // Entering the Roadmap tells whoever proposed or voted for the idea.
   const moveRm = async (col: string | null, ok: string) => {
     const told = await api.run(rpc<number>('move_roadmap', { p_id: id, p_col: col, p_before: null }));
-    if (told) { toast.ok(t('{ok} · Le avisamos a {who} que la propusieron o votaron', { ok, who: plural(told, 'persona', 'personas') })); flushEmails(); }
+    if (told) toast.ok(t('{ok} · Le avisamos a {who} que la propusieron o votaron', { ok, who: plural(told, 'persona', 'personas') }));
     else if (told !== undefined) toast.ok(ok);
+    if (told !== undefined) flushEmails();
     await Promise.all([load(), api.reload()]);
   };
 
@@ -143,7 +144,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
               <span>{t('Llegó por una integración y la Comunidad todavía no la ve. Revisala, editala si hace falta y publicala.')}</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button type="button" className="bx-btn-primary" disabled={!api.canWrite}
-                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad')}>{t('Publicar')}</button>
+                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad', true)}>{t('Publicar')}</button>
                 <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => api.openEdit(i)}>{t('Editar')}</button>
                 <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => api.askReject(i.id)}>{t('Rechazar')}</button>
                 <Tooltip title={t('La saca de «Por revisar» sin publicarla. Sigue oculta y la encontrás en Archivadas.')}>
@@ -160,7 +161,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                 <button type="button" className="bx-btn" disabled={!api.canWrite}
                   onClick={() => act(rpc('set_idea_archived', { p_id: i.id, p_archived: false }), i.source ? 'La idea volvió a «Por revisar»' : 'La idea ya no está archivada')}>{i.source ? t('Volver a «Por revisar»') : t('Desarchivar')}</button>
                 <button type="button" className="bx-btn" disabled={!api.canWrite}
-                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad')}>{t('Publicar')}</button>
+                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad', true)}>{t('Publicar')}</button>
               </div>
             </div>
           )}
@@ -248,7 +249,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                 {/* Less frequent actions in the "…" menu, with icons like the other menus; Eliminar last, in red, with confirmation. */}
                 <Dropdown trigger={['click']} placement="bottomRight" disabled={!api.canWrite} menu={{ items: [
                   { key: 'hide', icon: i.hidden ? <EyeOutlined /> : <EyeInvisibleOutlined />, label: i.hidden ? t('Mostrar idea') : t('Ocultar para la Comunidad'),
-                    onClick: () => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: !i.hidden }), i.hidden ? 'La idea vuelve a ser visible' : 'Idea oculta para la Comunidad') },
+                    onClick: () => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: !i.hidden }), i.hidden ? 'La idea vuelve a ser visible' : 'Idea oculta para la Comunidad', i.hidden) },
                   ...(i.image_path ? [{ key: 'img', icon: <PictureOutlined />, label: t('Quitar imagen'),
                     onClick: () => modal.confirm({ title: t('¿Quitar la imagen de esta idea?'), content: t('La idea queda igual, sin la imagen.'), okText: t('Quitar'), cancelText: t('Cancelar'),
                       onOk: () => act(rpc('set_idea_image', { p_id: i.id, p_path: null }), 'Imagen quitada') }) }] : []),

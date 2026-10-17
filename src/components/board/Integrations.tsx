@@ -7,12 +7,14 @@ import { Note, ProPill, Seg } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
+import { SlackCard, type SlackInfo } from './SlackCard';
 
-// Board settings › Integrations (Pro and Enterprise, team Admin): the board's address and key so Zapier, Make,
-// Google Forms or any tool can send ideas. They arrive hidden, for the team to review and publish.
+// Board settings › Integrations (Pro and Enterprise, team Admin): notices in a Slack channel (SlackCard), and the
+// board's address and key so Zapier, Make, Google Forms or any tool can send ideas. Those arrive hidden, for the team
+// to review and publish.
 
 type ApiKey = { hint: string; origin: 'comunidad' | 'equipo'; default_category: string | null; created_at: string; created_by: string | null; last_used_at: string | null; use_count: number };
-type Info = { api: ApiKey | null; pending: number };
+type Info = { api: ApiKey | null; slack: SlackInfo | null; pending: number };
 
 const ENDPOINT = `${SITE_URL}/api/v1/ideas`;
 const card: React.CSSProperties = { background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 };
@@ -28,7 +30,7 @@ export function Integrations({ api }: { api: BoardApi }) {
   const [testKey, setTestKey] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(() => rpc<Info>('get_integrations', { p_board: board }).then(setInfo).catch((e) => { toast.err(e); setInfo({ api: null, pending: 0 }); }), [board]); // eslint-disable-line react-hooks/exhaustive-deps
+  const load = useCallback(() => rpc<Info>('get_integrations', { p_board: board }).then(setInfo).catch((e) => { toast.err(e); setInfo({ api: null, slack: null, pending: 0 }); }), [board]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (api.pro) load(); }, [api.pro, load]);
 
   const copy = (text: string) => { navigator.clipboard?.writeText(text).catch(() => {}); toast.ok('Copiado'); };
@@ -72,7 +74,7 @@ export function Integrations({ api }: { api: BoardApi }) {
     return (
       <div style={card}>
         <div style={{ fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>{t('Integraciones')}<ProPill /></div>
-        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Recibí ideas desde Zapier, Make, Google Forms y otras herramientas, sin copiarlas a mano. Está en los planes Pro y Enterprise.')}</span>
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Recibí avisos en Slack y recibí ideas desde Zapier, Make, Google Forms y otras herramientas, sin copiarlas a mano. Está en los planes Pro y Enterprise.')}</span>
         <button type="button" className="bx-btn-primary" style={{ alignSelf: 'flex-start' }} onClick={api.goPro}>{t('Pasar a Pro')}</button>
       </div>
     );
@@ -82,6 +84,8 @@ export function Integrations({ api }: { api: BoardApi }) {
 
   return (
     <>
+      <SlackCard api={api} info={info.slack} reload={load} />
+
       <div style={card}>
         <div style={{ fontSize: 16, fontWeight: 600 }}>{t('Recibí ideas desde otras herramientas')}</div>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)', textWrap: 'pretty' }}>

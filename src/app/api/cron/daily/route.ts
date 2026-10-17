@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { dispatchOutbox } from '@/lib/email/outbox';
+import { dispatchSlack } from '@/lib/slack';
 import { syncAmount } from '@/lib/billing/sync';
 import { retryContacts } from '@/lib/email/contact';
 import { reportError } from '@/lib/alerts';
@@ -114,6 +115,20 @@ export async function GET(req: NextRequest) {
     // once a week at most while it stays above 70%
     await admin.rpc('notify_super_admins', { p_pref: 'storage', p_template: 'admin_storage', p_payload: { used_mb: usedMb, limit_mb: limitMb }, p_dedupe: 'storage:' + day.slice(0, 7) + ':' + Math.floor(now.getUTCDate() / 7) });
   }
+
+  // 7e. Slack: the Monday summary for the boards that want it, then whatever is left to send; sent notices older than 90 days go.
+  if (now.getUTCDay() === 1) {
+    const { data: weekly, error: we } = await admin.rpc('queue_slack_weekly');
+    if (we) await reportError('slack', we); else log.slack_weekly = weekly;
+  }
+  let slackSent = 0;
+  for (let i = 0; i < 10; i++) {
+    const r = await dispatchSlack(50).catch(async (e) => { await reportError('slack', e); return { sent: 0, failed: 0 }; });
+    slackSent += r.sent;
+    if (r.sent + r.failed < 50) break;
+  }
+  log.slack_sent = slackSent;
+  await admin.from('slack_outbox').delete().in('status', ['sent', 'skipped', 'failed']).lt('created_at', new Date(now.getTime() - 90 * 864e5).toISOString());
 
   // 8. Send everything queued.
   let sent = 0;

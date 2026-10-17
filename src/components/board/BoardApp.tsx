@@ -203,6 +203,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
             ? rpc<number>('create_ai_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id, p_suggestion: form.draft.suggestion ?? null })
             : rpc<number>('create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea publicada · Pendiente de revisión');
           if (id === undefined) return false;
+          flushEmails(); // the board's Slack channel, if it has one
           await saveImage(id, v.image);
           form.onDone?.();
           await reload();

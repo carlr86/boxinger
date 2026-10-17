@@ -15,7 +15,7 @@ export function cleanError(msg: string): string {
   return msg;
 }
 
-/** Sends queued emails right away (the daily cron retries anything left). */
+/** Sends queued emails and Slack notices right away (the daily cron retries anything left). */
 export function flushEmails() {
   fetch('/api/outbox', { method: 'POST' }).catch(() => {});
 }

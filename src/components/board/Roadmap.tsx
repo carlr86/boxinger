@@ -88,8 +88,9 @@ export function Roadmap({ api }: { api: BoardApi }) {
     setDrag(null); setOver(null);
     const told = await api.run(rpc<number>('move_roadmap', { p_id: id, p_col: col, p_before: before }));
     if (told !== undefined) {
-      if (told) { toast.ok(t('{ok} · Le avisamos a {who} que la propusieron o votaron', { ok: ok || t('Pasó al Roadmap'), who: plural(told, 'persona', 'personas') })); flushEmails(); }
+      if (told) toast.ok(t('{ok} · Le avisamos a {who} que la propusieron o votaron', { ok: ok || t('Pasó al Roadmap'), who: plural(told, 'persona', 'personas') }));
       else if (ok) toast.ok(ok);
+      flushEmails();
     }
     api.reload();
   }

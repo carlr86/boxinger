@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createHash } from 'node:crypto';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { reportError } from '@/lib/alerts';
+import { dispatchSlack } from '@/lib/slack';
 
 // Integrations door (Pro and Enterprise): Zapier, Make, Google Forms or any tool sends an idea to a board.
 // POST with "Authorization: Bearer <board key>" and JSON {title, description?, name?, email?, category?, external_id?}.
@@ -39,6 +40,8 @@ export async function POST(req: Request) {
     return fail(500, 'No pudimos guardar la idea. Probá de nuevo en unos minutos.');
   }
   const r = data as { id: number; duplicate: boolean };
+  // «Llegó una idea por integración» in the board's Slack channel, if it has one.
+  if (!r.duplicate) await dispatchSlack(10).catch((e) => reportError('slack', e));
   return NextResponse.json({ ok: true, id: r.id, duplicate: r.duplicate }, { status: r.duplicate ? 200 : 201 });
 }
 

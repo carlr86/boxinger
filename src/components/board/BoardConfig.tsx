@@ -19,7 +19,7 @@ const SUB: Record<Tab, string> = {
   general: 'Nombre, descripción y logo que ve la Comunidad.',
   cats: 'Categorías para clasificar las ideas de este buzón.',
   com: 'Invitaciones e invitados de la Comunidad.',
-  integ: 'Ideas que llegan solas desde Zapier, Make, Google Forms y otras herramientas.',
+  integ: 'Avisos en Slack e ideas que llegan solas desde Zapier, Make, Google Forms y otras herramientas.',
 };
 
 export function BoardConfig({ api }: { api: BoardApi }) {
