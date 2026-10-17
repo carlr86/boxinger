@@ -1409,6 +1409,17 @@ export const EN: Record<string, string> = {
   "Modo oscuro": "Dark mode",
   "Reportes en PDF": "PDF reports",
   "Después": "Later",
+  // ── Landing: buzón de ejemplo ──
+  "Ejemplo": "Example",
+  "Buzón de ejemplo": "Sample board",
+  "Mirá un buzón funcionando": "See a board in action",
+  "Recorré el buzón de Vitrina, una tienda online inventada para este ejemplo: ideas con votos y comentarios, el Ranking, el Backlog, el Roadmap y las Novedades. No hace falta crear una cuenta.": "Explore the board of Vitrina, an online store made up for this example: ideas with votes and comments, the Ranking, the Backlog, the Roadmap and Updates. No account needed.",
+  "Abrir el buzón de ejemplo": "Open the sample board",
+  "Las ideas y las personas son ficticias.": "The ideas and people are fictional.",
+  "Ideas para Vitrina": "Ideas for Vitrina",
+  "Integración con Mercado Libre para sincronizar stock": "Mercado Libre integration to sync stock",
+  "Recuperar carritos abandonados por WhatsApp": "Recover abandoned carts via WhatsApp",
+  "Avisar al cliente cuando vuelve a haber stock": "Notify customers when an item is back in stock",
   // ── Exportar ideas ──
   "Descargar todas las ideas del buzón en un archivo para Excel o Google Sheets": "Download every idea on the board as a file for Excel or Google Sheets",
   "Exportamos {ideas}.": "We exported {ideas}.",

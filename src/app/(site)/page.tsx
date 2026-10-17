@@ -20,6 +20,14 @@ const DEMO = [
   { title: 'Conciliación automática con el banco', origin: 'Equipo' as const, cat: 'Propuesta', st: s.tagN, status: 'Pendiente de revisión', votes: 19, comments: 4, author: 'Sofía Ruiz', ini: 'SR', color: '#5b8a3a' },
 ];
 
+// The public sample board (account hola@boxinger.com), filled by scripts/demo-vitrina. The scene shows some of its ideas.
+const SAMPLE_BOARD = '/app/b/demo-boxinger';
+const SAMPLE = [
+  { title: 'Integración con Mercado Libre para sincronizar stock', cat: 'Feature', st: s.tagOk, status: 'En desarrollo', votes: 20, comments: 4, author: 'Lucía Ferreyra', ini: 'LF', color: '#a8487a' },
+  { title: 'Recuperar carritos abandonados por WhatsApp', cat: 'Feature', st: s.tagOk, status: 'En desarrollo', votes: 19, comments: 3, author: 'Martín Sosa', ini: 'MS', color: '#3a78b5' },
+  { title: 'Avisar al cliente cuando vuelve a haber stock', cat: 'Feature', st: s.tagN, status: 'Por empezar', votes: 15, comments: 2, author: 'Lucía Ferreyra', ini: 'LF', color: '#a8487a' },
+];
+
 const I = {
   inbox: <path d="M4 13l2.5-7h11L20 13v5a1 1 0 01-1 1H5a1 1 0 01-1-1zM4 13h4.5l1 2h5l1-2H20" />,
   rank: <path d="M6 20v-6M12 20V6M18 20v-9" />,
@@ -78,6 +86,7 @@ export default async function Landing() {
           <nav className={s.nav}>
             <a href="#como">{t('Cómo funciona')}</a>
             <a href="#funciones">{t('Funciones')}</a>
+            <a href="#ejemplo">{t('Ejemplo')}</a>
             <a href="#planes">{t('Planes')}</a>
             <a href="#contacto">{t('Contacto')}</a>
           </nav>
@@ -161,6 +170,42 @@ export default async function Landing() {
             </video>
             {locale === 'en' && <figcaption className={s.note}>Video in Spanish, with on-screen captions.</figcaption>}
           </figure>
+        </div>
+      </section>
+
+      {/* ── Sample board ── */}
+      <section id="ejemplo" className={s.sample}>
+        <div className={s.sampleIn}>
+          <div className={s.sampleText}>
+            <span className={s.kicker}>{t('Buzón de ejemplo')}</span>
+            <h2 className={s.h2}>{t('Mirá un buzón funcionando')}</h2>
+            <p className={s.sub}>{t('Recorré el buzón de Vitrina, una tienda online inventada para este ejemplo: ideas con votos y comentarios, el Ranking, el Backlog, el Roadmap y las Novedades. No hace falta crear una cuenta.')}</p>
+            <div className={s.ctaRow}>
+              <a href={SAMPLE_BOARD} target="_blank" rel="noopener" className={s.btnPrimary}>{t('Abrir el buzón de ejemplo')}<span className={s.ext} aria-hidden>↗</span></a>
+            </div>
+            <span className={s.note}>{t('Las ideas y las personas son ficticias.')}</span>
+          </div>
+          <a href={SAMPLE_BOARD} target="_blank" rel="noopener" className={s.sampleArt} aria-label={t('Abrir el buzón de ejemplo')}>
+            <div className={s.sampleBoard}>
+              <div className={s.boardHead}>
+                <span className={`${s.boardLogo} ${s.sampleLogo}`}>V</span><span className={s.boardName}>{t('Ideas para Vitrina')}</span>
+                <div className={s.boardTabs}><span>{t('Buzón')}</span><span className={s.boardTabOn}>{t('Roadmap')}</span><span>{t('Novedades')}</span></div>
+              </div>
+              <div className={s.boardList}>
+                {SAMPLE.map((d) => (
+                  <div key={d.title} className={s.idea}>
+                    <div className={s.voteBox}><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 2l4 5H2z" fill="#059669" /></svg><span>{d.votes}</span></div>
+                    <div className={s.ideaBody}>
+                      <div className={s.tagsRow}><span className={s.tagCom}>{t('Comunidad')}</span><span className={s.tagN}>{t(d.cat)}</span><span className={d.st}>{t(d.status)}</span></div>
+                      <span className={s.ideaTitle}>{t(d.title)}</span>
+                      <div className={s.ideaMeta}><span className={s.avatar} style={{ background: d.color }}>{d.ini}</span>{d.author}<span>·</span>💬 {d.comments}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={`${s.sticker} ${s.sampleSticker}`} aria-hidden>🚀 {t('Lanzada')}</div>
+          </a>
         </div>
       </section>
 
@@ -309,7 +354,7 @@ export default async function Landing() {
             <span className={s.brand}><img src="/logo.svg" alt="" width={28} height={28} /><span>Boxinger</span></span>
             <span className={s.footTag}>{t('Buzón de ideas para equipos de producto.')}</span>
           </div>
-          <div className={s.footCol}><b>{t('Producto')}</b><a href="#como">{t('Cómo funciona')}</a><a href="#funciones">{t('Funciones')}</a><a href="#planes">{t('Planes')}</a></div>
+          <div className={s.footCol}><b>{t('Producto')}</b><a href="#como">{t('Cómo funciona')}</a><a href="#funciones">{t('Funciones')}</a><a href={SAMPLE_BOARD} target="_blank" rel="noopener">{t('Buzón de ejemplo')}</a><a href="#planes">{t('Planes')}</a></div>
           <div className={s.footCol}><b>{t('Legales')}</b><Link href="/terminos">{t('Términos')}</Link><Link href="/privacidad">{t('Privacidad')}</Link><Link href="/seguridad">{t('Seguridad')}</Link><Link href="/arrepentimiento">{t('Botón de arrepentimiento')}</Link></div>
           <div className={s.footCol}><b>{t('Contacto')}</b><a href="mailto:hola@boxinger.com">hola@boxinger.com</a><a href="#contacto">{t('Escribinos')}</a></div>
         </div>
