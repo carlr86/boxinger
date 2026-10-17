@@ -41,6 +41,7 @@ export interface Idea {
   ai?: boolean; // added from an AI assistant suggestion
   imported?: boolean; // came from a CSV/Excel import
   source?: 'api' | 'slack' | 'widget' | null; // came in through an integration (team only)
+  archived?: boolean; // taken out of «Por revisar» without publishing it (team only)
   image_path?: string | null; // attached image in the private idea-images bucket (thumbnail: same path with -t)
   requester_name?: string | null; // who asked for it, per the imported file (team only)
   requester_email?: string | null;

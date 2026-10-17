@@ -85,14 +85,17 @@ export function OriginTag({ origin, ai, imported, source }: { origin: string; ai
   return <><Tag tone={o}>{origin === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(o.l)}</Tag>{ai && <AiTag />}{imported && <ImportedTag />}{source && <SourceTag source={source} />}</>;
 }
 
-/** "Por revisar (N)": ideas that came in through an integration and are still hidden. Team only. */
-function InboxToggle({ n, on, onChange }: { n: number; on: boolean; onChange: (v: boolean) => void }) {
-  const { t } = useI18n();
+/** Came in through an integration and nobody decided yet: still hidden, not rejected, not archived. */
+export const toReviewIdea = (i: Idea) => !!i.source && i.hidden && !i.archived && i.status !== 'rechazada';
+
+/** "Por revisar (N)" and "Archivadas (N)": team-only views of the board. */
+function ViewToggle({ label, title, on, onChange, tone }: { label: string; title: string; on: boolean; onChange: (v: boolean) => void; tone: 'blue' | 'grey' }) {
+  const c = tone === 'blue' ? ['#2563eb', '#93c5fd', '#eff6ff'] : ['rgba(0,0,0,0.65)', '#d9d9d9', '#fafafa'];
   return (
-    <button type="button" aria-pressed={on} onClick={() => onChange(!on)} title={t('Ideas que llegaron por integraciones y todavía no ve la Comunidad')}
+    <button type="button" aria-pressed={on} onClick={() => onChange(!on)} title={title}
       style={{ height: 32, padding: '0 12px', borderRadius: 6, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: 'flex-start',
-        border: '1px solid ' + (on ? '#2563eb' : '#93c5fd'), background: on ? '#2563eb' : '#eff6ff', color: on ? '#fff' : '#2563eb', fontWeight: 600 }}>
-      {t('Por revisar ({n})', { n })}
+        border: '1px solid ' + (on ? c[0] : c[1]), background: on ? c[0] : c[2], color: on ? '#fff' : c[0], fontWeight: 600 }}>
+      {label}
     </button>
   );
 }
@@ -108,13 +111,23 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   const [limit, setLimit] = useState(PAGE);
   const [aiOpen, setAiOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [inbox, setInbox] = useState(false);
-  const toReview = api.isTeam ? api.data.ideas.filter((i) => i.source && i.hidden).length : 0;
-  useEffect(() => { if (!toReview) setInbox(false); }, [toReview]);
+  // Team-only views: 'inbox' = «Por revisar», 'archived' = Archivadas (hidden from the normal list).
+  const [special, setSpecial] = useState<'' | 'inbox' | 'archived'>('');
+  const toReview = api.isTeam ? api.data.ideas.filter(toReviewIdea).length : 0;
+  const archivedN = api.isTeam ? api.data.ideas.filter((i) => i.archived).length : 0;
+  useEffect(() => { if ((special === 'inbox' && !toReview) || (special === 'archived' && !archivedN)) setSpecial(''); }, [special, toReview, archivedN]);
+  const toggles = !backlog && (toReview > 0 || archivedN > 0) && (
+    <>
+      {(toReview > 0 || special === 'inbox') && <ViewToggle tone="blue" label={t('Por revisar ({n})', { n: toReview })} title={t('Ideas que llegaron por integraciones y todavía no ve la Comunidad')}
+        on={special === 'inbox'} onChange={(v) => setSpecial(v ? 'inbox' : '')} />}
+      {archivedN > 0 && <ViewToggle tone="grey" label={t('Archivadas ({n})', { n: archivedN })} title={t('Ideas que el Equipo sacó de «Por revisar» sin publicarlas')}
+        on={special === 'archived'} onChange={(v) => setSpecial(v ? 'archived' : '')} />}
+    </>
+  );
 
   const list = useMemo(() => {
     const qq = q.trim().toLowerCase();
-    let l = api.data.ideas.filter((i) => (fCat === 'all' || i.category_id === fCat) && (fOri === 'all' || i.origin === fOri) && (!inbox || (!!i.source && i.hidden)));
+    let l = api.data.ideas.filter((i) => (fCat === 'all' || i.category_id === fCat) && (fOri === 'all' || i.origin === fOri) && (special === 'inbox' ? toReviewIdea(i) : special === 'archived' ? !!i.archived : !i.archived));
     if (backlog) {
       // With Pro, ideas on the Roadmap leave the Backlog.
       l = l.filter((i) => i.status === 'aprobada' && !(api.pro && i.rm_col)).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
@@ -125,11 +138,11 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       l.sort(sort === 'votes' ? (a, b) => b.votes - a.votes : sort === 'comments' ? (a, b) => b.comments - a.comments : (a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     }
     return l;
-  }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fSt, sort, inbox]);
+  }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fSt, sort, special]);
 
-  useEffect(() => setLimit(PAGE), [q, fCat, fOri, fSt, sort, backlog, inbox]);
+  useEffect(() => setLimit(PAGE), [q, fCat, fOri, fSt, sort, backlog, special]);
   const [layout, setLayout] = useLayout();
-  const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fSt !== 'all' || inbox;
+  const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fSt !== 'all' || !!special;
 
   return (
     <>
@@ -155,7 +168,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         // Phones: one column, full-width controls, everything left-aligned.
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ width: '100%', height: 36 }} />}
-          {!backlog && toReview > 0 && <InboxToggle n={toReview} on={inbox} onChange={setInbox} />}
+          {toggles}
           <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'flex-start' }} />
           <div style={{ display: 'grid', gridTemplateColumns: backlog ? '1fr' : '1fr 1fr', gap: 10 }}>
             <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)} style={{ width: '100%', minWidth: 0, height: 36 }}>
@@ -182,7 +195,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       ) : (
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {!backlog && <input className="bx-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Buscar en título y descripción')} style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />}
-        {!backlog && toReview > 0 && <InboxToggle n={toReview} on={inbox} onChange={setInbox} />}
+        {toggles}
         <Seg options={[['all', t('Todas')], ['equipo', t('Equipo')], ['comunidad', t('Comunidad')]]} value={fOri} onChange={setFOri} style={{ alignSelf: 'auto' }} />
         <select className="bx-select" value={fCat} onChange={(e) => setFCat(e.target.value)}>
           <option value="all">{t('Todas las categorías')}</option>
@@ -302,7 +315,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
           <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
           <Tag>{api.catL(i.category_id)}</Tag>
           <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
-          {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
+          {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.archived ? t('Archivada') : t('Oculta')}</span>}
           <span style={{ marginLeft: 4 }}><AuthorLine i={i} /></span>
         </div>
       </div>
@@ -328,7 +341,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
         <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
         <Tag>{api.catL(i.category_id)}</Tag>
         <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
-        {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Oculta')}</span>}
+        {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.archived ? t('Archivada') : t('Oculta')}</span>}
       </div>
       <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.title}</div>
       <AuthorLine i={i} />

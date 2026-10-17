@@ -96,6 +96,37 @@ await err('a normal idea still needs 20 characters', async () => {
   return rpc(owner, 'update_idea', [id, 'Login con Google', 'Corto', cats[0].id]);
 }, '20');
 
+console.log('\n# reject and archive');
+const pend = async () => (await rpc(owner, 'get_integrations', [board])).pending;
+let arch, rej;
+await ok('archive: stays hidden and leaves «Por revisar»', async () => {
+  arch = (await send(key, { title: 'Prueba de Zapier, borrar' })).id;
+  const before = await pend();
+  await rpc(member, 'set_idea_archived', [arch, true]);
+  const i = (await rpc(owner, 'get_board', [slug])).ideas.find((x) => x.id == arch);
+  eq([i.hidden, i.archived, await pend()], [true, true, before - 1]);
+  eq((await rpc(guest, 'get_board', [slug])).ideas.some((x) => x.id == arch), false);
+});
+await err('the Community cannot archive', () => rpc(guest, 'set_idea_archived', [arch, true]), 'Equipo');
+await ok('un-archive: back to «Por revisar»', async () => {
+  const before = await pend();
+  await rpc(owner, 'set_idea_archived', [arch, false]);
+  eq([(await rpc(owner, 'get_board', [slug])).ideas.find((x) => x.id == arch).archived, await pend()], [false, before + 1]);
+});
+await ok('publishing an archived idea un-archives it', async () => {
+  await rpc(owner, 'set_idea_archived', [arch, true]);
+  await rpc(owner, 'set_idea_hidden', [arch, false]);
+  const i = (await rpc(owner, 'get_board', [slug])).ideas.find((x) => x.id == arch);
+  eq([i.hidden, i.archived], [false, false]);
+});
+await ok('reject: keeps it hidden, with its reason, and out of «Por revisar»', async () => {
+  rej = (await send(key, { title: 'Algo que no vamos a hacer' })).id;
+  const before = await pend();
+  await rpc(owner, 'set_idea_status', [rej, 'rechazada', 'No es parte del producto.']);
+  const i = (await rpc(owner, 'get_board', [slug])).ideas.find((x) => x.id == rej);
+  eq([i.hidden, i.status, i.reject_reason, await pend()], [true, 'rechazada', 'No es parte del producto.', before - 1]);
+});
+
 console.log('\n# options, new key, plan and limits');
 await ok('the Admin picks Equipo and another category', async () => {
   await rpc(owner, 'set_integration_options', [board, 'equipo', cats[2].id]);

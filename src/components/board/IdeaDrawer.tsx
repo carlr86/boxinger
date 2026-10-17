@@ -9,7 +9,7 @@ import { DEV, GROWTH, GROWTH_KEYS, IDEA_STATUS, ORIGIN, PRIO, RATE_L, RM_COLS, V
 import { useI18n } from '@/lib/i18n/client';
 import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail, MergedIdea } from '@/lib/types';
-import { OriginTag, useGridCols } from './IdeaGrid';
+import { OriginTag, toReviewIdea, useGridCols } from './IdeaGrid';
 import { MergeModal } from './MergeModal';
 import { quadrant, rateOf, voteMode, type BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
@@ -135,16 +135,32 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
             <Tag>{api.catL(i.category_id)}</Tag>
             <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
-            {i.hidden && <Tag>{t('Oculta para la Comunidad')}</Tag>}
+            {i.hidden && <Tag>{i.archived ? t('Archivada') : t('Oculta para la Comunidad')}</Tag>}
           </div>
-          {team && i.hidden && i.source && (
-            // Came in through an integration: the team reviews it and publishes it.
+          {team && toReviewIdea(i) && (
+            // Came in through an integration: the team publishes, rejects or archives it.
             <div style={{ background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
               <span>{t('Llegó por una integración y la Comunidad todavía no la ve. Revisala, editala si hace falta y publicala.')}</span>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button type="button" className="bx-btn-primary" disabled={!api.canWrite}
                   onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad')}>{t('Publicar')}</button>
                 <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => api.openEdit(i)}>{t('Editar')}</button>
+                <button type="button" className="bx-btn" disabled={!api.canWrite} onClick={() => api.askReject(i.id)}>{t('Rechazar')}</button>
+                <Tooltip title={t('La saca de «Por revisar» sin publicarla. Sigue oculta y la encontrás en Archivadas.')}>
+                  <button type="button" className="bx-btn" disabled={!api.canWrite}
+                    onClick={() => act(rpc('set_idea_archived', { p_id: i.id, p_archived: true }), 'Idea archivada')}>{t('Archivar')}</button>
+                </Tooltip>
+              </div>
+            </div>
+          )}
+          {team && i.archived && (
+            <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
+              <span>{t('Archivada: la Comunidad no la ve y no está en «Por revisar».')}</span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button type="button" className="bx-btn" disabled={!api.canWrite}
+                  onClick={() => act(rpc('set_idea_archived', { p_id: i.id, p_archived: false }), i.source ? 'La idea volvió a «Por revisar»' : 'La idea ya no está archivada')}>{i.source ? t('Volver a «Por revisar»') : t('Desarchivar')}</button>
+                <button type="button" className="bx-btn" disabled={!api.canWrite}
+                  onClick={() => act(rpc('set_idea_hidden', { p_id: i.id, p_hidden: false }), 'Idea publicada: ya la ve la Comunidad')}>{t('Publicar')}</button>
               </div>
             </div>
           )}
