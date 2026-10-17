@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- Post de LinkedIn 1080 × 1350 · Boxinger tiene su propio buzón (boxinger.com/app/b/boxinger-ideas).
+     Exportar: python3 .claude/skills/boxinger-brand/scripts/render.py docs/brand/buzon-boxinger/post.html post.png --width 1080 --height 1350 --scale 2 -->
+<html lang="es"><head><meta charset="utf-8">
+<title>Buzón de Boxinger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<style>
+html,body{margin:0;padding:0}
+body{width:1080px;height:1350px;overflow:hidden;background:#0f172a;color:#ffffff;font-family:"Plus Jakarta Sans",-apple-system,"Segoe UI",Arial,sans-serif}
+.in{box-sizing:border-box;height:100%;padding:65px;display:flex;flex-direction:column}
+.eye{font-size:32px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#10b981}
+h1{margin:30px 0 0;font-size:96px;font-weight:800;letter-spacing:-0.035em;line-height:1.04;text-wrap:balance}
+.pt{margin-left:-.07em}
+.sub{margin-top:28px;font-size:40px;font-weight:500;line-height:1.35;color:#94a3b8;text-wrap:pretty}
+.sub b{color:#ffffff;font-weight:600}
+.stage{flex:1;min-height:0;position:relative;margin:56px 0 48px}
+.foot{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:17px;font-weight:800;font-size:47px;letter-spacing:-0.03em}
+.brand svg{width:69px;height:69px}
+.cta{background:#ffffff;color:#047857;font-weight:800;font-size:29px;padding:20px 34px;border-radius:999px;letter-spacing:-.005em}
+
+/* Pantalla del buzón (pieza de la app) */
+.ui{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#0f172a}
+.app{position:absolute;inset:0;background:#f5f7f6;border-radius:32px;overflow:hidden;box-shadow:0 40px 80px -30px rgba(0,0,0,.7);display:flex;flex-direction:column}
+.top{background:#ffffff;padding:24px 34px 0;border-bottom:1px solid #e8eeeb}
+.bz{display:flex;align-items:center;gap:14px;font-size:25px;font-weight:700}
+.bz svg{width:40px;height:40px}
+.tabs{display:flex;gap:34px;margin-top:22px;font-size:22px;color:#334155}
+.tabs span{padding-bottom:16px}
+.tabs .on{color:#047857;font-weight:700;border-bottom:3px solid #059669}
+.body{padding:26px 34px;flex:1;min-height:0;display:flex;flex-direction:column}
+.h{font-size:30px;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;letter-spacing:-.02em}
+.hs{font-size:20px;color:#64748b;margin-top:6px}
+.card{margin-top:22px;background:#ffffff;border:1px solid #e8eeeb;border-radius:22px;padding:28px 30px;box-shadow:0 18px 36px -24px rgba(11,43,34,.35)}
+.tags{display:flex;gap:10px}
+.tag{font-size:19px;font-weight:600;padding:5px 13px;border-radius:8px;border:1px solid}
+.equipo{background:#eff6ff;border-color:#93c5fd;color:#2563eb}
+.neutral{background:#f8fafc;border-color:#cbd5e1;color:#475569}
+.pend{background:#fafafa;border-color:#d9d9d9;color:rgba(0,0,0,.88)}
+.title{font-size:32px;font-weight:700;margin-top:16px}
+.desc{font-size:22px;line-height:1.45;color:#475569;margin-top:8px}
+.by{display:flex;align-items:center;gap:10px;font-size:19px;color:#64748b;margin-top:16px}
+.by svg{width:28px;height:28px}
+.votes{display:flex;gap:12px;margin-top:22px;padding-top:20px;border-top:1px solid #edf1ef;align-items:center}
+.v{font-size:20px;font-weight:600;padding:10px 18px;border-radius:10px;border:1px solid #e2e8f0;color:#334155;background:#fff}
+.v.sel{background:#d1fae5;border-color:#6ee7b7;color:#047857}
+.com{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:20px;color:#475569}
+
+.sticker{position:absolute;font-family:"Plus Jakarta Sans",sans-serif;font-weight:800;font-size:32px;padding:14px 28px;border-radius:999px;box-shadow:0 14px 30px -14px rgba(0,0,0,.5);z-index:2}
+.amarillo{background:#fde68a;color:#78350f}
+.blanco{background:#ffffff;color:#047857}
+</style></head>
+<body><div class="in">
+  <div class="eye">Nuestro propio buzón</div>
+  <h1>Votá lo próximo que hacemos.</h1>
+  <div class="sub">Boxinger también tiene su buzón. <b>Mirá, votá y comentá</b> las ideas que vamos a encarar.</div>
+
+  <div class="stage ui">
+    <div class="app">
+      <div class="top">
+        <div class="bz"><span data-logo></span>Boxinger Ideas</div>
+        <div class="tabs"><span class="on">Buzón</span><span>Ranking</span><span>Backlog</span><span>Roadmap</span><span>Novedades</span></div>
+      </div>
+      <div class="body">
+        <div class="h">Buzón de Ideas</div>
+        <div class="hs">Agregá tus ideas, dejá tus comentarios y votá para que pasen al Backlog.</div>
+        <div class="card">
+          <div class="tags"><span class="tag equipo">Equipo</span><span class="tag neutral">Propuesta</span><span class="tag pend">Pendiente de revisión</span></div>
+          <div class="title">Tipos de Buzones</div>
+          <div class="desc">Crear buzones para distintos usos: sumar ideas a un producto, hacer brainstorming y más.</div>
+          <div class="by"><span data-logo></span>Propuesta por Boxinger</div>
+          <div class="votes"><span class="v sel">Importante</span><span class="v">Interesante</span><span class="v">No importante</span>
+            <span class="com"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/></svg>Comentar</span></div>
+        </div>
+      </div>
+    </div>
+    <span class="sticker amarillo" style="right:28px;top:-30px;transform:rotate(5deg)">+1 Importante</span>
+  </div>
+
+  <div class="foot"><span class="brand"><span data-logo></span>Boxinger</span><span class="cta">boxinger.com/app/b/boxinger-ideas</span></div>
+</div>
+<script>
+const D1='M308.74,36.87L90.77,36.88C73.25,37.77,57.85,49.15,51.9,65.56c-1.97,5.26-2.84,10.64-2.83,16.34l0.05,206.73c0,9.19,3.68,17.99,8.98,25.18c7.97,9.82,19.36,16.25,32.11,16.62l31.01,0.12l9.85,44.72c0.67,3.22,1.62,5.5,3.91,6.77c2.54,1.42,5.74,1.55,8.37-0.25l86.57-51.24l76.68-1c10.22,0,19.74-3.34,27.6-9.84c9.58-7.91,16.72-18.68,16.72-31.35l0.02-209.05C350.05,56.17,331.83,37.8,308.74,36.87z', D2='M206.57,266.88h-51.86c-7.49,0-12.83-1.68-16.03-5.04c-3.2-3.36-4.8-8.7-4.8-16.03V118.25c0-7.49,1.64-12.87,4.92-16.15s8.59-4.92,15.92-4.92h54.98c8.1,0,15.13,0.5,21.07,1.5c5.94,1,11.27,2.93,15.97,5.79c4.01,2.39,7.56,5.42,10.65,9.09c3.09,3.67,5.44,7.72,7.06,12.15c1.62,4.44,2.43,9.13,2.43,14.06c0,16.98-8.49,29.4-25.47,37.27c22.3,7.1,33.45,20.91,33.45,41.44c0,9.49-2.43,18.04-7.29,25.64c-4.86,7.6-11.42,13.22-19.68,16.84c-5.17,2.16-11.11,3.68-17.83,4.57S215.53,266.88,206.57,266.88z M168.26,123v43.87h31.48c8.57,0,15.18-0.81,19.85-2.43s8.24-4.71,10.71-9.26c1.93-3.24,2.89-6.87,2.89-10.88c0-8.57-3.05-14.26-9.14-17.07c-6.1-2.82-15.4-4.22-27.9-4.22H168.26z M204.03,191.52h-35.77v49.54h36.93c23.23,0,34.84-8.37,34.84-25.12c0-8.57-3.01-14.78-9.03-18.64C224.98,193.45,215.99,191.52,204.03,191.52z';
+document.querySelectorAll('[data-logo]').forEach(el=>el.outerHTML=`<svg viewBox="18.5 28.6 362 362" aria-hidden="true"><path fill="#059669" d="${D1}"/><path fill="#fafafa" d="${D2}"/></svg>`);
+document.querySelectorAll('h1').forEach(e=>{e.innerHTML=e.innerHTML.replace(/\.$/,'<span class="pt">.</span>')});
+</script>
+</body></html>
