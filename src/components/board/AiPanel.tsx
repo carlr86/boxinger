@@ -10,7 +10,7 @@ import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
 import { MergeModal } from './MergeModal';
 
-// Enterprise AI assistant on a board: suggest new ideas and pick the best pending ones for the Backlog.
+// AI assistant (Team and Enterprise) on a board: suggest new ideas and pick the best pending ones for the Backlog.
 // The model runs in /api/ai; this panel shows the product description, uses left and the last results.
 
 type Suggestion = { title: string; description: string; category_id: string; why: string };
@@ -101,7 +101,7 @@ export function AiPanel({ api, open, onClose, isMobile }: { api: BoardApi; open:
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
         <a onClick={onClose} style={{ color: 'rgba(0,0,0,0.45)', fontSize: 20, lineHeight: 1 }} aria-label={t('Cerrar')}>×</a>
         <span style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 600, color: AI }}><Sparkle size={16} />{t('Asistente IA')}</span>
-        <Tag tone={{ l: '', bg: '#eef2ff', bd: '#c7d2fe', fg: AI }}>Enterprise</Tag>
+        <Tag tone={{ l: '', bg: '#eef2ff', bd: '#c7d2fe', fg: AI }}>Team · Enterprise</Tag>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
         {!st ? <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Cargando…')}</span> : !st.enabled ? <Upsell api={api} /> : (
@@ -279,8 +279,8 @@ function Upsell({ api }: { api: BoardApi }) {
         t('Detecta ideas repetidas que conviene unir.')].map((x) => (
         <span key={x} style={{ display: 'flex', gap: 8, fontSize: 14, lineHeight: 1.55, color: 'rgba(0,0,0,0.75)' }}><span style={{ color: AI, marginTop: 2 }}><Sparkle /></span>{x}</span>
       ))}
-      <Note>{t('El asistente de IA está incluido en el plan Enterprise.')}</Note>
-      <button type="button" className="bx-btn-primary" style={{ alignSelf: 'flex-start', background: AI, borderColor: AI }} onClick={api.goPro}>{t('Conocé Enterprise')}</button>
+      <Note>{t('El asistente de IA está incluido en los planes Team y Enterprise.')}</Note>
+      <button type="button" className="bx-btn-primary" style={{ alignSelf: 'flex-start', background: AI, borderColor: AI }} onClick={api.goPro}>{t('Conocé Team')}</button>
     </div>
   );
 }

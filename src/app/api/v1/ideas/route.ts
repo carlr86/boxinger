@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { reportError } from '@/lib/alerts';
 import { dispatchSlack } from '@/lib/slack';
 
-// Integrations door (Pro and Enterprise): Zapier, Make, Google Forms or any tool sends an idea to a board.
+// Integrations door (Pro, Team and Enterprise): Zapier, Make, Google Forms or any tool sends an idea to a board.
 // POST with "Authorization: Bearer <board key>" and JSON {title, description?, name?, email?, category?, external_id?}.
 // The idea arrives hidden, for the team to review and publish. Postgres (ingest_idea) checks the key, plan and limits.
 

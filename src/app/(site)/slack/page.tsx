@@ -37,7 +37,7 @@ export default async function SlackPage() {
     [t('¿Qué se manda al canal?'), t('El título de la idea, el comienzo de la descripción, la categoría, si es de la Comunidad o del Equipo, el nombre de quien la cargó, los votos y el link a la idea. Para abrir la idea hay que tener acceso al buzón en Boxinger.')],
     [t('Mi espacio de trabajo pide aprobación para apps nuevas'), t('Desde la misma pantalla de Slack podés mandarle la solicitud al administrador. Cuando la aprueba, volvé a tocar «Conectar con Slack».')],
     [t('¿Cómo la desconecto?'), t('En Boxinger, Configuración › Integraciones › Desconectar. Borramos la dirección del canal y dejan de llegar avisos. Para sacar la app del todo, quitala también desde la configuración de apps de Slack.')],
-    [t('¿En qué plan está?'), t('En los planes Pro y Enterprise. Cada buzón puede conectar un canal.')],
+    [t('¿En qué plan está?'), t('En los planes Pro, Team y Enterprise. Cada buzón puede conectar un canal.')],
   ];
 
   return (
@@ -67,7 +67,7 @@ export default async function SlackPage() {
               <Link href="/app/buzones" className={s.btnPrimary}>{t('Conectar desde mi buzón')}</Link>
               <a href="#conectar" className={s.videoLink}>{t('Cómo se conecta')} →</a>
             </div>
-            <span className={s.note}>{t('Planes Pro y Enterprise.')}</span>
+            <span className={s.note}>{t('Planes Pro, Team y Enterprise.')}</span>
           </div>
           <div className={k.art} aria-hidden>
             <div className={k.window}>

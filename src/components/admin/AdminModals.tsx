@@ -5,7 +5,7 @@ import { rpc } from '@/lib/rpc';
 import { Avatar, Choice, Field, Note, Rows, Tag } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { useGridCols } from '@/components/board/IdeaGrid';
-import { BAD, OK, planTone } from '@/lib/constants';
+import { BAD, OK, planTone, planName } from '@/lib/constants';
 
 const VIS_L: Record<string, string> = { public: 'Público', invite: 'Solo invitados', private: 'Privado' };
 import { SITE_URL, boardUrl, displayUrl } from '@/lib/env';
@@ -54,7 +54,7 @@ export function NewClientModal({ open, onClose, onDone, prices }: { open: boolea
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14 }}>Plan
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8 }}>
-              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'USD 19,99 / mes · 20 miembros por equipo · IA']] as const).map(([k, l, d]) => (
+              {([['free', 'Free', '1 equipo · 1 buzón · solo el admin'], ['pro', 'Pro', money('USD', prices.USD) + ' / mes · hasta 4 miembros'], ['enterprise', 'Enterprise', 'A medida · miembros e IA según lo acordado']] as const).map(([k, l, d]) => (
                 <div key={k} style={card(f.plan === k)} onClick={() => setF({ ...f, plan: k })}><span style={{ fontWeight: 600 }}>{l}</span><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{d}</span></div>
               ))}
             </div>
@@ -225,7 +225,7 @@ export function SchedulePriceModal({ open, currency, plan = 'pro', prices, onClo
   }
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} title={`Programar nuevo precio ${plan === 'enterprise' ? 'Enterprise' : 'Pro'} (${currency})`} width={520} destroyOnHidden>
+    <Modal open={open} onCancel={onClose} footer={null} title={`Programar nuevo precio ${plan === 'enterprise' ? 'Team' : 'Pro'} (${currency})`} width={520} destroyOnHidden>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 4 }}>
         <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>Precio vigente: {money(currency, cur)} / mes · {currency === 'USD' ? 'Creem' : 'Mercado Pago'}.</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -240,7 +240,7 @@ export function SchedulePriceModal({ open, currency, plan = 'pro', prices, onClo
         <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, cursor: 'pointer' }}>
           <input type="checkbox" checked={notify} onChange={(x) => setNotify(x.target.checked)} style={{ width: 16, height: 16, marginTop: 2, accentColor: '#059669' }} />
           <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span>Avisar por email a los clientes {plan === 'enterprise' ? 'Enterprise' : 'Pro'}</span>
+            <span>Avisar por email a los clientes {plan === 'enterprise' ? 'Team' : 'Pro'}</span>
             <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{!notify ? 'No se envía ningún aviso.' : scope === 'new' ? 'Solo aplica a nuevas suscripciones: no hace falta avisar.' : 'Se envía hoy un email con el nuevo precio y la fecha' + (days > 0 && days < 30 ? '. Se recomienda avisar con al menos 30 días.' : '.')}</span>
           </span>
         </label>
@@ -302,9 +302,9 @@ export function ClientDrawer({ accountId, onClose, openBoard, onEditSub, reload 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Suscripción</span>
             <Rows rows={[
-              { l: 'Plan', v: c.plan, fg: planTone(c.plan).fg },
+              { l: 'Plan', v: planName(c.plan, c.provider), fg: planTone(c.plan).fg },
               { l: 'Inicio', v: ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.free_since || c.created_at) },
-              { l: 'Precio', v: c.plan === 'Enterprise' ? 'A medida · facturado fuera de la plataforma' : c.plan === 'Pro' ? money(c.currency, Number(c.amount)) + ' / mes' + (c.deal_type ? (c.deal_type === 'fixed' ? ' · Precio exclusivo' : ' · −' + c.deal_value + '%') + (c.deal_until ? ' hasta ' + ddmmyyyy(c.deal_until) : ' sin vencimiento') : '') : 'Sin costo', fg: c.deal_type ? '#d46b08' : undefined },
+              { l: 'Precio', v: c.plan === 'Enterprise' ? (planName(c.plan, c.provider) === 'Team' ? money(c.currency, Number(c.amount)) + ' / mes' : 'A medida · facturado fuera de la plataforma') : c.plan === 'Pro' ? money(c.currency, Number(c.amount)) + ' / mes' + (c.deal_type ? (c.deal_type === 'fixed' ? ' · Precio exclusivo' : ' · −' + c.deal_value + '%') + (c.deal_until ? ' hasta ' + ddmmyyyy(c.deal_until) : ' sin vencimiento') : '') : 'Sin costo', fg: c.deal_type ? '#d46b08' : undefined },
               ...(c.plan === 'Pro' ? [{ l: 'Medio de pago', v: PROVIDER_L[c.provider || ''] || '—' }, { l: c.cancel_at_period_end ? 'Pro hasta' : 'Próximo cobro', v: c.current_period_end ? dlong(c.current_period_end) : '—' }] : []),
               ...(c.cancel ? [{ l: 'Motivo de la baja', v: ({ precio: 'Caro para lo que lo usa', poco_uso: 'No lo usa lo suficiente', falta_funcion: 'Le falta una función', otra_herramienta: 'Se pasa a otra herramienta', temporal: 'Por un tiempo, después vuelve', otro: 'Otro' } as Record<string, string>)[c.cancel.reason || ''] || 'No lo indicó' },
                 ...(c.cancel.note ? [{ l: 'Comentario', v: c.cancel.note }] : []),

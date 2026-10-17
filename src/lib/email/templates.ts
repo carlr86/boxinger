@@ -120,9 +120,9 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
     case 'price_change':
       if (p.plan === 'enterprise')
         return {
-          subject: t('Cambio en el precio del plan Enterprise'),
-          html: layout(t('Actualizamos el precio de Enterprise'),
-            t('Desde el {date} el plan Enterprise pasa de {old} a {new} por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.', { date: date(p.from), old: money(p.currency, p.old), new: `<b>${money(p.currency, p.new)}</b>` }),
+          subject: t('Cambio en el precio del plan Team'),
+          html: layout(t('Actualizamos el precio de Team'),
+            t('Desde el {date} el plan Team pasa de {old} a {new} por mes. El cambio se aplica en tu próxima renovación a partir de esa fecha. Podés cancelar cuando quieras desde tu perfil.', { date: date(p.from), old: money(p.currency, p.old), new: `<b>${money(p.currency, p.new)}</b>` }),
             { label: t('Ver mi suscripción'), url: `${SITE_URL}/app/perfil?tab=sub` }),
         };
       return {
@@ -132,10 +132,16 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
           { label: t('Ver mi suscripción'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     case 'subscription_changed': {
+      // Plan 'enterprise' is Team when bought on the web (tier: 'team', from billing) and Enterprise when Boxinger assigns it.
+      if (s(p.plan) === 'enterprise' && p.tier === 'team')
+        return {
+          subject: t('Tu cuenta ahora es Team'),
+          html: layout(t('Bienvenido a Boxinger Team'), t('Tu cuenta pasó al plan Team: todo lo de Pro, más miembros en tus equipos y el Asistente IA, que te sugiere ideas nuevas y cuáles conviene aprobar.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
+        };
       if (s(p.plan) === 'enterprise')
         return {
           subject: t('Tu cuenta ahora es Enterprise'),
-          html: layout(t('Bienvenido a Boxinger Enterprise'), t('Tu cuenta pasó al plan Enterprise: todo lo de Pro, más miembros en tus equipos y el Asistente IA, que te sugiere ideas nuevas y cuáles conviene aprobar.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
+          html: layout(t('Bienvenido a Boxinger Enterprise'), t('Tu cuenta pasó al plan Enterprise: todo lo de Team, con los miembros y el uso del Asistente IA que acordamos con vos.'), { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
         };
       const pro = s(p.plan) === 'pro';
       const amount = money(p.currency, p.amount);
@@ -157,10 +163,10 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
     case 'pro_cancelled':
       if (p.plan === 'enterprise')
         return {
-          subject: t('Cancelaste tu suscripción Enterprise'),
-          html: layout(t('Tu suscripción Enterprise se canceló'),
-            (p.until ? t('Seguís con Enterprise hasta el {date}.', { date: date(p.until) }) : t('Seguís con Enterprise hasta el fin del período pagado.')) + ' ' + t('Después tu cuenta pasa a Free y los buzones extra quedan en solo lectura.'),
-            { label: t('Volver a Enterprise'), url: `${SITE_URL}/app/perfil?tab=sub` }),
+          subject: t('Cancelaste tu suscripción Team'),
+          html: layout(t('Tu suscripción Team se canceló'),
+            (p.until ? t('Seguís con Team hasta el {date}.', { date: date(p.until) }) : t('Seguís con Team hasta el fin del período pagado.')) + ' ' + t('Después tu cuenta pasa a Free y los buzones extra quedan en solo lectura.'),
+            { label: t('Volver a Team'), url: `${SITE_URL}/app/perfil?tab=sub` }),
         };
       return {
         subject: t('Cancelaste tu suscripción Pro'),
@@ -178,12 +184,12 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
       const keeps = u ? `<p style="margin:0 0 12px;color:rgba(0,0,0,0.6)">${esc(proKeeps(u, t))}</p>` : '';
       const ending = template === 'pro_ending';
       return {
-        subject: ending ? (ent ? t('Tu plan Enterprise termina el {date}', { date: date(p.until) }) : t('Tu plan Pro termina el {date}', { date: date(p.until) })) : t('Tu cuenta pasó a Free'),
-        html: layout(ending ? (ent ? t('Tu Enterprise termina el {date}', { date: date(p.until) }) : t('Tu Pro termina el {date}', { date: date(p.until) })) : ent ? t('Tu suscripción Enterprise terminó') : t('Tu suscripción Pro terminó'),
-          (ending ? (ent ? t('El {date} tu cuenta pasa a Free. Si no volvés a Enterprise, vas a perder:', { date: date(p.until) }) : t('El {date} tu cuenta pasa a Free. Si no volvés a Pro, vas a perder:', { date: date(p.until) })) : t('Tu cuenta ya es Free. Esto quedó en pausa:')) + ul + keeps +
-          `<p style="margin:0 0 4px"><b>${esc(ent ? t('Si volvés a Enterprise, recuperás todo tal como estaba.') : t('Si volvés a Pro, recuperás todo tal como estaba.'))}</b> ${esc(ending ? t('Podés reactivarlo sin pagar de nuevo este mes.') : t('No hay que volver a configurar nada.'))}</p>` +
+        subject: ending ? (ent ? t('Tu plan Team termina el {date}', { date: date(p.until) }) : t('Tu plan Pro termina el {date}', { date: date(p.until) })) : t('Tu cuenta pasó a Free'),
+        html: layout(ending ? (ent ? t('Tu Team termina el {date}', { date: date(p.until) }) : t('Tu Pro termina el {date}', { date: date(p.until) })) : ent ? t('Tu suscripción Team terminó') : t('Tu suscripción Pro terminó'),
+          (ending ? (ent ? t('El {date} tu cuenta pasa a Free. Si no volvés a Team, vas a perder:', { date: date(p.until) }) : t('El {date} tu cuenta pasa a Free. Si no volvés a Pro, vas a perder:', { date: date(p.until) })) : t('Tu cuenta ya es Free. Esto quedó en pausa:')) + ul + keeps +
+          `<p style="margin:0 0 4px"><b>${esc(ent ? t('Si volvés a Team, recuperás todo tal como estaba.') : t('Si volvés a Pro, recuperás todo tal como estaba.'))}</b> ${esc(ending ? t('Podés reactivarlo sin pagar de nuevo este mes.') : t('No hay que volver a configurar nada.'))}</p>` +
           (ending && u && u.boards.length > 1 ? `<p style="margin:12px 0 0;color:rgba(0,0,0,0.6)">${esc(t('¿Te quedás en Free? Elegí qué buzón sigue activo desde Mis Buzones.'))}</p>` : ''),
-          { label: ent ? t('Volver a Enterprise') : t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
+          { label: ent ? t('Volver a Team') : t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     }
     case 'payment_failed':

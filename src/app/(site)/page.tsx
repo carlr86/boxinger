@@ -82,7 +82,8 @@ export default async function Landing() {
   const plans = [
     { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog', 'Exportá tus ideas a Excel'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
     { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel', 'Uní ideas repetidas sin perder votos', 'Adjuntá una imagen a cada idea', 'Novedades: lo que lanzaste, para toda tu comunidad', 'Avisos en Slack', 'Ideas desde Zapier, Make y Google Forms'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
-    { name: 'Enterprise', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.', cta: 'Contratar Enterprise', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=enterprise' },
+    { name: 'Team', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'], cta: 'Contratar Team', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=team' },
+    { name: 'Enterprise', price: 'A medida', per: '', cls: '', items: ['Todo lo de Team', 'Más miembros por equipo', 'Más uso del Asistente IA', 'Precio y facturación a medida', 'Atención directa con el equipo de Boxinger'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un plan para tu empresa.', cta: 'Contactanos', ctaCls: s.ctaGhost, href: '#contacto-enterprise' },
   ];
 
   return (
@@ -145,7 +146,7 @@ export default async function Landing() {
             </div>
             <div className={`${s.sticker} ${s.heroSticker}`}>+1 {t('Importante')}</div>
             <div className={s.aiCard}>
-              <span className={s.aiHead}><Sparkle />{t('Asistente IA')}<span className={s.aiPill}>Enterprise</span></span>
+              <span className={s.aiHead}><Sparkle />{t('Asistente IA')}<span className={s.aiPill}>Team</span></span>
               <span className={s.aiLabel}>{t('Mejor candidata para el Backlog')}</span>
               <span className={s.aiTitle}>{t('Notificación cuando se acredita un pago')}</span>
               <span className={s.aiWhy}>{t('31 votos y 7 comentarios: es lo que más piden y baja las consultas al soporte, el objetivo del trimestre.')}</span>
@@ -242,7 +243,7 @@ export default async function Landing() {
             <div className={s.cardText}>
               <span className={s.cardKicker}><span className={s.kickIco}>⇅</span>{t('Importar y exportar')}</span>
               <p className={s.cardP}>{t('¿Tenés opiniones en planillas, encuestas o tu sistema de soporte? Subí un CSV o Excel y entran al buzón con su fecha original, listas para votar. Y cuando quieras, exportá todas tus ideas a Excel.')}</p>
-              <span className={s.planHint}>{t('Exportar: todos los planes · Importar: Pro y Enterprise')}</span>
+              <span className={s.planHint}>{t('Exportar: todos los planes · Importar: Pro, Team y Enterprise')}</span>
             </div>
           </div>
 
@@ -259,7 +260,7 @@ export default async function Landing() {
             <div className={s.cardText}>
               <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickViolet}`}><Sparkle size={12} /></span>{t('Asistente IA')}</span>
               <p className={s.cardP}>{t('Contale de qué se trata tu producto y te sugiere ideas nuevas, o analiza el buzón y te dice cuáles conviene pasar al Backlog y por qué.')}</p>
-              <span className={`${s.planHint} ${s.planHintViolet}`}>Enterprise</span>
+              <span className={`${s.planHint} ${s.planHintViolet}`}>Team · Enterprise</span>
             </div>
           </div>
 
@@ -276,7 +277,7 @@ export default async function Landing() {
             <div className={s.cardText}>
               <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickAmber}`}>🔔</span>{t('Reconocimiento y Novedades')}</span>
               <p className={s.cardP}>{t('Cuando una idea entra al Roadmap y cuando se lanza, Boxinger le avisa a quien la propuso y a quienes la votaron, y la suma a Novedades, la página de lanzamientos de tu buzón. Tu comunidad ve que la escuchás.')}</p>
-              <span className={s.planHint}>Pro · Enterprise</span>
+              <span className={s.planHint}>Pro · Team · Enterprise</span>
             </div>
           </div>
 
@@ -299,7 +300,7 @@ export default async function Landing() {
             <div className={s.cardText}>
               <span className={s.cardKicker}><span className={`${s.kickIco} ${s.kickBlue}`}>⚡</span>{t('Integraciones')}</span>
               <p className={s.cardP}>{t('Tu equipo se entera en Slack cuando llega una idea, pasa al Roadmap o se lanza. Y con Zapier, Make o Google Forms, las ideas de otras herramientas llegan solas al buzón, listas para revisar.')}</p>
-              <span className={s.planHint}>Pro · Enterprise</span>
+              <span className={s.planHint}>Pro · Team · Enterprise</span>
               <Link href="/slack" className={s.cardLink}>{t('Cómo funciona con Slack')} →</Link>
             </div>
           </div>
@@ -329,17 +330,17 @@ export default async function Landing() {
         <div className={s.section}>
           <div className={s.head} style={{ alignItems: 'center', textAlign: 'center', margin: '0 auto' }}>
             <h2 className={s.h2}>{t('Planes')}</h2>
-            <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro cuando quieras sumar a tu equipo, o a Enterprise para equipos más grandes y el Asistente IA.')}</p>
+            <p className={s.sub}>{t('Empezá gratis con un buzón. Pasá a Pro para sumar a tu equipo, a Team para equipos más grandes y el Asistente IA, o hablemos de Enterprise si necesitás algo a medida.')}</p>
           </div>
           <div className={s.plans}>
             {plans.map((p) => (
               <div key={p.name} className={`${s.plan} ${p.cls}`}>
                 <div className={s.planHead}>
                   <span className={s.planName}>{p.name}{'badge' in p && p.badge && <span className={s.entBadge}><Sparkle size={11} />{t(p.badge)}</span>}</span>
-                  <div className={s.priceRow}><span className={s.price}>{t(p.price)}</span><span className={s.per}>{t(p.per)}</span></div>
+                  <div className={s.priceRow}><span className={s.price}>{t(p.price)}</span>{p.per && <span className={s.per}>{t(p.per)}</span>}</div>
                 </div>
                 <div className={s.items}>{p.items.map((it) => <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>)}</div>
-                {'note' in p && p.note && <span className={s.planNote}>{t(p.note)} <a href="#contacto-enterprise">{t('Contactanos')}</a></span>}
+                {'note' in p && p.note && <span className={s.planNote}>{t(p.note)}</span>}
                 {'href' in p && p.href
                   ? <a href={p.href} className={`${s.planCta} ${p.ctaCls}`}>{t(p.cta)}</a>
                   : <Link href="/app/registro" className={`${s.planCta} ${p.ctaCls}`}>{t(p.cta)}</Link>}

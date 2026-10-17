@@ -76,7 +76,7 @@ export function Dashboard({ period, openClient, openBoard }: { period: '7' | '30
           { l: 'MRR', v: 'USD ' + fmtPrice(mrrUsd), n: (mrrArs ? 'ARS ' + fmtPrice(mrrArs) + ' · ' : '') + 'ARR proyectado USD ' + fmtPrice(Math.round(mrrUsd * 12)) },
           { l: 'Suscripciones Pro activas', v: String(pro.length), n: 'Lista ' + money('USD', o.prices.USD) + ' / ' + money('ARS', o.prices.ARS) },
           { l: 'Conversión Free → Pro', v: Math.round((pro.length / Math.max(1, o.accounts)) * 100) + '%', n: pro.length + ' de ' + o.accounts + ' cuentas' },
-          { l: 'Cuentas Enterprise', v: String(o.enterprise || 0), n: 'Facturadas fuera de la plataforma' },
+          { l: 'Cuentas Team y Enterprise', v: String(o.enterprise || 0), n: 'Team se cobra en la web; Enterprise, por fuera' },
           { l: 'En riesgo de churn', v: String(nAlto + nMed), n: nAlto + ' alto · ' + nMed + ' medio', fg: nAlto + nMed ? '#cf1322' : undefined },
         ].map((s) => (
           <div key={s.l} style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 4 }}>

@@ -4,7 +4,7 @@ import { SITE_URL, cleanEnv } from '@/lib/env';
 import { makeT, type Locale, type T } from '@/lib/i18n';
 import { reportError } from '@/lib/alerts';
 
-// Slack notices (Pro and Enterprise): each board can post to one Slack channel through an incoming webhook that the
+// Slack notices (Pro, Team and Enterprise): each board can post to one Slack channel through an incoming webhook that the
 // team picks with «Conectar con Slack» (see src/app/api/slack). Postgres queues the notices in slack_outbox
 // (supabase/migrations/…056_slack_notices.sql); this sends them, in the language of whoever connected the channel.
 

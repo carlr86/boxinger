@@ -61,7 +61,7 @@ await ok('existing images stay; new ones need a paid plan', async () => {
   await db.query(`update public.subscriptions set plan = 'free', status = 'active', current_period_end = null where account_id = $1`, [acc]);
   eq((await rpc(other, 'get_board', [slug])).ideas.find((x) => x.id == idea).image_path, path(board, 'a1'));
   await db.query(`insert into storage.objects (bucket_id, name) values ('idea-images', $1)`, [path(board, 'b1')]);
-  return err('set needs Pro', () => rpc(owner, 'set_idea_image', [idea, path(board, 'b1')]), 'Pro y Enterprise');
+  return err('set needs Pro', () => rpc(owner, 'set_idea_image', [idea, path(board, 'b1')]), 'Pro, Team y Enterprise');
 });
 await db.query(`update public.subscriptions set plan = 'pro', status = 'active', current_period_end = now() + interval '20 days' where account_id = $1`, [acc]);
 

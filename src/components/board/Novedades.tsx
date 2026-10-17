@@ -12,7 +12,7 @@ import { downloadChangelogCsv, downloadChangelogPdf, type ChangelogCtx } from '@
 import { useToast } from '@/components/Providers';
 
 // Novedades (changelog): the board's launched ideas, newest first and grouped by month. It builds itself from the
-// ideas marked as launched (no editing). Visible to everyone who can see the board, on Pro and Enterprise.
+// ideas marked as launched (no editing). Visible to everyone who can see the board, on Pro, Team and Enterprise.
 
 const TZ = 'America/Argentina/Buenos_Aires';
 

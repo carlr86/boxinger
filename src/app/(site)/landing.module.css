@@ -242,8 +242,8 @@
 
 /* ── Plans ── */
 .plansSec{background:#f7fcfa}
-.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:stretch}
-.plan{position:relative;background:#fff;border:1px solid #e5ebe8;border-radius:18px;padding:32px;display:flex;flex-direction:column;gap:20px}
+.plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;align-items:stretch}
+.plan{position:relative;background:#fff;border:1px solid #e5ebe8;border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;gap:20px}
 .planPro{border:2px solid var(--g);box-shadow:0 30px 60px -36px rgba(5,150,105,0.55)}
 .planEnt{border:2px solid #c7d2fe}
 .planHead{display:flex;flex-direction:column;gap:6px}
@@ -312,7 +312,7 @@
   .cardFlip .cardArt{order:0}
   .cardText,.cardFlip .cardText{padding:0 8px 8px}
   .features{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .plans{grid-template-columns:1fr;max-width:520px;margin:0 auto;width:100%}
+  .plans{grid-template-columns:repeat(2,minmax(0,1fr))}
   .footerIn{grid-template-columns:1fr 1fr}
 }
 @media (max-width:640px){
@@ -349,6 +349,7 @@
   .stickerTools{font-size:12px;right:4%;bottom:6%}
   .features{grid-template-columns:1fr}
   .payWays{grid-template-columns:1fr}
+  .plans{grid-template-columns:1fr;max-width:520px;margin:0 auto;width:100%}
   .finalChipA,.finalSticker,.stickerExport{display:none}
   .footerIn{grid-template-columns:1fr}
 }

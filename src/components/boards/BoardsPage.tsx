@@ -10,7 +10,7 @@ import { useGridCols } from '@/components/board/IdeaGrid';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { boardUrl, displayUrl } from '@/lib/env';
 import { useI18n } from '@/lib/i18n/client';
-import { MAX_MEMBERS, VISIBILITY, VISIBILITY_ORDER } from '@/lib/constants';
+import { MAX_MEMBERS, VISIBILITY, VISIBILITY_ORDER, planName } from '@/lib/constants';
 import type { BoardCard, TeamCtx, Visibility } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
 import { BoardDetail } from './BoardDetail';
@@ -139,7 +139,7 @@ export function BoardsPage() {
       <AppHeader slogan="From idea to Product" />
       <main className="bx-main">
         <PageHead title={t('Mis Buzones de ideas')}
-          sub={<>{t('Elegí un buzón para entrar.')} {ctx.account ? (ctx.account.plan === 'enterprise' ? (ctx.account.member_limit == null ? t('Plan Enterprise · equipos, buzones y miembros ilimitados.') : t('Plan Enterprise · equipos y buzones ilimitados, hasta {n} miembros por equipo.', { n: ctx.account.member_limit })) : isPro ? t('Plan Pro · equipos y buzones ilimitados.') : t('Plan Free · 1 equipo · 1 buzón.')) : ''}</>}
+          sub={<>{t('Elegí un buzón para entrar.')} {ctx.account ? (ctx.account.plan === 'enterprise' ? (ctx.account.member_limit == null ? t('Plan {plan} · equipos, buzones y miembros ilimitados.', { plan: planName('enterprise', ctx.account.subscription?.provider) }) : t('Plan {plan} · equipos y buzones ilimitados, hasta {n} miembros por equipo.', { plan: planName('enterprise', ctx.account.subscription?.provider), n: ctx.account.member_limit })) : isPro ? t('Plan Pro · equipos y buzones ilimitados.') : t('Plan Free · 1 equipo · 1 buzón.')) : ''}</>}
           right={ctx.account ? (
             <button type="button" className="bx-btn" onClick={() => (isPro ? setModal({ type: 'createTeam' }) : toast.info('Equipos ilimitados en el plan Pro'))} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               + {t('Crear equipo')}{!isPro && <WarnPill>Pro</WarnPill>}
@@ -153,9 +153,9 @@ export function BoardsPage() {
           if (ctx.account.plan === 'enterprise') return (
             <Note tone="warn">
               {sub.current_period_end
-                ? t('Cancelaste tu suscripción Enterprise. Seguís con Enterprise hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.', { date: dlong(sub.current_period_end) })
-                : t('Cancelaste tu suscripción Enterprise. Seguís con Enterprise hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.')}{' '}
-              <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Volver a Enterprise')}</a>
+                ? t('Cancelaste tu suscripción Team. Seguís con Team hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.', { date: dlong(sub.current_period_end) })
+                : t('Cancelaste tu suscripción Team. Seguís con Team hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.')}{' '}
+              <a onClick={() => router.push('/app/perfil?tab=sub')}>{t('Volver a Team')}</a>
               <FreeBoardSelect style={{ display: 'flex', marginTop: 8, fontSize: 13 }} />
             </Note>
           );

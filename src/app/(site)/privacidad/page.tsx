@@ -57,7 +57,7 @@ export default async function Privacidad() {
         <li><b>Supabase:</b> base de datos, autenticación y archivos, con servidores en Estados Unidos.</li>
         <li><b>Hostinger:</b> alojamiento de la web y envío de emails.</li>
         <li><b>Google:</b> inicio de sesión con Google, si lo elegís.</li>
-        <li><b>Anthropic:</b> en el plan Enterprise, cuando el Equipo usa el asistente de IA, procesa la descripción del producto y el texto de las ideas del buzón, con sus votos y comentarios contados (sin nombres ni emails), para devolver sugerencias. Anthropic no usa estos datos para entrenar sus modelos.</li>
+        <li><b>Anthropic:</b> en los planes Team y Enterprise, cuando el Equipo usa el asistente de IA, procesa la descripción del producto y el texto de las ideas del buzón, con sus votos y comentarios contados (sin nombres ni emails), para devolver sugerencias. Anthropic no usa estos datos para entrenar sus modelos.</li>
         <li><b>Slack:</b> solo si el Equipo de un buzón conecta un canal de Slack. Según los avisos que elija, Boxinger publica en ese canal el título y el comienzo de la descripción de las ideas, la categoría, el nombre de quien la cargó, la cantidad de votos y un resumen semanal. Boxinger solo puede escribir en ese canal: no lee mensajes, personas ni otros datos de Slack. Lo publicado queda sujeto a la política de privacidad de Slack y a la configuración del espacio de trabajo de ese equipo.</li>
         <li><b>Creem y Mercado Pago:</b> procesamiento de pagos, según sus propias políticas de privacidad. Creem actúa como revendedor en los pagos en dólares.</li>
       </ul>

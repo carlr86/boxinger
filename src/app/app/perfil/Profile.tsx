@@ -10,7 +10,7 @@ import { isEmail } from '@/lib/format';
 import { useI18n } from '@/lib/i18n/client';
 import { I18N_LIVE } from '@/lib/i18n';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
-import { CREEM_ENABLED, ENTERPRISE_TAG, PAYPAL_ENABLED, ENTERPRISE_USD, ENTERPRISE_ARS } from '@/lib/constants';
+import { CREEM_ENABLED, ENTERPRISE_TAG, PAYPAL_ENABLED, ENTERPRISE_USD, ENTERPRISE_ARS, planName } from '@/lib/constants';
 import ContactForm from '@/components/ContactForm';
 import { authError } from '@/lib/auth-errors';
 import { deleteMyAccount } from './actions';
@@ -193,7 +193,8 @@ function Notifs() {
 }
 
 const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
-const ENTERPRISE_ITEMS = ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'];
+const TEAM_ITEMS = ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'];
+const ENTERPRISE_ITEMS = ['Todo lo de Team', 'Más miembros por equipo', 'Más uso del Asistente IA', 'Precio y facturación a medida'];
 const PRO_ITEMS = ['Todo lo de Free', 'Equipos ilimitados', 'Buzones ilimitados por equipo', 'Hasta 4 miembros por equipo', 'Acceso por buzón para cada miembro', 'Buzones privados', 'Acceso por dominio de email', 'Matriz de esfuerzo e impacto', 'Roadmap de las ideas', 'Status de las ideas', 'Importar ideas desde CSV o Excel', 'Unir ideas repetidas sin perder votos', 'Adjuntar una imagen a cada idea', 'Novedades con lo que lanzaste', 'Avisos en Slack', 'Ideas desde Zapier, Make y Google Forms'];
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', creem: 'Tarjeta internacional (Creem)', manual: 'Asignado por Boxinger' };
 
@@ -219,7 +220,9 @@ function Subscription() {
   const plan = acc?.plan || 'free';
   const isEnt = plan === 'enterprise';
   const isPro = plan === 'pro';
-  const paidEnt = isEnt && !!s && ['mercadopago', 'creem'].includes(s.provider || ''); // bought on the web (not assigned by Boxinger)
+  const paidEnt = isEnt && !!s && ['mercadopago', 'creem'].includes(s.provider || ''); // Team: bought on the web
+  const custom = isEnt && !paidEnt; // Enterprise: assigned by Boxinger, custom price and limits
+  const planL = planName(plan, s?.provider);
   const prices = ctx!.prices;
   const entPrice = (c: 'USD' | 'ARS') => Number(ctx!.enterprise_prices?.[c] ?? (c === 'USD' ? ENTERPRISE_USD : ENTERPRISE_ARS));
   const checkout = sp.get('checkout');
@@ -227,18 +230,18 @@ function Subscription() {
   useEffect(() => {
     if (checkout === 'ok') {
       // The provider confirms by webhook: check back a few times until Pro shows up.
-      toast.ok(sp.get('plan') === 'enterprise' ? '¡Gracias! Estamos confirmando tu pago. Enterprise se activa en unos segundos.' : '¡Gracias! Estamos confirmando tu pago. Pro se activa en unos segundos.');
+      toast.ok(sp.get('plan') === 'enterprise' ? '¡Gracias! Estamos confirmando tu pago. Team se activa en unos segundos.' : '¡Gracias! Estamos confirmando tu pago. Pro se activa en unos segundos.');
       const ts = [3000, 8000, 15000, 30000].map((ms) => setTimeout(refresh, ms));
       return () => ts.forEach(clearTimeout);
     }
     if (checkout === 'cancel') toast.info('No se completó el pago. Podés intentarlo de nuevo cuando quieras.');
   }, [checkout]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // From the landing's "Contratar Enterprise": open the payment options (after creating the board if needed).
+  // From the landing's "Contratar Team" (older links say enterprise): open the payment options (after creating the board if needed).
   useEffect(() => {
-    if (sp.get('contratar') !== 'enterprise' || isEnt) return;
+    if (!['team', 'enterprise'].includes(sp.get('contratar') || '') || isEnt) return;
     if (acc) openPay('enterprise');
-    else toast.info('Para contratar Enterprise primero creá tu equipo y tu buzón.');
+    else toast.info('Para contratar Team primero creá tu equipo y tu buzón.');
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Coming back from the checkout with the browser's Back button restores this page as it was: unlock it.
@@ -272,7 +275,7 @@ function Subscription() {
       if (!r.ok) throw new Error(j.error || t('No pudimos reactivar la suscripción.'));
       if (j.checkout) { setBusy(false); setPayPlan(j.plan === 'enterprise' ? 'enterprise' : 'pro'); setPick(true); setMpOpen(true); return; }
       await refresh();
-      toast.ok(isEnt ? '¡Volviste a Enterprise! Tu suscripción sigue como antes.' : '¡Volviste a Pro! Tu suscripción sigue como antes.');
+      toast.ok(isEnt ? '¡Volviste a Team! Tu suscripción sigue como antes.' : '¡Volviste a Pro! Tu suscripción sigue como antes.');
     } catch (e) { toast.err(e); }
     setBusy(false);
   }
@@ -284,7 +287,7 @@ function Subscription() {
       if (!r.ok) throw new Error(j.error || t('No pudimos cancelar la suscripción.'));
       await refresh();
       setCancelOpen(false);
-      toast.ok(isEnt ? 'Suscripción cancelada. Enterprise sigue activo hasta el fin del período pagado.' : 'Suscripción cancelada. Pro sigue activo hasta el fin del período pagado.');
+      toast.ok(isEnt ? 'Suscripción cancelada. Team sigue activo hasta el fin del período pagado.' : 'Suscripción cancelada. Pro sigue activo hasta el fin del período pagado.');
     } catch (e) { toast.err(e); } finally { setBusy(false); }
   }
 
@@ -293,11 +296,12 @@ function Subscription() {
   const since = (isPro || isEnt) && s?.pro_since ? s.pro_since : s?.free_since || ctx!.me.created_at;
   const box = (on: boolean): React.CSSProperties => ({ background: '#fff', borderRadius: 8, border: on ? '2px solid #059669' : '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 });
   const mine = <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #a9cbc2', background: '#d1fae5', color: '#059669' }}>{t('Tu plan')}</span>;
+  const entMine = <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca' }}>{t('Tu plan')}</span>;
 
   return (
     <>
       <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: '20px 24px', display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'center' }}>
-        <KV l={t('Plan actual')} v={<span style={{ fontSize: 20, fontWeight: 600 }}>{isEnt ? 'Enterprise' : isPro ? 'Pro' : 'Free'}</span>} />
+        <KV l={t('Plan actual')} v={<span style={{ fontSize: 20, fontWeight: 600 }}>{planL}</span>} />
         <KV l={t('Desde')} v={dlong(since)} />
         <KV l={t('Estado')} v={
           s?.status === 'past_due' ? <Tag tone={{ l: '', bg: '#fffbe6', bd: '#ffe58f', fg: '#d48806' }}>{t('Pago pendiente')}</Tag>
@@ -305,13 +309,13 @@ function Subscription() {
             : <Tag tone={{ l: '', bg: '#f6ffed', bd: '#b7eb8f', fg: '#389e0d' }}>{t('Activa')}</Tag>} />
         <KV l={t('Precio')} v={priceL} />
         {(isPro || paidEnt) && s?.provider && <KV l={t('Medio de pago')} v={t(PROVIDER_L[s.provider])} />}
-        {(isPro || paidEnt) && s?.current_period_end && <KV l={s.cancel_at_period_end ? (isEnt ? t('Enterprise hasta') : t('Pro hasta')) : t('Próxima renovación')} v={dlong(s.current_period_end)} />}
+        {(isPro || paidEnt) && s?.current_period_end && <KV l={s.cancel_at_period_end ? (isEnt ? t('Team hasta') : t('Pro hasta')) : t('Próxima renovación')} v={dlong(s.current_period_end)} />}
       </div>
       {paidEnt && s?.cancel_at_period_end && (
         <Note tone="warn">
           {s.current_period_end
-            ? t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Enterprise hasta el {date} y después tu cuenta pasa a Free.', { date: dlong(s.current_period_end) })
-            : t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Enterprise hasta el fin del período pagado y después tu cuenta pasa a Free.')}
+            ? t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Team hasta el {date} y después tu cuenta pasa a Free.', { date: dlong(s.current_period_end) })
+            : t('Cancelaste tu suscripción: no se hacen más cobros. Seguís con Team hasta el fin del período pagado y después tu cuenta pasa a Free.')}
           <FreeBoardSelect style={{ display: 'flex', marginTop: 8, fontSize: 13 }} />
         </Note>
       )}
@@ -327,7 +331,7 @@ function Subscription() {
         <Note tone="success">{s.deal_until ? t('Tenés un precio especial hasta el {date}. Después vuelve al precio de lista.', { date: dlong(s.deal_until) }) : t('Tenés un precio especial. Después vuelve al precio de lista.')}</Note>
       )}
       {s?.status === 'past_due' && <Note tone="warn">{t('No pudimos cobrar tu último pago. Revisá tu medio de pago en {provider} para no perder Pro.', { provider: PROVIDER_L[s.provider || ''] ? t(PROVIDER_L[s.provider || '']) : t('tu proveedor') })}</Note>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,260px),1fr))', gap: 16, maxWidth: 1080 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,230px),1fr))', gap: 16, maxWidth: 1200 }}>
         <div style={box(plan === 'free')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 18, fontWeight: 600 }}>Free</span>{plan === 'free' && mine}</div>
           <div><span style={{ fontSize: 28, fontWeight: 600 }}>USD 0</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></div>
@@ -355,35 +359,50 @@ function Subscription() {
           )}
           {isPro && s?.provider === 'manual' && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Tu plan Pro lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.')}</span>}
         </div>
-        <div style={{ ...box(isEnt), border: isEnt ? '2px solid #4338ca' : '1px solid #f0f0f0' }}>
+        <div style={{ ...box(paidEnt), border: paidEnt ? '2px solid #4338ca' : '1px solid #f0f0f0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 18, fontWeight: 600 }}>Enterprise</span>
-            {isEnt ? <span style={{ fontSize: 12, lineHeight: '20px', padding: '0 7px', borderRadius: 4, border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca' }}>{t('Tu plan')}</span> : <Tag tone={ENTERPRISE_TAG}>{t('Con IA')}</Tag>}
+            <span style={{ fontSize: 18, fontWeight: 600 }}>Team</span>
+            {paidEnt ? entMine : <Tag tone={ENTERPRISE_TAG}>{t('Con IA')}</Tag>}
           </div>
-          {/* Clients already on Enterprise keep the price and limits they agreed with Boxinger. */}
-          <div>
-            {isEnt ? <span style={{ fontSize: 20, fontWeight: 600 }}>{t('Precio acordado')}</span>
-              : <><span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', entPrice('USD'))}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></>}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>
-            {ENTERPRISE_ITEMS.map((x) => <span key={x}>{t(isEnt && x === 'Hasta 20 miembros por equipo' ? (acc?.member_limit == null ? 'Miembros ilimitados por equipo' : x) : x)}</span>)}
-          </div>
+          <div><span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', entPrice('USD'))}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{TEAM_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}</div>
           {paidEnt ? (
             s!.cancel_at_period_end ? (
               <>
-                <button type="button" className="bx-btn-primary" style={{ height: 36, background: '#4338ca', borderColor: '#4338ca' }} disabled={busy} onClick={resume}>{t('Volver a Enterprise')}</button>
+                <button type="button" className="bx-btn-primary" style={{ height: 36, background: '#4338ca', borderColor: '#4338ca' }} disabled={busy} onClick={resume}>{t('Volver a Team')}</button>
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{s!.provider === 'creem' ? t('Se reactiva tu suscripción: no se cobra nada ahora.') : t('No se cobra nada hasta que termine tu mes ya pagado.')}</span>
               </>
             ) : <button type="button" className="bx-btn" disabled={busy} onClick={() => setCancelOpen(true)}>{t('Cancelar suscripción')}</button>
-          ) : isEnt
+          ) : !custom && (
+            <>
+              {acc
+                ? <button type="button" className="bx-btn-primary" style={{ height: 36, background: '#4338ca', borderColor: '#4338ca' }} onClick={() => openPay('enterprise')}>{t('Contratar Team')}</button>
+                : <button type="button" className="bx-btn-primary" style={{ height: 36, background: '#4338ca', borderColor: '#4338ca' }} onClick={() => router.push('/app/onboarding')}>{t('Crear mi buzón')}</button>}
+              {isPro && s && ['mercadopago', 'creem', 'paypal'].includes(s.provider || '') && !s.cancel_at_period_end && (
+                <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Al activar Team, tu suscripción Pro se cancela sola.')}</span>
+              )}
+            </>
+          )}
+        </div>
+        {/* Enterprise: custom, assigned by Boxinger. Clients on it keep the price and limits they agreed. */}
+        <div style={{ ...box(custom), border: custom ? '2px solid #4338ca' : '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 18, fontWeight: 600 }}>Enterprise</span>
+            {custom && entMine}
+          </div>
+          <div><span style={{ fontSize: custom ? 20 : 28, fontWeight: 600 }}>{custom ? t('Precio acordado') : t('A medida')}</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>
+            {custom
+              ? <>
+                  <span>{t('Todo lo de Team')}</span>
+                  <span>{acc?.member_limit == null ? t('Miembros ilimitados por equipo') : t('Hasta {n} miembros por equipo', { n: acc.member_limit })}</span>
+                  <span>{t('Asistente IA con el uso acordado')}</span>
+                </>
+              : ENTERPRISE_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}
+          </div>
+          {custom
             ? <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Tu plan lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.')}</span>
             : <>
-                {acc
-                  ? <button type="button" className="bx-btn-primary" style={{ height: 36, background: '#4338ca', borderColor: '#4338ca' }} onClick={() => openPay('enterprise')}>{t('Contratar Enterprise')}</button>
-                  : <button type="button" className="bx-btn-primary" style={{ height: 36, background: '#4338ca', borderColor: '#4338ca' }} onClick={() => router.push('/app/onboarding')}>{t('Crear mi buzón')}</button>}
-                {isPro && s && ['mercadopago', 'creem', 'paypal'].includes(s.provider || '') && !s.cancel_at_period_end && (
-                  <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Al activar Enterprise, tu suscripción Pro se cancela sola.')}</span>
-                )}
                 <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>{t('¿Necesitás más miembros o más uso de IA? Te armamos un precio a medida.')}</span>
                 <button type="button" className="bx-btn" style={{ height: 36, borderColor: '#4338ca', color: '#4338ca' }} onClick={() => setContact(true)}>{t('Contactanos')}</button>
               </>}
@@ -399,7 +418,7 @@ function Subscription() {
         </div>
       </Modal>
 
-      <Modal open={pick} onCancel={closePick} closable={!going} mask={{ closable: !going }} keyboard={!going} footer={null} title={payPlan === 'enterprise' ? t('Contratar Enterprise') : t('Pasar a Pro')} width={460} destroyOnHidden>
+      <Modal open={pick} onCancel={closePick} closable={!going} mask={{ closable: !going }} keyboard={!going} footer={null} title={payPlan === 'enterprise' ? t('Contratar Team') : t('Pasar a Pro')} width={460} destroyOnHidden>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Elegí cómo pagar. La suscripción se renueva cada mes y la podés cancelar cuando quieras.')}</span>
           {paidUntil && <Note tone="success">{t('Ya pagaste hasta el {date}: el primer cobro de la nueva suscripción es ese día.', { date: dlong(paidUntil) })}</Note>}
@@ -424,7 +443,7 @@ function Subscription() {
             </form>
           )}
           <span role="status" style={{ fontSize: 12, color: going ? '#059669' : 'rgba(0,0,0,0.45)' }}>
-            {going ? t('Te estamos llevando al sitio de pago. Puede tardar unos segundos, no cierres esta ventana.') : (payPlan === 'enterprise' ? t('Te llevamos al sitio del medio de pago para confirmar. Al volver, Enterprise se activa automáticamente.') : t('Te llevamos al sitio del medio de pago para confirmar. Al volver, Pro se activa automáticamente.'))}
+            {going ? t('Te estamos llevando al sitio de pago. Puede tardar unos segundos, no cierres esta ventana.') : (payPlan === 'enterprise' ? t('Te llevamos al sitio del medio de pago para confirmar. Al volver, Team se activa automáticamente.') : t('Te llevamos al sitio del medio de pago para confirmar. Al volver, Pro se activa automáticamente.'))}
           </span>
         </div>
       </Modal>

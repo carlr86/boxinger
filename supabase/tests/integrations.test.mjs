@@ -23,7 +23,7 @@ const send = (key, o = {}) => rpc(null, 'ingest_idea', [hash(key), o.source || '
 const count = async (t, where = 'true') => (await db.query(`select count(*)::int n from public.${t} where ${where}`)).rows[0].n;
 
 console.log('\n# who can set it up');
-await err('Free cannot create a key', () => rpc(owner, 'create_api_key', [board]), 'Pro y Enterprise');
+await err('Free cannot create a key', () => rpc(owner, 'create_api_key', [board]), 'Pro, Team y Enterprise');
 await db.query(`update public.subscriptions set plan = 'pro', status = 'active', current_period_end = now() + interval '20 days' where account_id = $1`, [acc]);
 await err('a member cannot create a key', () => rpc(member, 'create_api_key', [board]), 'Admin del equipo');
 await err('the Community cannot see the integrations', () => rpc(guest, 'get_integrations', [board]), 'Admin del equipo');
@@ -148,8 +148,8 @@ await ok('the daily limit', async () => {
 await err('…stops the 201st of the day', () => send(key2, { title: 'Una más' }), 'Demasiadas acciones');
 await db.query(`update public.ideas set created_at = now() - interval '2 days' where title like 'Idea número %'`);
 await db.query(`update public.subscriptions set plan = 'free', status = 'expired' where account_id = $1`, [acc]);
-await err('back on Free the door closes', () => send(key2, { title: 'En Free' }), 'Pro y Enterprise');
-await err('…and options cannot be changed', () => rpc(owner, 'set_integration_options', [board, 'comunidad', cats[0].id]), 'Pro y Enterprise');
+await err('back on Free the door closes', () => send(key2, { title: 'En Free' }), 'Pro, Team y Enterprise');
+await err('…and options cannot be changed', () => rpc(owner, 'set_integration_options', [board, 'comunidad', cats[0].id]), 'Pro, Team y Enterprise');
 await ok('…but the Admin can still see and delete the key', async () => {
   eq((await rpc(owner, 'get_integrations', [board])).api.hint, key2.slice(-4));
   await rpc(owner, 'delete_api_key', [board]);

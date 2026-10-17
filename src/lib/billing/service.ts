@@ -79,7 +79,7 @@ export async function activate(accountId: string, o: { provider: 'paypal' | 'mer
   if (!wasPro) {
     const owner = await accountOwner(accountId);
     if (owner.email) {
-      if (plan === 'enterprise') await sendNow(owner.email, 'subscription_changed', { plan: 'enterprise' }, owner.ownerId, 'welcome:' + o.subId);
+      if (plan === 'enterprise') await sendNow(owner.email, 'subscription_changed', { plan: 'enterprise', tier: 'team' }, owner.ownerId, 'welcome:' + o.subId);
       else await sendNow(owner.email, 'pro_welcome', {}, owner.ownerId, 'welcome:' + o.subId);
     }
   }

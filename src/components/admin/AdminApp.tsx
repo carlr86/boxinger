@@ -8,7 +8,7 @@ import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSession, useToast } from '@/components/Providers';
 import { Avatar, Seg, Tag } from '@/components/ui';
 import { useGridCols } from '@/components/board/IdeaGrid';
-import { BAD, OK, PRO_TAG, planTone, type Tone } from '@/lib/constants';
+import { BAD, OK, PRO_TAG, planName, planTone, type Tone } from '@/lib/constants';
 import { ddmmyyyy, money, rel } from '@/lib/format';
 import { boardUrl } from '@/lib/env';
 import { adminSendActivation, adminUpdateSubscription } from '@/app/app/admin/actions';
@@ -25,7 +25,9 @@ const TITLE: Record<Tab, string> = { dashboard: 'Dashboard', clientes: 'Clientes
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', lemonsqueezy: 'Lemon Squeezy', creem: 'Creem', manual: 'Manual' };
 const sec = 'rgba(0,0,0,0.45)';
 const planTag = (p: string) => <Tag tone={planTone(p)}>{p}</Tag>;
-const planRank = (p: string) => ({ Free: 0, Pro: 1, Enterprise: 2 } as Record<string, number>)[p] ?? 0;
+const planRank = (p: string) => ({ Free: 0, Pro: 1, Team: 2, Enterprise: 3 } as Record<string, number>)[p] ?? 0;
+// Team = Enterprise bought on the web; Enterprise = custom, assigned here (see planName in src/lib/constants.ts).
+const clientPlan = (c: Client) => planName(c.plan, c.provider);
 const statusTag = (ok: boolean, okL = 'Activa', badL = 'Suspendida') => <Tag tone={ok ? OK : BAD}>{ok ? okL : badL}</Tag>;
 
 export function AdminApp() {
@@ -86,7 +88,7 @@ export function AdminApp() {
     { key: 'name', title: 'Nombre', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
     { key: 'email', title: 'Email', width: '1.6fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
     { key: 'alta', title: 'Alta', width: '110px', sort: (c) => +new Date(c.created_at), render: (c) => ddmmyyyy(c.created_at) },
-    { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
+    { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(clientPlan(c)), render: (c) => planTag(clientPlan(c)) },
     { key: 'boards', title: 'Buzones', width: '100px', sort: (c) => c.boards, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.boards}</a> },
     { key: 'login', title: 'Acceso', width: '120px', render: (c) => <span style={{ color: sec }}>{c.login}</span> },
     { key: 'act', title: 'Última actividad', width: '150px', sort: (c) => +new Date(c.last_activity_at), render: (c) => <span style={{ color: sec }}>{c.activated ? rel(c.last_activity_at) : 'Sin actividad'}</span> },
@@ -124,7 +126,7 @@ export function AdminApp() {
   const subCols: Col<Client>[] = [
     { key: 'name', title: 'Cuenta', width: '1.2fr', sort: (c) => c.name, render: (c) => <a onClick={() => setClientId(c.account_id)}>{c.name}</a> },
     { key: 'email', title: 'Email', width: '1.4fr', render: (c) => <span style={{ color: sec }}>{c.email}</span> },
-    { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(c.plan), render: (c) => planTag(c.plan) },
+    { key: 'plan', title: 'Plan', width: '120px', sort: (c) => planRank(clientPlan(c)), render: (c) => planTag(clientPlan(c)) },
     { key: 'precio', title: 'Precio', width: '170px', sort: (c) => (c.plan === 'Pro' ? Number(c.amount) * (c.currency === 'ARS' ? 0.001 : 1) : 0), render: priceCell },
     { key: 'prov', title: 'Cobro', width: '120px', render: (c) => <span style={{ color: sec }}>{c.plan === 'Pro' || paidEnt(c) ? PROVIDER_L[c.provider || ''] || '—' : c.plan === 'Enterprise' ? 'A medida' : '—'}</span> },
     { key: 'inicio', title: 'Inicio', width: '110px', sort: (c) => +new Date(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at), render: (c) => ddmmyyyy(c.plan !== 'Free' ? c.pro_since || c.created_at : c.created_at) },
@@ -254,7 +256,7 @@ export function AdminApp() {
 
 const Loading = () => <div style={{ color: sec, fontSize: 14 }}>Cargando…</div>;
 
-/** One card per payment provider (Creem in USD, Mercado Pago in ARS) with both paid plans: Pro and Enterprise. */
+/** One card per payment provider (Creem in USD, Mercado Pago in ARS) with both plans sold on the web: Pro and Team. */
 function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; prices: Prices; onNew: (plan: 'pro' | 'enterprise') => void; onCancel: (id: string) => void }) {
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column' }}>
@@ -266,10 +268,10 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
       <PlanPrice plan="Pro" cur={cur} p={prices} onNew={() => onNew('pro')} onCancel={onCancel} />
       {prices.enterprise && (
         <div style={{ borderTop: '1px solid #f0f0f0' }}>
-          <PlanPrice plan="Enterprise" cur={cur} p={prices.enterprise} onNew={() => onNew('enterprise')} onCancel={onCancel}
+          <PlanPrice plan="Team" cur={cur} p={prices.enterprise} onNew={() => onNew('enterprise')} onCancel={onCancel}
             note={cur === 'USD'
-              ? 'Cuenta las suscripciones Enterprise contratadas en la web con tarjeta internacional. Cada precio en dólares tiene su propio producto en Creem, que se crea solo al primer cobro. Los Enterprise a medida se asignan desde Clientes y no siguen este precio.'
-              : 'Cuenta las suscripciones Enterprise contratadas en la web con Mercado Pago. Los Enterprise a medida se asignan desde Clientes y no siguen este precio.'} />
+              ? 'Cuenta las suscripciones Team contratadas en la web con tarjeta internacional. Cada precio en dólares tiene su propio producto en Creem, que se crea solo al primer cobro. Los Enterprise (a medida) se asignan desde Clientes y no siguen este precio.'
+              : 'Cuenta las suscripciones Team contratadas en la web con Mercado Pago. Los Enterprise (a medida) se asignan desde Clientes y no siguen este precio.'} />
         </div>
       )}
     </div>
@@ -277,7 +279,7 @@ function PriceCard({ cur, prices, onNew, onCancel }: { cur: 'USD' | 'ARS'; price
 }
 
 /** A plan's current price in one currency, its scheduled changes and history. */
-function PlanPrice({ plan, cur, p, onNew, onCancel, note }: { plan: 'Pro' | 'Enterprise'; cur: 'USD' | 'ARS'; p: PlanPrices; onNew: () => void; onCancel: (id: string) => void; note?: string }) {
+function PlanPrice({ plan, cur, p, onNew, onCancel, note }: { plan: 'Pro' | 'Team'; cur: 'USD' | 'ARS'; p: PlanPrices; onNew: () => void; onCancel: (id: string) => void; note?: string }) {
   const rows = p.rows.filter((r) => r.currency === cur);
   const n = p.pro_count[cur];
   const ST: Record<string, Tone> = { current: OK, scheduled: { l: 'Programado', bg: '#e6f4ff', bd: '#91caff', fg: '#0958d9' }, previous: { l: 'Anterior', bg: '#fafafa', bd: '#d9d9d9', fg: sec } };

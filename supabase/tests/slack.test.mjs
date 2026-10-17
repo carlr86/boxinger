@@ -24,7 +24,7 @@ const clear = () => db.query(`delete from public.slack_outbox`);
 const idea = (who, title) => rpc(who, 'create_idea', [board, title, 'Una descripción bastante larga para la idea.', cat]);
 
 console.log('\n# connecting');
-await err('Free cannot connect', () => rpc(owner, 'slack_can_connect', [board]), 'Pro y Enterprise');
+await err('Free cannot connect', () => rpc(owner, 'slack_can_connect', [board]), 'Pro, Team y Enterprise');
 await db.query(`update public.subscriptions set plan = 'pro', status = 'active', current_period_end = now() + interval '20 days' where account_id = $1`, [acc]);
 await err('a member cannot connect', () => rpc(member, 'slack_can_connect', [board]), 'Admin del equipo');
 await err('the Community cannot', () => rpc(guest, 'slack_can_connect', [board]), 'Admin del equipo');

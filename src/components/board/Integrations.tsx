@@ -9,7 +9,7 @@ import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
 import { SlackCard, type SlackInfo } from './SlackCard';
 
-// Board settings › Integrations (Pro and Enterprise, team Admin): notices in a Slack channel (SlackCard), and the
+// Board settings › Integrations (Pro, Team and Enterprise, team Admin): notices in a Slack channel (SlackCard), and the
 // board's address and key so Zapier, Make, Google Forms or any tool can send ideas. Those arrive hidden, for the team
 // to review and publish.
 
@@ -74,7 +74,7 @@ export function Integrations({ api }: { api: BoardApi }) {
     return (
       <div style={card}>
         <div style={{ fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>{t('Integraciones')}<ProPill /></div>
-        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Recibí avisos en Slack y recibí ideas desde Zapier, Make, Google Forms y otras herramientas, sin copiarlas a mano. Está en los planes Pro y Enterprise.')}</span>
+        <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('Recibí avisos en Slack y recibí ideas desde Zapier, Make, Google Forms y otras herramientas, sin copiarlas a mano. Está en los planes Pro, Team y Enterprise.')}</span>
         <button type="button" className="bx-btn-primary" style={{ alignSelf: 'flex-start' }} onClick={api.goPro}>{t('Pasar a Pro')}</button>
       </div>
     );

@@ -32,7 +32,7 @@ const rows = [
 const args = (r = rows) => [board, 'historico.xlsx', 'comunidad', cats[0].id, JSON.stringify(r)];
 
 console.log('\n# who can import');
-await err('Free cannot import', () => rpc(owner, 'import_ideas', args()), 'Pro y Enterprise');
+await err('Free cannot import', () => rpc(owner, 'import_ideas', args()), 'Pro, Team y Enterprise');
 await db.query(`update public.subscriptions set plan = 'pro', status = 'active', current_period_end = now() + interval '20 days' where account_id = $1`, [acc]);
 await err('a member cannot import', () => rpc(member, 'import_ideas', args()), 'Admin del equipo');
 await err('the Community cannot import', () => rpc(guest, 'import_ideas', args()), 'Admin del equipo');

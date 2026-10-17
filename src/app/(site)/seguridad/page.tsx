@@ -34,7 +34,7 @@ export default async function Seguridad() {
       <p>No vendemos ni alquilamos datos, no hacemos publicidad de terceros y no construimos perfiles comerciales. Solo tratamos los datos para prestar el servicio contratado y según el consentimiento del usuario. No usamos herramientas de analítica de terceros ni cookies publicitarias.</p>
 
       <h2>4. Asistente de IA y tus datos</h2>
-      <p>El asistente de IA está disponible solo en el plan Enterprise y se usa cuando el equipo decide activarlo. Cuando se usa, se envía al proveedor del modelo (Anthropic) solo el texto de las ideas del buzón, su descripción y los votos y comentarios contados, <b>sin nombres ni emails</b> de los usuarios. Anthropic no usa estos datos para entrenar sus modelos. Si el asistente no se activa, no se envía nada a la IA.</p>
+      <p>El asistente de IA está disponible solo en los planes Team y Enterprise y se usa cuando el equipo decide activarlo. Cuando se usa, se envía al proveedor del modelo (Anthropic) solo el texto de las ideas del buzón, su descripción y los votos y comentarios contados, <b>sin nombres ni emails</b> de los usuarios. Anthropic no usa estos datos para entrenar sus modelos. Si el asistente no se activa, no se envía nada a la IA.</p>
 
       <h2>5. Minimización de datos</h2>
       <p>Recopilamos solo lo necesario para que el servicio funcione. En particular, no guardamos direcciones IP de los usuarios: de los formularios públicos conservamos únicamente un identificador cifrado de la conexión, usado para prevenir abusos. Los datos de tarjeta nunca llegan a Boxinger: los procesan directamente las pasarelas de pago (Creem o Mercado Pago).</p>
@@ -51,7 +51,7 @@ export default async function Seguridad() {
       <ul>
         <li><b>Supabase:</b> base de datos, autenticación y archivos, con servidores en Estados Unidos.</li>
         <li><b>Hostinger:</b> alojamiento de la web y envío de emails.</li>
-        <li><b>Anthropic:</b> asistente de IA (solo Enterprise; texto de ideas sin datos personales).</li>
+        <li><b>Anthropic:</b> asistente de IA (solo Team y Enterprise; texto de ideas sin datos personales).</li>
         <li><b>Creem y Mercado Pago:</b> procesamiento de pagos. Creem actúa como revendedor en los pagos en dólares.</li>
       </ul>
       <p>Ante cualquier cambio de sub-encargados lo notificamos a los clientes Enterprise. La lista vigente forma parte del DPA.</p>

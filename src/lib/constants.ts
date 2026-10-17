@@ -64,10 +64,22 @@ export const BAD: Tone = { l: 'Suspendida', bg: '#fff2f0', bd: '#ffccc7', fg: '#
 export const PRO_TAG: Tone = { l: 'Pro', bg: '#d1fae5', bd: '#a9cbc2', fg: '#059669' };
 export const FREE_TAG: Tone = { l: 'Free', bg: '#f0f3f8', bd: '#c3cedf', fg: '#4a5d7e' };
 export const ENTERPRISE_TAG: Tone = { l: 'Enterprise', bg: '#eef2ff', bd: '#c7d2fe', fg: '#4338ca' };
-/** Tag tone for a plan name ('free' | 'pro' | 'enterprise', any case). */
+export const TEAM_TAG: Tone = { l: 'Team', bg: '#eef2ff', bd: '#c7d2fe', fg: '#4338ca' };
+/**
+ * Plans shown to people: Free · Pro · Team · Enterprise. Internally Team and Enterprise are both plan 'enterprise':
+ * Team is the one bought on the web (Creem or Mercado Pago, list price); Enterprise is the custom one Boxinger assigns
+ * (provider 'manual', billed outside, with its own limits).
+ */
+export const isTeam = (plan?: string | null, provider?: string | null) =>
+  (plan || '').toLowerCase() === 'enterprise' && (provider === 'creem' || provider === 'mercadopago' || provider === 'paypal');
+export const planName = (plan?: string | null, provider?: string | null): 'Free' | 'Pro' | 'Team' | 'Enterprise' => {
+  const k = (plan || '').toLowerCase();
+  return k === 'enterprise' ? (isTeam(k, provider) ? 'Team' : 'Enterprise') : k === 'pro' ? 'Pro' : 'Free';
+};
+/** Tag tone for a plan ('free' | 'pro' | 'team' | 'enterprise', any case). */
 export const planTone = (p?: string | null): Tone => {
   const k = (p || '').toLowerCase();
-  return k === 'enterprise' ? ENTERPRISE_TAG : k === 'pro' ? PRO_TAG : FREE_TAG;
+  return k === 'enterprise' ? ENTERPRISE_TAG : k === 'team' ? TEAM_TAG : k === 'pro' ? PRO_TAG : FREE_TAG;
 };
 export const CONTACT_TOPICS = { general: 'Consulta general', enterprise: 'Plan Enterprise', soporte: 'Soporte' } as const;
 export type ContactTopic = keyof typeof CONTACT_TOPICS;
@@ -81,7 +93,7 @@ export const TEXT2 = 'rgba(0,0,0,0.65)';
 export const TEXT3 = 'rgba(0,0,0,0.45)';
 export const BORDER = '#f0f0f0';
 export const MAX_MEMBERS = 4;
-/** Enterprise launch price (fallback; the live one is in the price schedule, Admin › Suscripciones) and members included. */
+/** Team launch price (plan 'enterprise' bought on the web; the live one is in the price schedule, Admin › Suscripciones) and members included. */
 export const ENTERPRISE_USD = 19.99;
 export const ENTERPRISE_ARS = 29999; // Mercado Pago, same exchange as Pro (USD 9.99 ↔ ARS 14.999)
 export const ENTERPRISE_MEMBERS = 20;

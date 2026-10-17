@@ -31,7 +31,7 @@ await rpc(sofia, 'react', [cm, 'like']).catch(() => db.query(`insert into public
 const mails0 = (await db.query(`select count(*)::int n from public.email_outbox`)).rows[0].n;
 
 console.log('\n# who can merge');
-await err('Free cannot merge', () => rpc(owner, 'merge_ideas', [dup, main]), 'Pro y Enterprise');
+await err('Free cannot merge', () => rpc(owner, 'merge_ideas', [dup, main]), 'Pro, Team y Enterprise');
 await db.query(`update public.subscriptions set plan = 'pro', status = 'active', current_period_end = now() + interval '20 days' where account_id = $1`, [acc]);
 await err('a member cannot merge', () => rpc(member, 'merge_ideas', [dup, main]), 'Admin del equipo');
 await err('the Community cannot merge', () => rpc(lucas, 'merge_ideas', [dup, main]), 'Admin del equipo');

@@ -46,7 +46,7 @@ export function PrivacyEn() {
         <li><b>Supabase:</b> database, authentication and files, with servers in the United States.</li>
         <li><b>Hostinger:</b> website hosting and email delivery.</li>
         <li><b>Google:</b> sign-in with Google, if you choose it.</li>
-        <li><b>Anthropic:</b> on the Enterprise plan, when the Team uses the AI assistant, it processes the product description and the text of the board's ideas, with their vote and comment counts (no names or emails), to return suggestions. Anthropic does not use this data to train its models.</li>
+        <li><b>Anthropic:</b> on the Team and Enterprise plans, when the Team uses the AI assistant, it processes the product description and the text of the board's ideas, with their vote and comment counts (no names or emails), to return suggestions. Anthropic does not use this data to train its models.</li>
         <li><b>Slack:</b> only if a board’s Team connects a Slack channel. Depending on the notices it chooses, Boxinger posts in that channel the title and the beginning of the description of ideas, their category, the name of whoever posted them, the vote count and a weekly summary. Boxinger can only post in that channel: it doesn’t read messages, people or any other Slack data. What is posted is subject to Slack’s privacy policy and that team’s workspace settings.</li>
         <li><b>Creem and Mercado Pago:</b> payment processing, under their own privacy policies. Creem acts as reseller for payments in US dollars.</li>
       </ul>

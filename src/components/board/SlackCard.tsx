@@ -9,7 +9,7 @@ import { useToast } from '@/components/Providers';
 import { useI18n } from '@/lib/i18n/client';
 import type { BoardApi } from './shared';
 
-// Board settings › Integrations › «Avisos en Slack» (Pro and Enterprise, team Admin): one Slack channel per board that
+// Board settings › Integrations › «Avisos en Slack» (Pro, Team and Enterprise, team Admin): one Slack channel per board that
 // hears about new ideas, ideas waiting in «Por revisar», the Roadmap, launches and a Monday summary.
 // The connection itself goes through /api/slack/connect → Slack → /api/slack/callback.
 

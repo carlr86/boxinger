@@ -22,7 +22,7 @@ export function SecurityEn() {
       <p>We do not sell or rent data, we do not run third-party advertising and we do not build commercial profiles. We only process data to provide the contracted service and according to the user’s consent. We use no third-party analytics tools and no advertising cookies.</p>
 
       <h2>4. AI assistant and your data</h2>
-      <p>The AI assistant is available only on the Enterprise plan and is used when the team chooses to enable it. When used, only the board’s idea text, its description and vote and comment counts are sent to the model provider (Anthropic), <b>with no names or emails</b> of users. Anthropic does not use this data to train its models. If the assistant is not enabled, nothing is sent to the AI.</p>
+      <p>The AI assistant is available only on the Team and Enterprise plans and is used when the team chooses to enable it. When used, only the board’s idea text, its description and vote and comment counts are sent to the model provider (Anthropic), <b>with no names or emails</b> of users. Anthropic does not use this data to train its models. If the assistant is not enabled, nothing is sent to the AI.</p>
 
       <h2>5. Data minimization</h2>
       <p>We collect only what the service needs to work. In particular, we do not store users’ IP addresses: from public forms we keep only an encrypted identifier of the connection, used to prevent abuse. Card details never reach Boxinger: they are processed directly by the payment gateways (Creem or Mercado Pago).</p>
@@ -39,7 +39,7 @@ export function SecurityEn() {
       <ul>
         <li><b>Supabase:</b> database, authentication and files, with servers in the United States.</li>
         <li><b>Hostinger:</b> web hosting and email delivery.</li>
-        <li><b>Anthropic:</b> AI assistant (Enterprise only; idea text with no personal data).</li>
+        <li><b>Anthropic:</b> AI assistant (Team and Enterprise only; idea text with no personal data).</li>
         <li><b>Creem and Mercado Pago:</b> payment processing. Creem acts as reseller for payments in US dollars.</li>
       </ul>
       <p>We notify Enterprise customers of any change of sub-processors. The current list is part of the DPA.</p>

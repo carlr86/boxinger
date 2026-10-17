@@ -11,8 +11,8 @@ import { creemProductFor } from '@/lib/billing/creem-products';
 import { currentPrice, effectiveAmount, planPrice, type SubRow } from '@/lib/billing/service';
 import { reportError } from '@/lib/alerts';
 
-// Starts a Pro or Enterprise subscription: Creem (USD, cards worldwide), Mercado Pago (ARS) or PayPal (USD, Pro only, off).
-// Returns the provider's checkout URL. Going from a paid Pro to Enterprise cancels the Pro one once Enterprise is active.
+// Starts a Pro or Team (plan 'enterprise') subscription: Creem (USD, cards worldwide), Mercado Pago (ARS) or PayPal (USD, Pro only, off).
+// Returns the provider's checkout URL. Going from a paid Pro to Team cancels the Pro one once Team is active.
 export async function POST(req: NextRequest) {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
@@ -32,14 +32,14 @@ export async function POST(req: NextRequest) {
   const { data: sub } = await admin.from('subscriptions').select('*').eq('account_id', acc.id).single<SubRow>();
   const live = !!sub && (['active', 'past_due'].includes(sub.status) || sub.provider === 'manual');
   if (sub?.plan === 'enterprise' && (sub.provider === 'manual' || ['active', 'past_due'].includes(sub.status)))
-    return NextResponse.json({ error: 'Tu cuenta tiene el plan Enterprise.' }, { status: 409 });
+    return NextResponse.json({ error: sub.provider === 'manual' ? 'Tu cuenta tiene el plan Enterprise.' : 'Tu cuenta tiene el plan Team.' }, { status: 409 });
   if (plan === 'pro' && sub && sub.plan === 'pro' && live && sub.provider !== 'manual')
     return NextResponse.json({ error: 'Ya tenés el plan Pro activo.' }, { status: 409 });
 
   // Cancelled but still paid for (same plan): the new subscription starts charging when the paid period ends.
   const paidUntil = sub && sub.plan === plan && sub.status === 'cancelled' && sub.current_period_end && new Date(sub.current_period_end) > new Date() ? sub.current_period_end : null;
   if (paidUntil && provider === 'creem' && sub?.provider === 'creem')
-    return NextResponse.json({ error: plan === 'enterprise' ? 'Tu suscripción con tarjeta sigue vigente: usá Volver a Enterprise para reactivarla sin pagar de nuevo.' : 'Tu suscripción con tarjeta sigue vigente: usá Volver a Pro para reactivarla sin pagar de nuevo.' }, { status: 409 });
+    return NextResponse.json({ error: plan === 'enterprise' ? 'Tu suscripción con tarjeta sigue vigente: usá Volver a Team para reactivarla sin pagar de nuevo.' : 'Tu suscripción con tarjeta sigue vigente: usá Volver a Pro para reactivarla sin pagar de nuevo.' }, { status: 409 });
   const owner = (acc as unknown as { profiles: { name: string; email: string } }).profiles;
   const currency = provider === 'mercadopago' ? 'ARS' : 'USD';
   const price = await currentPrice(currency);

@@ -22,11 +22,11 @@ export function TermsEn() {
       <h2>5. Plans and prices</h2>
       <ul>
         <li><b>Free:</b> no cost, with the limits shown on the plans page (1 team with 1 board, no members).</li>
-        <li><b>Pro:</b> monthly subscription paid in advance by international card through Creem (in US dollars) or with Mercado Pago (in Argentine pesos). It renews automatically every month until you cancel it.</li>
+        <li><b>Pro and Team:</b> monthly subscriptions paid in advance by international card through Creem (in US dollars) or with Mercado Pago (in Argentine pesos). They renew automatically every month until you cancel them. Team adds more members per team and the AI assistant.</li>
         <li><b>Enterprise:</b> a custom plan arranged by direct contact, with conditions agreed in writing.</li>
       </ul>
       <p>Current prices are shown on the website and in My profile before you buy. For users in Argentina they are final prices. We may offer special prices for a set period; when it ends, the subscription returns to the list price.</p>
-      <p>If we change the Pro price, we will email you before it applies. The new price applies from the period after the notice; if you don’t agree, you can cancel before that charge.</p>
+      <p>If we change the Pro or Team price, we will email you before it applies. The new price applies from the period after the notice; if you don’t agree, you can cancel before that charge.</p>
       <p>Payments are processed by Mercado Pago and Creem under their own terms. For payments in US dollars, Creem acts as authorized reseller (merchant of record): it charges you, calculates any taxes that apply in your country and issues your receipt. Boxinger does not receive or store your card details. If a charge fails, the provider may retry it; if it isn’t settled, the account may return to the Free plan.</p>
 
       <h2>6. Cancellation</h2>
