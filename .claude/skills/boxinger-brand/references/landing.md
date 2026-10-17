@@ -6,7 +6,7 @@ www.boxinger.com muestra el producto con escenas armadas con piezas de la app so
 
 1. **Inicio**: título "Las ideas de tus usuarios, ordenadas en un solo buzón.", bajada, botón "Crear cuenta gratis" y "Ver el video". A la derecha, el buzón de Pampa Pagos sobre una mancha verde, chips de Email y WhatsApp, el sticker "+1 Importante" y la tarjeta del Asistente IA.
 2. **El ABC de Boxinger**: los 4 pasos con una escena por paso, cada una con su degradé (verde, violeta, turquesa, profundo).
-3. **Conocé Boxinger**: video de 1:40 sobre fondo Menta, con un recuadro verde detrás (www.boxinger.com/#video).
+3. **Conocé Boxinger**: video de 1:45 sobre fondo Menta, con un recuadro verde detrás (www.boxinger.com/#video).
 4. **Franja verde** "De la sugerencia suelta a la decisión": tres tarjetas blancas (Importar y exportar · Asistente IA · Reconocimiento y Novedades) que alternan la escena a izquierda y derecha.
 5. **Funciones** "Todo el recorrido en un lugar": 9 tarjetas con ícono.
 6. **Planes**, **Hablemos** (contacto), cierre "Abrí tu primer buzón hoy." y pie en Tinta Verde.

@@ -165,8 +165,8 @@ export default async function Landing() {
           </div>
           <figure id="video" className={s.videoFrame}>
             <div className={s.videoDeco} aria-hidden />
-            <video controls playsInline preload="none" poster="/video/boxinger-como-funciona.jpg" width={1920} height={1080} aria-label={t('Video: cómo funciona Boxinger')}>
-              <source src="/video/boxinger-como-funciona.mp4" type="video/mp4" />
+            <video controls playsInline preload="none" poster="/video/boxinger-como-funciona-v2.jpg" width={1920} height={1080} aria-label={t('Video: cómo funciona Boxinger')}>
+              <source src="/video/boxinger-como-funciona-v2.mp4" type="video/mp4" />
             </video>
             {locale === 'en' && <figcaption className={s.note}>Video in Spanish, with on-screen captions.</figcaption>}
           </figure>
