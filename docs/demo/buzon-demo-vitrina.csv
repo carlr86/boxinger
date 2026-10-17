@@ -1,0 +1,43 @@
+﻿Título;Descripción;Categoría;Fecha;Nombre;Email;Estado
+Importar productos desde un Excel;Tengo 800 productos en una planilla y cargarlos de a uno es imposible. Necesito subir el archivo y que se creen solos, con precio, stock y categoría.;Mejora funcional;18/08/2026;Federico Paz;;Aprobada
+Editar varios productos a la vez;Para cambiar precios por inflación tengo que entrar producto por producto. Necesito seleccionar varios y subir un % de una.;Mejora funcional;27/06/2026;Sofía Benítez;;Aprobada
+Mostrar el precio en cuotas sin interés en cada producto;"El cliente quiere ver «6 cuotas de $X» antes de entrar al checkout; si no, se va. Que se muestre debajo del precio, con el logo de la tarjeta.";Mejora funcional;21/07/2026;Martín Sosa;;Aprobada
+Envío gratis a partir de un monto mínimo;Que se aplique solo y que el carrito muestre «te faltan $X para el envío gratis». Así la gente agrega algo más para llegar.;Feature;04/09/2026;Martín Sosa;;Aprobada
+Exportar pedidos a Excel con filtros por fecha;Mi contador me pide las ventas del mes y hoy tengo que copiarlas a mano. Con elegir el mes y bajar un Excel me alcanza.;Mejora funcional;10/07/2026;Romina Castro;;Aprobada
+Variantes con foto propia para cada color;Si el cliente elige el color rojo, que se vea la foto roja y no la del producto en azul. Hoy me escriben preguntando cómo es cada color.;Mejora funcional;14/07/2026;Agustina Romero;;Aprobada
+Integración con Mercado Libre para sincronizar stock;Vendo en mi tienda y en Mercado Libre. Cuando vendo en un lado tengo que descontar el stock a mano en el otro y ya me pasó de vender algo que no tenía.;Feature;12/06/2026;Lucía Ferreyra;;Aprobada
+Calcular envío con Andreani y OCA en el checkout;Hoy cobro un envío fijo y a veces pierdo plata. Que el cliente vea el costo real según su código postal y elija la empresa que prefiere.;Feature;03/07/2026;Valentina Ruiz;;Aprobada
+Recuperar carritos abandonados por WhatsApp;"Muchos clientes llenan el carrito y se van. Por email casi nadie abre; un mensaje de WhatsApp con el link al carrito sería mucho más efectivo.";Feature;18/06/2026;Martín Sosa;;Aprobada
+Página de seguimiento del pedido para el cliente;Que el cliente vea en qué estado está su compra (preparando, despachado, en camino, entregado) sin tener que escribirle a la tienda. Es la consulta que más reciben nuestras tiendas.;Feature;27/08/2026;Laura Méndez;;Aprobada
+Armar combos y kits de productos;Quiero vender «kit mate» (mate + bombilla + yerba) con un precio especial y que descuente el stock de cada uno.;Feature;02/08/2026;Carla Medina;;Aprobada
+Conectar el catálogo con Instagram Shopping;Que mis productos se puedan etiquetar en las publicaciones de Instagram sin cargarlos de nuevo.;Feature;11/08/2026;Agustina Romero;;Aprobada
+Avisar al cliente cuando vuelve a haber stock;Me preguntan todo el tiempo cuándo entra un talle. Un botón de «avisame cuando llegue» me ahorraría muchos mensajes y recuperaría ventas.;Feature;05/07/2026;Lucía Ferreyra;;Aprobada
+Facturación electrónica automática con AFIP;Que al confirmar el pago se genere la factura y le llegue al cliente por email. Hoy facturo todo a mano a fin de día.;Feature;11/07/2026;Pablo Giménez;;Aprobada
+Vender suscripciones con cobro mensual automático;Vendo café por suscripción y hoy cobro cada mes por transferencia. Necesito que se le cobre solo a la tarjeta del cliente.;Feature;19/07/2026;Diego Rivas;;Aprobada
+Permisos distintos para los empleados;Mi empleada tiene que ver pedidos pero no las ventas totales ni la configuración de pagos.;Mejora funcional;13/08/2026;Pablo Giménez;;Aprobada
+App del panel para el celular;Atiendo la tienda física y no tengo la compu a mano. Quiero ver pedidos y responder consultas desde el teléfono.;Feature;01/07/2026;Federico Paz;;Aprobada
+Cupones de descuento válidos solo para la primera compra;Quiero dar 10% a clientes nuevos sin que los que ya compraron lo usen de nuevo.;Feature;25/06/2026;Diego Rivas;;Aprobada
+Tabla de talles por categoría de producto;Muchas devoluciones son por talle. Una guía visible al lado del selector ayudaría a que el cliente elija bien.;Mejora funcional;22/08/2026;Lucía Ferreyra;;Aprobada
+Etiquetas de envío listas para imprimir;Que con un clic se generen las etiquetas de todos los pedidos del día, en hoja A4 o en impresora térmica.;Mejora funcional;15/09/2026;Valentina Ruiz;;Aprobada
+Retiro en el local con varias sucursales;Tengo dos locales y hoy solo puedo ofrecer uno para retirar.;Mejora funcional;06/08/2026;Federico Paz;;Aprobada
+Reseñas de clientes con fotos;Que quien compró pueda dejar una opinión con fotos del producto. Genera mucha confianza en clientes nuevos.;Feature;23/07/2026;Valentina Ruiz;;Aprobada
+Lista de precios mayorista con acceso por clave;Vendo a revendedores y necesito que vean otros precios y una compra mínima, sin que los vea el público.;Feature;28/07/2026;Sofía Benítez;;Aprobada
+Buscador de la tienda que tolere errores de tipeo;Si alguien busca «sapatillas» no aparece nada y pierdo la venta.;Mejora funcional;26/07/2026;Martín Sosa;;En revisión
+Mejorar la velocidad de carga en celulares;Las tiendas tardan bastante en abrir con datos móviles y la mayoría de los compradores entra desde el celular. Queremos medirlo bien antes de decidir qué cambiar.;Mejora funcional;02/09/2026;Tomás Ríos;;En revisión
+Elegir día y franja horaria de entrega;Hago delivery propio y necesito que el cliente elija cuándo recibir el pedido.;Feature;04/08/2026;Nicolás Herrera;;En revisión
+Gestionar cambios y devoluciones desde el panel;"Hoy lo hago por mensajes y planillas; quiero registrar el motivo y reintegrar el stock.";Mejora funcional;12/09/2026;Lucía Ferreyra;;En revisión
+Estadísticas de qué productos se ven pero no se compran;Me ayudaría a saber si el problema es el precio o las fotos.;Feature;08/08/2026;Romina Castro;;En revisión
+Pagar con transferencia y subir el comprobante;Muchos clientes pagan por transferencia y me mandan el comprobante por otro lado. Que lo puedan adjuntar al terminar la compra.;Mejora funcional;30/09/2026;Federico Paz;;En revisión
+Reportes de ventas enviados por email cada semana;Un resumen los lunes con ventas, productos más vendidos y comparación con la semana anterior.;Mejora funcional;26/09/2026;Pablo Giménez;;En revisión
+Modo oscuro en el panel de administración;Cargo productos de noche y el panel blanco cansa la vista.;Mejora funcional;20/06/2026;Carla Medina;;Pendiente
+Más plantillas de diseño para la tienda;Las plantillas actuales se parecen mucho entre sí. Me gustaría alguna pensada para gastronomía, con fotos grandes.;Propuesta;08/07/2026;Nicolás Herrera;;Pendiente
+Programa de puntos para clientes frecuentes;Quiero premiar a los que compran seguido: cada compra suma puntos canjeables por descuentos.;Propuesta;16/07/2026;Diego Rivas;;Pendiente
+Notificación sonora cuando entra un pedido nuevo;Tengo el panel abierto todo el día pero no me doy cuenta cuando llega una venta.;Mejora funcional;30/07/2026;Nicolás Herrera;;Pendiente
+Tarjetas de regalo digitales;Para fechas como el Día de la Madre, que se pueda regalar un monto para gastar en la tienda.;Propuesta;15/08/2026;Carla Medina;;Pendiente
+Botón de WhatsApp flotante configurable;Que pueda elegir el mensaje inicial y el horario en que aparece.;Mejora funcional;20/08/2026;Valentina Ruiz;;Pendiente
+Pop-up para suscribirse al newsletter con descuento;Quiero juntar emails a cambio de un cupón de bienvenida.;Propuesta;29/08/2026;Agustina Romero;;Pendiente
+Productos personalizables con texto o imagen del cliente;"Vendo tazas y remeras con nombre; hoy me mandan el texto por WhatsApp aparte y a veces se pierde.";Feature;09/09/2026;Carla Medina;;Pendiente
+Tienda en inglés y portugués para vender afuera;Recibo consultas de Brasil y Uruguay y la tienda solo está en español.;Propuesta;18/09/2026;Agustina Romero;;Pendiente
+Mostrar productos relacionados en el carrito;Sugerir «los que compraron esto también llevaron…» para aumentar el ticket promedio.;Feature;22/09/2026;Romina Castro;;Pendiente
+Fechas de vencimiento por lote de productos;Vendo alimentos y necesito saber qué lote vence primero para venderlo antes.;Propuesta;05/10/2026;Diego Rivas;;Pendiente
+Asistente con IA para escribir descripciones de productos;Subís la foto del producto y te propone un título y una descripción que después podés editar. ¿Les serviría? Cuéntennos en los comentarios.;Propuesta;09/10/2026;Laura Méndez;;Pendiente
