@@ -1659,6 +1659,10 @@ export const EN: Record<string, string> = {
   "en {board}": "in {board}",
 
   // ── Planes: Team y Enterprise ──
+  "Buzones privados, con acceso por miembro o por dominio": "Private boards, with access per member or by domain",
+  "Importar ideas y unir las repetidas": "Import ideas and merge duplicates",
+  "Avisos en Slack, Zapier, Make y Google Forms": "Slack notices, Zapier, Make and Google Forms",
+  "Asistente IA: 30 análisis y 20 sugerencias por mes": "AI assistant: 30 analyses and 20 suggestions per month",
   "Tu cuenta tiene el plan Team.": "Your account has the Team plan.",
   "Actualizamos el precio de Team": "We're updating the Team price",
   "Al activar Team, tu suscripción Pro se cancela sola.": "When Team starts, your Pro subscription is cancelled automatically.",

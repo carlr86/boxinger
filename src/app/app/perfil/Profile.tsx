@@ -193,9 +193,26 @@ function Notifs() {
 }
 
 const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
-const TEAM_ITEMS = ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'];
+const TEAM_ITEMS = ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias por mes'];
 const ENTERPRISE_ITEMS = ['Todo lo de Team', 'Más miembros por equipo', 'Más uso del Asistente IA', 'Precio y facturación a medida'];
-const PRO_ITEMS = ['Todo lo de Free', 'Equipos ilimitados', 'Buzones ilimitados por equipo', 'Hasta 4 miembros por equipo', 'Acceso por buzón para cada miembro', 'Buzones privados', 'Acceso por dominio de email', 'Matriz de esfuerzo e impacto', 'Roadmap de las ideas', 'Status de las ideas', 'Importar ideas desde CSV o Excel', 'Unir ideas repetidas sin perder votos', 'Adjuntar una imagen a cada idea', 'Novedades con lo que lanzaste', 'Avisos en Slack', 'Ideas desde Zapier, Make y Google Forms'];
+const PRO_ITEMS = ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados, con acceso por miembro o por dominio', 'Matriz, Roadmap y Status', 'Importar ideas y unir las repetidas', 'Imagen en cada idea', 'Novedades con lo que lanzaste', 'Avisos en Slack, Zapier, Make y Google Forms'];
+/** A plan's features with a check each; with `lead`, the first line ("Todo lo de …") reads as a heading. Grows so the buttons line up. */
+function PlanItems({ items, color = '#059669', lead = true }: { items: React.ReactNode[]; color?: string; lead?: boolean }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, lineHeight: 1.45, color: 'rgba(0,0,0,0.78)', flex: 1 }}>
+      {items.map((x, n) => (
+        <li key={n} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontWeight: lead && n === 0 ? 600 : 400 }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden style={{ flex: 'none', marginTop: 2 }}>
+            <circle cx="8" cy="8" r="8" fill={color} opacity="0.12" />
+            <path d="M4.8 8.3l2.1 2.1 4.3-4.6" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>{x}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const PROVIDER_L: Record<string, string> = { paypal: 'PayPal', mercadopago: 'Mercado Pago', creem: 'Tarjeta internacional (Creem)', manual: 'Asignado por Boxinger' };
 
 function Subscription() {
@@ -335,7 +352,7 @@ function Subscription() {
         <div style={box(plan === 'free')}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 18, fontWeight: 600 }}>Free</span>{plan === 'free' && mine}</div>
           <div><span style={{ fontSize: 28, fontWeight: 600 }}>USD 0</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{FREE_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}</div>
+          <PlanItems lead={false} items={FREE_ITEMS.map((x) => t(x))} />
         </div>
         <div style={box(isPro)}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: 18, fontWeight: 600 }}>Pro</span>{isPro && mine}</div>
@@ -343,7 +360,7 @@ function Subscription() {
             <span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', Number(prices.USD))}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span>
             <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginTop: 2 }}>{t('En Argentina: {price} / mes con Mercado Pago', { price: money('ARS', Number(prices.ARS)) })}</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{PRO_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}</div>
+          <PlanItems items={PRO_ITEMS.map((x) => t(x))} />
           {plan === 'free' && (acc
             ? <button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => openPay('pro')}>{t('Pasar a Pro')}</button>
             : <><button type="button" className="bx-btn-primary" style={{ height: 36 }} onClick={() => router.push('/app/onboarding')}>{t('Crear mi buzón')}</button>
@@ -365,7 +382,7 @@ function Subscription() {
             {paidEnt ? entMine : <Tag tone={ENTERPRISE_TAG}>{t('Con IA')}</Tag>}
           </div>
           <div><span style={{ fontSize: 28, fontWeight: 600 }}>{money('USD', entPrice('USD'))}</span><span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{perMonth}</span></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>{TEAM_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}</div>
+          <PlanItems color="#4338ca" items={TEAM_ITEMS.map((x) => t(x))} />
           {paidEnt ? (
             s!.cancel_at_period_end ? (
               <>
@@ -391,15 +408,9 @@ function Subscription() {
             {custom && entMine}
           </div>
           <div><span style={{ fontSize: custom ? 20 : 28, fontWeight: 600 }}>{custom ? t('Precio acordado') : t('A medida')}</span></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'rgba(0,0,0,0.78)' }}>
-            {custom
-              ? <>
-                  <span>{t('Todo lo de Team')}</span>
-                  <span>{acc?.member_limit == null ? t('Miembros ilimitados por equipo') : t('Hasta {n} miembros por equipo', { n: acc.member_limit })}</span>
-                  <span>{t('Asistente IA con el uso acordado')}</span>
-                </>
-              : ENTERPRISE_ITEMS.map((x) => <span key={x}>{t(x)}</span>)}
-          </div>
+          <PlanItems color="#4338ca" items={custom
+            ? [t('Todo lo de Team'), acc?.member_limit == null ? t('Miembros ilimitados por equipo') : t('Hasta {n} miembros por equipo', { n: acc.member_limit }), t('Asistente IA con el uso acordado')]
+            : ENTERPRISE_ITEMS.map((x) => t(x))} />
           {custom
             ? <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Tu plan lo gestiona el equipo de Boxinger. Para cambios escribinos a hola@boxinger.com.')}</span>
             : <>
