@@ -1747,6 +1747,27 @@ export const EN: Record<string, string> = {
   "Solo quien propuso la idea puede cambiar esto.": "Only whoever proposed the idea can change this.",
   "Publicá ideas como anónimo": "Post ideas anonymously",
 
+  // ── Status: growth y descarga ──
+  "sin calificar": "not rated",
+  "% de las recibidas": "% of received",
+  "% lanzadas": "% launched",
+  "Cuántas ideas lanzadas apuntan a cada objetivo de growth y su impacto promedio.": "How many launched ideas target each growth goal, and their average impact.",
+  "De la Comunidad": "From the Community",
+  "Días desde que se propuso": "Days since proposed",
+  "Etapa": "Stage",
+  "Growth de las ideas lanzadas": "Growth of launched ideas",
+  "Impacto promedio": "Average impact",
+  "Impacto promedio: {n} de 5": "Average impact: {n} of 5",
+  "Ninguna tiene el impacto calificado": "None has its impact rated",
+  "Resumen": "Summary",
+  "Status de {board}": "{board} status",
+  "Tiempo promedio (días)": "Average time (days)",
+  "de la idea al lanzamiento": "from idea to launch",
+  "impacto": "impact",
+  "qué pasó con las ideas del buzón": "what happened to the board's ideas",
+  "{n} lanzadas sin growth. Una idea puede tener más de una categoría.": "{n} launched without growth. An idea can have more than one category.",
+  "{n} lanzadas sin growth. Una idea puede tener más de una categoría; el growth y el impacto se cargan desde el detalle de cada idea.": "{n} launched without growth. An idea can have more than one category; growth and impact are set from each idea's detail.",
+
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

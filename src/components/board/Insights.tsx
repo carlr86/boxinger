@@ -1,7 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { Dropdown } from 'antd';
+import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { Bar, Dots, PageHead, ProLock, Seg, Stat, Tag } from '@/components/ui';
-import { DEV, GROWTH, NO_PRIO, PRIO, RATE_C, RATE_L } from '@/lib/constants';
+import { DEV, GROWTH, GROWTH_KEYS, NO_PRIO, PRIO, RATE_C, RATE_L } from '@/lib/constants';
+import { useToast } from '@/components/Providers';
+import { downloadStatusCsv, downloadStatusPdf, type StatusCtx } from '@/lib/status-export';
 import { useI18n } from '@/lib/i18n/client';
 import { rateOf, scoreOf, type BoardApi } from './shared';
 import { useGridCols } from './IdeaGrid';
@@ -128,9 +132,10 @@ export function Matrix({ api }: { api: BoardApi }) {
 
 // ───────────────────────── Status ─────────────────────────
 export function Status({ api }: { api: BoardApi }) {
-  const { t, ddmmyyyy } = useI18n();
+  const { t, ddmmyyyy, locale } = useI18n();
+  const toast = useToast();
   const [f, setF] = useState<'all' | 'en_curso' | 'lanzada'>('all');
-  const head = <PageHead title={t('Status')} sub={t('Qué pasó con las ideas del buzón: cuántas se aprobaron, cuántas están en desarrollo y cuáles ya se lanzaron.')} />;
+  const [busy, setBusy] = useState(false);
   const m = useMemo(() => {
     const all = api.data.ideas.filter((i) => !i.hidden), tot = Math.max(1, all.length);
     const appr = all.filter((i) => i.status === 'aprobada'), inRm = appr.filter((i) => i.rm_col || i.dev_status === 'lanzada');
@@ -138,8 +143,46 @@ export function Status({ api }: { api: BoardApi }) {
     const days = (i: typeof all[number]) => Math.max(0, Math.round(((i.launched_at ? +new Date(i.launched_at) : Date.now()) - +new Date(i.created_at)) / DAY));
     const avg = lau.length ? Math.round(lau.reduce((a, i) => a + days(i), 0) / lau.length) : null;
     const pct = (n: number) => Math.round((n / tot) * 100) + '%';
-    return { all, appr, inRm, dev, lau, days, avg, pct, tot };
+    // Growth of the launched ideas: how many in each category and their average impact (an idea can have several).
+    const growth = GROWTH_KEYS.map((k) => {
+      const ideas = lau.filter((i) => i.growth?.includes(k));
+      const rated = ideas.map((i) => rateOf(i, 'impact')).filter((v) => v > 0);
+      return { k, n: ideas.length, avgImpact: rated.length ? Math.round((rated.reduce((a, v) => a + v, 0) / rated.length) * 10) / 10 : null, votes: ideas.reduce((a, i) => a + i.votes, 0) };
+    });
+    const noGrowth = lau.filter((i) => !i.growth?.length).length;
+    return { all, appr, inRm, dev, lau, days, avg, pct, tot, growth, noGrowth };
   }, [api.data.ideas]);
+  const FUNNEL = [['Recibidas', m.all.length, '#d0d7e2'], ['Aprobadas', m.appr.length, '#b9c9e4'], ['Llegaron al Roadmap', m.inRm.length, '#9db6e6'], ['Se empezaron a desarrollar', m.dev.length, '#7aa7f5'], ['Se lanzaron', m.lau.length, '#73c48f']] as const;
+
+  async function download(kind: 'csv' | 'pdf') {
+    const ctx: StatusCtx = {
+      board: { name: api.data.board.name, slug: api.data.board.slug }, t, locale, origin: window.location.origin,
+      stats: { received: m.all.length, community: m.all.filter((i) => i.origin === 'comunidad').length, approved: m.appr.length, launched: m.lau.length, avgDays: m.avg },
+      funnel: FUNNEL.map(([l, n]) => ({ label: t(l), n })),
+      byOrigin: (['comunidad', 'equipo'] as const).map((o) => ({ label: t(o === 'equipo' ? 'Equipo' : 'Comunidad'), launched: m.lau.filter((i) => i.origin === o).length, proposed: m.all.filter((i) => i.origin === o).length })),
+      growth: m.growth.map((g) => ({ label: t(GROWTH[g.k].l), launched: g.n, avgImpact: g.avgImpact, votes: g.votes })),
+      noGrowth: m.noGrowth,
+      ideas: m.dev.slice().sort((a, b) => +new Date(b.dev_at || 0) - +new Date(a.dev_at || 0)).map((i) => ({
+        id: i.id, title: i.title, origin: t(i.origin === 'equipo' ? 'Equipo' : 'Comunidad'), state: t(DEV[i.dev_status || 'por_empezar'].l), votes: i.votes,
+        date: i.dev_status === 'lanzada' ? ddmmyyyy(i.launched_at!) : ddmmyyyy(i.dev_at || Date.now()), days: m.days(i) })),
+    };
+    if (kind === 'csv') return downloadStatusCsv(ctx);
+    setBusy(true);
+    try { await downloadStatusPdf(ctx); } catch (e) { toast.err(e); } finally { setBusy(false); }
+  }
+  const head = (
+    <PageHead title={t('Status')} sub={t('Qué pasó con las ideas del buzón: cuántas se aprobaron, cuántas están en desarrollo y cuáles ya se lanzaron.')}
+      right={api.pro && (
+        <Dropdown trigger={['click']} placement="bottomRight" menu={{ items: [
+          { key: 'csv', icon: <FileExcelOutlined />, label: t('Excel (CSV)'), onClick: () => download('csv') },
+          { key: 'pdf', icon: <FilePdfOutlined />, label: t('PDF para compartir'), onClick: () => download('pdf') },
+        ] }}>
+          <button type="button" className="bx-btn" disabled={busy} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <DownloadOutlined />{busy ? t('Armando el PDF…') : t('Descargar')}
+          </button>
+        </Dropdown>
+      )} />
+  );
   if (!api.pro) return <>{head}<ProLock title={t('Seguí el resultado de las ideas')} text={t('Medí cuántas ideas terminan lanzadas y cuánto tardan desde que alguien las propone.')} onGo={api.goPro} /></>;
 
   const rows = m.dev.filter((i) => f === 'all' || i.dev_status === f).sort((a, b) => +new Date(b.dev_at || 0) - +new Date(a.dev_at || 0));
@@ -160,7 +203,7 @@ export function Status({ api }: { api: BoardApi }) {
             <span style={{ fontSize: 16, fontWeight: 600 }}>{t('¿Hasta dónde llegan las ideas?')}</span>
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('De todas las ideas recibidas, cuántas lograron llegar a cada etapa.')}</span>
           </div>
-          {([['Recibidas', m.all.length, '#d0d7e2'], ['Aprobadas', m.appr.length, '#b9c9e4'], ['Llegaron al Roadmap', m.inRm.length, '#9db6e6'], ['Se empezaron a desarrollar', m.dev.length, '#7aa7f5'], ['Se lanzaron', m.lau.length, '#73c48f']] as const).map(([l, n, c]) => (
+          {FUNNEL.map(([l, n, c]) => (
             <div key={l} style={{ display: 'grid', gridTemplateColumns: '170px 1fr 64px', gap: 12, alignItems: 'center', fontSize: 14 }}>
               <span style={{ color: 'rgba(0,0,0,0.65)' }}>{t(l)}</span>
               <Bar pct={Math.max(2, Math.round((n / m.tot) * 100)) + '%'} color={c} h={22} />
@@ -169,6 +212,8 @@ export function Status({ api }: { api: BoardApi }) {
           ))}
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Cada etapa cuenta también a las ideas que ya avanzaron a la siguiente. El porcentaje es sobre el total de ideas recibidas.')}</span>
         </div>
+        {/* Right column: origin, then growth. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
         <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <span style={{ fontSize: 16, fontWeight: 600 }}>{t('Lanzadas por origen')}</span>
           {([['comunidad', 'Comunidad', '#b18ae0'], ['equipo', 'Equipo', '#7aa7f5']] as const).map(([k, l, c]) => {
@@ -181,6 +226,33 @@ export function Status({ api }: { api: BoardApi }) {
             );
           })}
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Ideas lanzadas sobre las propuestas por cada origen.')}</span>
+        </div>
+        <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 16, fontWeight: 600 }}>{t('Growth de las ideas lanzadas')}</span>
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Cuántas ideas lanzadas apuntan a cada objetivo de growth y su impacto promedio.')}</span>
+          </div>
+          {m.growth.map((g) => {
+            const G = GROWTH[g.k], max = Math.max(1, ...m.growth.map((x) => x.n));
+            return (
+              <div key={g.k} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 14, flexWrap: 'wrap' }}>
+                  <Tag tone={G} style={{ borderRadius: 10 }}>{t(G.l)}</Tag>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: 'rgba(0,0,0,0.65)' }}>
+                    <span>{g.n === 1 ? t('1 lanzada') : t('{n} lanzadas', { n: g.n })}</span>
+                    <span title={g.avgImpact == null ? t('Ninguna tiene el impacto calificado') : t('Impacto promedio: {n} de 5', { n: g.avgImpact })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+                      {t('Impacto')}{g.avgImpact == null ? <span style={{ color: 'rgba(0,0,0,0.35)' }}>—</span> : <><Dots v={Math.round(g.avgImpact)} k="impact" /><span style={{ fontVariantNumeric: 'tabular-nums' }}>{g.avgImpact.toLocaleString(locale === 'en' ? 'en-US' : 'es-AR')}</span></>}
+                    </span>
+                  </span>
+                </div>
+                <Bar pct={Math.round((g.n / max) * 100) + '%'} color={G.bd} />
+              </div>
+            );
+          })}
+          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>
+            {t('{n} lanzadas sin growth. Una idea puede tener más de una categoría; el growth y el impacto se cargan desde el detalle de cada idea.', { n: m.noGrowth })}
+          </span>
+        </div>
         </div>
       </div>
       <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', overflowX: 'auto' }}>
