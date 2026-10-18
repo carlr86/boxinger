@@ -131,6 +131,46 @@ export function Matrix({ api }: { api: BoardApi }) {
 }
 
 // ───────────────────────── Status ─────────────────────────
+/** «¿Cuánto tardan las ideas?»: average days per stretch, as a two-part bar, and what still waits for a decision. */
+function TimesCard({ m }: { m: { toApprove: number | null; toLaunch: number | null; avg: number | null; waiting: number; oldest: number | null; rejected: number; appr: unknown[] } }) {
+  const { t, plural } = useI18n();
+  const a = m.toApprove ?? 0, b = m.toLaunch ?? 0, sum = Math.max(1, a + b);
+  const daysL = (n: number | null) => (n == null ? '—' : n === 1 ? t('1 día') : t('{n} días', { n }));
+  const late = (m.oldest ?? 0) > 14;
+  return (
+    <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ fontSize: 16, fontWeight: 600 }}>{t('¿Cuánto tardan las ideas?')}</span>
+        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Días promedio en cada tramo, para las ideas que ya lo recorrieron.')}</span>
+      </div>
+      <div style={{ display: 'flex', height: 22, borderRadius: 6, overflow: 'hidden', background: '#f5f5f5' }}>
+        {m.toApprove != null && <span title={t('De propuesta a aprobada')} style={{ width: Math.max(4, (a / sum) * 100) + '%', background: '#b9c9e4' }} />}
+        {m.toLaunch != null && <span title={t('De aprobada a lanzada')} style={{ width: Math.max(4, (b / sum) * 100) + '%', background: '#73c48f' }} />}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 12 }}>
+        {([[t('De propuesta a aprobada'), m.toApprove, '#b9c9e4'], [t('De aprobada a lanzada'), m.toLaunch, '#73c48f'], [t('Total, de la idea al lanzamiento'), m.avg, null]] as const).map(([l, v, c]) => (
+          <div key={l} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
+              {c && <span style={{ width: 8, height: 8, borderRadius: 2, background: c, flex: 'none' }} />}{l}
+            </span>
+            <span style={{ fontSize: 22, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{daysL(v)}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: late ? '#fff7e6' : '#fafafa', border: '1px solid ' + (late ? '#ffd591' : '#f0f0f0'), borderRadius: 8, padding: '12px 14px' }}>
+        <span style={{ fontSize: 24, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: late ? '#d46b08' : 'rgba(0,0,0,0.88)' }}>{m.waiting}</span>
+        <span style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
+          <span style={{ fontWeight: 500, color: 'rgba(0,0,0,0.88)' }}>{m.waiting === 1 ? t('idea esperando una decisión') : t('ideas esperando una decisión')}</span>
+          <span>{m.waiting ? t('Pendientes o en revisión · la más antigua, hace {d}', { d: daysL(m.oldest) }) : t('Al día: no hay ideas pendientes de revisión.')}</span>
+        </span>
+      </div>
+      <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>
+        {t('Ya decididas: {a} y {r}.', { a: plural(m.appr.length, 'aprobada', 'aprobadas'), r: plural(m.rejected, 'rechazada', 'rechazadas') })}
+      </span>
+    </div>
+  );
+}
+
 export function Status({ api }: { api: BoardApi }) {
   const { t, ddmmyyyy, locale } = useI18n();
   const toast = useToast();
@@ -150,7 +190,15 @@ export function Status({ api }: { api: BoardApi }) {
       return { k, n: ideas.length, avgImpact: rated.length ? Math.round((rated.reduce((a, v) => a + v, 0) / rated.length) * 10) / 10 : null, votes: ideas.reduce((a, i) => a + i.votes, 0) };
     });
     const noGrowth = lau.filter((i) => !i.growth?.length).length;
-    return { all, appr, inRm, dev, lau, days, avg, pct, tot, growth, noGrowth };
+    // Time per stretch, for the ideas that already went through it; and what still waits for a decision.
+    const span = (a?: string | null, b?: string | null) => (a && b ? Math.max(0, (+new Date(b) - +new Date(a)) / DAY) : null);
+    const mean = (xs: (number | null)[]) => { const v = xs.filter((x): x is number => x != null); return v.length ? Math.round(v.reduce((a, x) => a + x, 0) / v.length) : null; };
+    const toApprove = mean(appr.map((i) => span(i.created_at, i.approved_at)));
+    const toLaunch = mean(lau.map((i) => span(i.approved_at, i.launched_at)));
+    const waiting = all.filter((i) => i.status === 'pendiente' || i.status === 'en_revision');
+    const oldest = waiting.length ? Math.max(...waiting.map((i) => Math.floor((Date.now() - +new Date(i.created_at)) / DAY))) : null;
+    const rejected = all.filter((i) => i.status === 'rechazada').length;
+    return { all, appr, inRm, dev, lau, days, avg, pct, tot, growth, noGrowth, toApprove, toLaunch, waiting: waiting.length, oldest, rejected };
   }, [api.data.ideas]);
   const FUNNEL = [['Recibidas', m.all.length, '#d0d7e2'], ['Aprobadas', m.appr.length, '#b9c9e4'], ['Llegaron al Roadmap', m.inRm.length, '#9db6e6'], ['Se empezaron a desarrollar', m.dev.length, '#7aa7f5'], ['Se lanzaron', m.lau.length, '#73c48f']] as const;
 
@@ -158,6 +206,7 @@ export function Status({ api }: { api: BoardApi }) {
     const ctx: StatusCtx = {
       board: { name: api.data.board.name, slug: api.data.board.slug }, t, locale, origin: window.location.origin,
       stats: { received: m.all.length, community: m.all.filter((i) => i.origin === 'comunidad').length, approved: m.appr.length, launched: m.lau.length, avgDays: m.avg },
+      times: { toApprove: m.toApprove, toLaunch: m.toLaunch, waiting: m.waiting, oldest: m.oldest, rejected: m.rejected },
       funnel: FUNNEL.map(([l, n]) => ({ label: t(l), n })),
       byOrigin: (['comunidad', 'equipo'] as const).map((o) => ({ label: t(o === 'equipo' ? 'Equipo' : 'Comunidad'), launched: m.lau.filter((i) => i.origin === o).length, proposed: m.all.filter((i) => i.origin === o).length })),
       growth: m.growth.map((g) => ({ label: t(GROWTH[g.k].l), launched: g.n, avgImpact: g.avgImpact, votes: g.votes })),
@@ -198,6 +247,8 @@ export function Status({ api }: { api: BoardApi }) {
         <Stat label={t('Tiempo promedio')} value={m.avg == null ? '—' : t('{n} días', { n: m.avg })} note={t('Desde que se propone hasta que se lanza')} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,420px),1fr))', gap: 16, alignItems: 'start' }}>
+        {/* Left column: how far ideas get, then how long they take. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
         <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 16, fontWeight: 600 }}>{t('¿Hasta dónde llegan las ideas?')}</span>
@@ -211,6 +262,8 @@ export function Status({ api }: { api: BoardApi }) {
             </div>
           ))}
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Cada etapa cuenta también a las ideas que ya avanzaron a la siguiente. El porcentaje es sobre el total de ideas recibidas.')}</span>
+        </div>
+        <TimesCard m={m} />
         </div>
         {/* Right column: origin, then growth. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>

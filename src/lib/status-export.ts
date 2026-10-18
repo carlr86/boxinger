@@ -11,6 +11,7 @@ export type StatusCtx = {
   locale: 'es' | 'en';
   origin: string; // window.location.origin, for the links
   stats: { received: number; community: number; approved: number; launched: number; avgDays: number | null };
+  times: { toApprove: number | null; toLaunch: number | null; waiting: number; oldest: number | null; rejected: number };
   funnel: { label: string; n: number }[];
   byOrigin: { label: string; launched: number; proposed: number }[];
   growth: { label: string; launched: number; avgImpact: number | null; votes: number }[];
@@ -31,6 +32,8 @@ export function downloadStatusCsv(c: StatusCtx) {
     [t('Resumen'), t('Valor')],
     [t('Ideas recibidas'), s.received], [t('De la Comunidad'), s.community], [t('Aprobadas'), s.approved], [t('Lanzadas'), s.launched],
     [t('Tiempo promedio (días)'), s.avgDays ?? ''],
+    [t('De propuesta a aprobada (días)'), c.times.toApprove ?? ''], [t('De aprobada a lanzada (días)'), c.times.toLaunch ?? ''],
+    [t('Esperando una decisión'), c.times.waiting], [t('La más antigua (días)'), c.times.oldest ?? ''], [t('Rechazadas'), c.times.rejected],
     [],
     [t('Etapa'), t('Ideas'), t('% de las recibidas')],
     ...c.funnel.map((f) => [f.label, f.n, pct(f.n, s.received)]),
@@ -108,6 +111,14 @@ export async function downloadStatusPdf(c: StatusCtx) {
 
   section(t('¿Hasta dónde llegan las ideas?'));
   c.funnel.forEach((f, k) => bar(f.label, f.n, s.received, `${f.n} · ${pct(f.n, s.received)}`, k === c.funnel.length - 1 ? [115, 196, 143] : [122, 167, 245]));
+
+  section(t('¿Cuánto tardan las ideas?'));
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(60, 70, 66);
+  const dl = (n: number | null) => (n == null ? '-' : t('{n} días', { n }));
+  for (const [l, v] of [[t('De propuesta a aprobada'), dl(c.times.toApprove)], [t('De aprobada a lanzada'), dl(c.times.toLaunch)], [t('Total, de la idea al lanzamiento'), dl(s.avgDays)],
+    [t('Esperando una decisión'), c.times.waiting ? `${c.times.waiting} · ${t('la más antigua, hace {d}', { d: dl(c.times.oldest) })}` : '0']] as [string, string][]) {
+    need(6); doc.text(pdfText(l), M, y); doc.setTextColor(...ink); doc.text(pdfText(v), W - M, y, { align: 'right' }); doc.setTextColor(60, 70, 66); y += 6;
+  }
 
   section(t('Lanzadas por origen'));
   c.byOrigin.forEach((o) => bar(o.label, o.launched, o.proposed, `${t('{n} de {max}', { n: o.launched, max: o.proposed })} · ${pct(o.launched, o.proposed)}`, [122, 167, 245]));
