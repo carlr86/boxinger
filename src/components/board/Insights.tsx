@@ -131,12 +131,11 @@ export function Matrix({ api }: { api: BoardApi }) {
 }
 
 // ───────────────────────── Status ─────────────────────────
-/** «¿Cuánto tardan las ideas?»: average days per stretch, as a two-part bar, and what still waits for a decision. */
-function TimesCard({ m }: { m: { toApprove: number | null; toLaunch: number | null; avg: number | null; waiting: number; oldest: number | null; rejected: number; appr: unknown[] } }) {
+/** «¿Cuánto tardan las ideas?»: average days per stretch, as a two-part bar, and how many were already decided. */
+function TimesCard({ m }: { m: { toApprove: number | null; toLaunch: number | null; avg: number | null; rejected: number; appr: unknown[] } }) {
   const { t, plural } = useI18n();
   const a = m.toApprove ?? 0, b = m.toLaunch ?? 0, sum = Math.max(1, a + b);
   const daysL = (n: number | null) => (n == null ? '—' : n === 1 ? t('1 día') : t('{n} días', { n }));
-  const late = (m.oldest ?? 0) > 14;
   return (
     <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -156,13 +155,6 @@ function TimesCard({ m }: { m: { toApprove: number | null; toLaunch: number | nu
             <span style={{ fontSize: 22, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{daysL(v)}</span>
           </div>
         ))}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: late ? '#fff7e6' : '#fafafa', border: '1px solid ' + (late ? '#ffd591' : '#f0f0f0'), borderRadius: 8, padding: '12px 14px' }}>
-        <span style={{ fontSize: 24, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: late ? '#d46b08' : 'rgba(0,0,0,0.88)' }}>{m.waiting}</span>
-        <span style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
-          <span style={{ fontWeight: 500, color: 'rgba(0,0,0,0.88)' }}>{m.waiting === 1 ? t('idea esperando una decisión') : t('ideas esperando una decisión')}</span>
-          <span>{m.waiting ? t('Pendientes o en revisión · la más antigua, hace {d}', { d: daysL(m.oldest) }) : t('Al día: no hay ideas pendientes de revisión.')}</span>
-        </span>
       </div>
       <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>
         {t('Ya decididas: {a} y {r}.', { a: plural(m.appr.length, 'aprobada', 'aprobadas'), r: plural(m.rejected, 'rechazada', 'rechazadas') })}
@@ -190,15 +182,13 @@ export function Status({ api }: { api: BoardApi }) {
       return { k, n: ideas.length, avgImpact: rated.length ? Math.round((rated.reduce((a, v) => a + v, 0) / rated.length) * 10) / 10 : null, votes: ideas.reduce((a, i) => a + i.votes, 0) };
     });
     const noGrowth = lau.filter((i) => !i.growth?.length).length;
-    // Time per stretch, for the ideas that already went through it; and what still waits for a decision.
+    // Time per stretch, for the ideas that already went through it.
     const span = (a?: string | null, b?: string | null) => (a && b ? Math.max(0, (+new Date(b) - +new Date(a)) / DAY) : null);
     const mean = (xs: (number | null)[]) => { const v = xs.filter((x): x is number => x != null); return v.length ? Math.round(v.reduce((a, x) => a + x, 0) / v.length) : null; };
     const toApprove = mean(appr.map((i) => span(i.created_at, i.approved_at)));
     const toLaunch = mean(lau.map((i) => span(i.approved_at, i.launched_at)));
-    const waiting = all.filter((i) => i.status === 'pendiente' || i.status === 'en_revision');
-    const oldest = waiting.length ? Math.max(...waiting.map((i) => Math.floor((Date.now() - +new Date(i.created_at)) / DAY))) : null;
     const rejected = all.filter((i) => i.status === 'rechazada').length;
-    return { all, appr, inRm, dev, lau, days, avg, pct, tot, growth, noGrowth, toApprove, toLaunch, waiting: waiting.length, oldest, rejected };
+    return { all, appr, inRm, dev, lau, days, avg, pct, tot, growth, noGrowth, toApprove, toLaunch, rejected };
   }, [api.data.ideas]);
   const FUNNEL = [['Recibidas', m.all.length, '#d0d7e2'], ['Aprobadas', m.appr.length, '#b9c9e4'], ['Llegaron al Roadmap', m.inRm.length, '#9db6e6'], ['Se empezaron a desarrollar', m.dev.length, '#7aa7f5'], ['Se lanzaron', m.lau.length, '#73c48f']] as const;
 
@@ -206,7 +196,7 @@ export function Status({ api }: { api: BoardApi }) {
     const ctx: StatusCtx = {
       board: { name: api.data.board.name, slug: api.data.board.slug }, t, locale, origin: window.location.origin,
       stats: { received: m.all.length, community: m.all.filter((i) => i.origin === 'comunidad').length, approved: m.appr.length, launched: m.lau.length, avgDays: m.avg },
-      times: { toApprove: m.toApprove, toLaunch: m.toLaunch, waiting: m.waiting, oldest: m.oldest, rejected: m.rejected },
+      times: { toApprove: m.toApprove, toLaunch: m.toLaunch, rejected: m.rejected },
       funnel: FUNNEL.map(([l, n]) => ({ label: t(l), n })),
       byOrigin: (['comunidad', 'equipo'] as const).map((o) => ({ label: t(o === 'equipo' ? 'Equipo' : 'Comunidad'), launched: m.lau.filter((i) => i.origin === o).length, proposed: m.all.filter((i) => i.origin === o).length })),
       growth: m.growth.map((g) => ({ label: t(GROWTH[g.k].l), launched: g.n, avgImpact: g.avgImpact, votes: g.votes })),
