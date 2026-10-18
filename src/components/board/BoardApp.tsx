@@ -91,7 +91,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const push = (url: string) => window.history.pushState(null, '', url);
   // The Community only gets the Roadmap (read only) when the board shares it; other team views stay closed.
   // Novedades: everyone who can see the board, on paid plans (the team also sees it on Free, with the Pro lock).
-  const canSee = (v: View) => (v === 'novedades' ? isTeam || b.pro : isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap));
+  const canSee = (v: View) => (v === 'novedades' ? isTeam || b.pro : v === 'matriz' && b.use_rating === false ? false : isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap));
   const setView = (v: View) => {
     if (!canSee(v)) return;
     setViewState(v); setSelId(null);
@@ -154,7 +154,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   }
 
   const tabs = [{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }]
-    .concat(isTeam ? [{ key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
+    .concat(isTeam ? [...(b.use_rating !== false ? [{ key: 'matriz', label: t('Matriz') }] : []), { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
       : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : [])
     .concat(isTeam || b.pro ? [{ key: 'novedades', label: t('Novedades') }] : []);
   const shownView = canSee(view) ? view : 'buzon';

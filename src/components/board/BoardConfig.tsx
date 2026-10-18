@@ -131,6 +131,15 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
+      <Section title={t('Priorización')} desc={t('Herramientas para que el Equipo decida qué construir. Si no las usan, apagalas y desaparecen del buzón; lo ya cargado no se borra.')}>
+        <Options>
+          <ToggleRow label={t('Impacto y esfuerzo')} desc={t('Calificá cada idea de 1 a 5 y ordená con la Matriz y el Valor del Roadmap.')} on={b.use_rating !== false}
+            onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, p_rating: v, p_growth: null }), v ? 'Impacto y esfuerzo activados' : 'Impacto y esfuerzo desactivados'); api.reload(); }} />
+          <ToggleRow label={t('Growth')} desc={t('Marcá a qué objetivo apunta cada idea: adquisición, activación, retención, monetización o churn.')} on={b.use_growth !== false}
+            onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, p_rating: null, p_growth: v }), v ? 'Growth activado' : 'Growth desactivado'); api.reload(); }} />
+        </Options>
+      </Section>
+
       <Section title={t('Ideas anónimas')} desc={t('Quien carga una idea puede elegir que se muestre como «Anónimo». Solo el Admin del equipo ve quién la propuso, y al autor le siguen llegando los avisos por email.')}>
         <Options>
           <ToggleRow label={t('Permitir ideas anónimas')} on={b.allow_anonymous !== false}

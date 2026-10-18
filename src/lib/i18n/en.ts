@@ -1748,6 +1748,18 @@ export const EN: Record<string, string> = {
   "Publicá ideas como anónimo": "Post ideas anonymously",
 
   // ── Status: growth y descarga ──
+  "Activalo para marcar a qué objetivo apunta cada idea y ver acá el impacto de lo que lanzás.": "Turn it on to mark which goal each idea targets and see here the impact of what you launch.",
+  "Activarlo en Configuración": "Turn it on in Settings",
+  "Calificá cada idea de 1 a 5 y ordená con la Matriz y el Valor del Roadmap.": "Rate each idea from 1 to 5 and prioritize with the Matrix and the Roadmap's Value.",
+  "El growth no está activado en este buzón.": "Growth isn't turned on for this board.",
+  "Herramientas para que el Equipo decida qué construir. Si no las usan, apagalas y desaparecen del buzón; lo ya cargado no se borra.": "Tools for the Team to decide what to build. If you don't use them, turn them off and they disappear from the board; nothing already entered is deleted.",
+  "Marcá a qué objetivo apunta cada idea: adquisición, activación, retención, monetización o churn.": "Mark which goal each idea targets: acquisition, activation, retention, monetization or churn.",
+  "Priorización": "Prioritization",
+  "Solo visible para el Equipo.": "Only visible to the Team.",
+  "Impacto y esfuerzo activados": "Impact and effort turned on",
+  "Impacto y esfuerzo desactivados": "Impact and effort turned off",
+  "Growth activado": "Growth turned on",
+  "Growth desactivado": "Growth turned off",
   "1 día": "1 day",
   "Al día: no hay ideas pendientes de revisión.": "All caught up: no ideas waiting for review.",
   "De aprobada a lanzada": "From approved to launched",

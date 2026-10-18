@@ -7,7 +7,7 @@ import { DEV, LAUNCH_COL, LAUNCH_RECENT_DAYS, NO_PRIO, PRIO, RM_COLS, SHADOW_POP
 import { useI18n } from '@/lib/i18n/client';
 import { useToast } from '@/components/Providers';
 import type { Idea } from '@/lib/types';
-import { rateOf, scoreOf, type BoardApi } from './shared';
+import { rateOf, scoreOf, usesRating, type BoardApi } from './shared';
 import { AuthorLine } from './IdeaGrid';
 
 const Pencil = () => (<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>);
@@ -247,7 +247,8 @@ function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDr
   onDragStart: () => void; onDragEnd: () => void; onOver: () => void; onDrop: () => void;
 }) {
   const { t, ddmmyyyy, locale } = useI18n();
-  const sc = scoreOf(i);
+  const rating = usesRating(api);
+  const sc = rating ? scoreOf(i) : null;
   const num = (n: number) => (locale === 'en' ? String(n) : String(n).replace('.', ','));
   const imp = rateOf(i, 'impact'), eff = rateOf(i, 'effort');
   const P = i.priority ? PRIO[i.priority] : NO_PRIO;
@@ -284,13 +285,13 @@ function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDr
       <div style={{ display: 'grid', gridTemplateColumns: '76px 1fr', rowGap: 6, alignItems: 'center', fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
         <span>{t('Categoría')}</span><span><Tag>{api.catL(i.category_id)}</Tag></span>
         <span>{t('Prioridad')}</span><span><Tag tone={P}>{t(P.l)}</Tag></span>
-        {imp > 0 && eff > 0 && (
+        {rating && imp > 0 && eff > 0 && (
           <>
             <span>{t('Impacto')}</span><Dots v={imp} k="impact" />
             <span>{t('Esfuerzo')}</span><Dots v={eff} k="effort" />
           </>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{t('Valor')} <Help><ValueHelp /></Help></span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? t('Sin calificar') : num(sc)}</span>
+        {rating && <><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{t('Valor')} <Help><ValueHelp /></Help></span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? t('Sin calificar') : num(sc)}</span></>}
         <span>{t('Desarrollo')}</span><span><Tag tone={D}>{t(D.l)}</Tag></span>
         {([['chk_design', t('Diseño')], ['chk_prd', 'PRD / SPEC']] as const).map(([k, l]) => (
           <span key={k} style={{ display: 'contents' }}>

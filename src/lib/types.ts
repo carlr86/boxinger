@@ -80,6 +80,7 @@ export interface BoardInfo {
   account_status: 'active' | 'suspended'; locked: boolean; pro: boolean; created_at: string;
   invite_code: string | null; guests: number; version: string;
   created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean; allow_anonymous?: boolean;
+  use_rating?: boolean; use_growth?: boolean; // optional prioritization tools (on by default)
   allowed_domains: string[] | null; // only for whoever can manage the board
   guests_can_view_roadmap: boolean; // effective (setting on, Pro, not private)
   roadmap_setting: boolean; // the raw board setting

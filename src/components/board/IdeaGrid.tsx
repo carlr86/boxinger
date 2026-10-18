@@ -5,7 +5,7 @@ import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from
 import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, SOURCE_TAG, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
-import { rateOf, voteMode, type BoardApi } from './shared';
+import { rateOf, usesGrowth, usesRating, voteMode, type BoardApi } from './shared';
 import { AiButton, AiPanel, AiTag } from './AiPanel';
 import { ImportButton, ImportModal } from './ImportModal';
 import { ExportButton } from './ExportButton';
@@ -375,6 +375,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
   // The team on a paid plan always gets the Impact / Effort and Growth rows, so every card reads the same way;
   // the description gives up the room (3 lines).
   const teamRows = api.isTeam && api.pro;
+  const rateRow = teamRows && usesRating(api), growthRow = teamRows && usesGrowth(api);
 
   return (
     <div className="bx-card" onClick={() => api.openIdea(i.id)} style={{ opacity: i.hidden ? 0.55 : 1 }}>
@@ -390,7 +391,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
         {i.description}
       </div>
       <div style={{ flex: 1 }} />
-      {teamRows && (
+      {rateRow && (
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
           {(['impact', 'effort'] as const).map((k) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -399,7 +400,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
           ))}
         </div>
       )}
-      {teamRows && (
+      {growthRow && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', minHeight: 24, alignItems: 'center' }} title={t('Growth · solo visible para el Equipo')}>
           {i.growth?.length
             ? i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{t(GROWTH[k].l)}</Tag>)

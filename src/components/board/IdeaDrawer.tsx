@@ -11,7 +11,7 @@ import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail, MergedIdea } from '@/lib/types';
 import { AnonAvatar, MaskIcon, OriginTag, toReviewIdea, useGridCols } from './IdeaGrid';
 import { MergeModal } from './MergeModal';
-import { quadrant, rateOf, voteMode, type BoardApi } from './shared';
+import { quadrant, rateOf, usesGrowth, usesRating, voteMode, type BoardApi } from './shared';
 import { useToast } from '@/components/Providers';
 
 const More = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>);
@@ -322,7 +322,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             </div>
           )}
 
-          {team && (
+          {team && usesRating(api) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>{t('Impacto y esfuerzo')} <ProPill /></span>
@@ -357,11 +357,11 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             </div>
           )}
 
-          {team && (
+          {team && usesGrowth(api) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>Growth <ProPill /></span>
-                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Solo visible para el Equipo. Se muestra en la card cuando la idea se aprueba.')}</span>}
+                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Solo visible para el Equipo.')}</span>}
               </div>
               {!api.pro ? (
                 <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

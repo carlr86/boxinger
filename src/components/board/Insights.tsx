@@ -7,7 +7,7 @@ import { DEV, GROWTH, GROWTH_KEYS, NO_PRIO, PRIO, RATE_C, RATE_L } from '@/lib/c
 import { useToast } from '@/components/Providers';
 import { downloadStatusCsv, downloadStatusPdf, type StatusCtx } from '@/lib/status-export';
 import { useI18n } from '@/lib/i18n/client';
-import { rateOf, scoreOf, type BoardApi } from './shared';
+import { rateOf, scoreOf, usesGrowth, type BoardApi } from './shared';
 import { useGridCols } from './IdeaGrid';
 
 const DAY = 864e5;
@@ -275,6 +275,13 @@ export function Status({ api }: { api: BoardApi }) {
             <span style={{ fontSize: 16, fontWeight: 600 }}>{t('Growth de las ideas lanzadas')}</span>
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Cuántas ideas lanzadas apuntan a cada objetivo de growth y su impacto promedio.')}</span>
           </div>
+          {!usesGrowth(api) ? (
+            <div style={{ background: '#fafafa', border: '1px dashed #d9d9d9', borderRadius: 8, padding: '20px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
+              <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.65)' }}>{t('El growth no está activado en este buzón.')}</span>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Activalo para marcar a qué objetivo apunta cada idea y ver acá el impacto de lo que lanzás.')}</span>
+              {api.isAdmin && <a onClick={() => api.setView('config')} style={{ fontSize: 13, fontWeight: 500 }}>{t('Activarlo en Configuración')}</a>}
+            </div>
+          ) : <>
           {m.growth.map((g) => {
             const G = GROWTH[g.k], max = Math.max(1, ...m.growth.map((x) => x.n));
             return (
@@ -295,6 +302,7 @@ export function Status({ api }: { api: BoardApi }) {
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>
             {t('{n} lanzadas sin growth. Una idea puede tener más de una categoría; el growth y el impacto se cargan desde el detalle de cada idea.', { n: m.noGrowth })}
           </span>
+          </>}
         </div>
         </div>
       </div>

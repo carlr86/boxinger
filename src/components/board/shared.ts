@@ -52,6 +52,10 @@ export function quadrant(imp: number, eff: number): [string, string] | null {
   return ['Revisar', 'Mucho esfuerzo para el impacto esperado.'];
 }
 
+/** The board uses Impact / Effort (Matrix, Value) and Growth: each Admin can turn them off (both on by default). */
+export const usesRating = (api: BoardApi) => api.data.board.use_rating !== false;
+export const usesGrowth = (api: BoardApi) => api.data.board.use_growth !== false;
+
 export const scoreOf = (i: Idea) => {
   const imp = rateOf(i, 'impact'), eff = rateOf(i, 'effort');
   return imp && eff ? Math.round(((imp * Math.max(1, i.score || 0)) / eff) * 10) / 10 : null;
