@@ -1,0 +1,441 @@
+<!doctype html>
+<!-- Video de LinkedIn «Cómo se carga una idea en Boxinger» (1920 × 1080, 30,5 s).
+     Cada cuadro sale de renderAt(segundos): grabar.py lo llama cuadro por cuadro y arma el MP4.
+     Para mirarlo en el navegador, abrí el archivo con ?play al final de la ruta. -->
+<html lang="es"><head><meta charset="utf-8">
+<title>Cargar una idea</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<style>
+:root{--verde:#059669;--hondo:#047857;--tinta:#0f172a;--tv:#0b2b22;--niebla:#f5f7f6;--sys:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{width:1920px;height:1080px;overflow:hidden;background:var(--niebla);font-family:var(--sys);color:rgba(0,0,0,.88);-webkit-font-smoothing:antialiased}
+#stage{position:absolute;inset:0;overflow:hidden;background:var(--niebla)}
+#dots{position:absolute;inset:-200px;background-image:radial-gradient(#cdd6d1 1.6px,transparent 1.6px);background-size:32px 32px}
+#world{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.layer{position:absolute;inset:0;pointer-events:none}
+
+/* Ventana de la app (1440 × 900 en coordenadas del mundo) */
+#win{position:absolute;left:240px;top:90px;width:1440px;height:900px;border-radius:16px;overflow:hidden;background:#f5f5f5;box-shadow:0 30px 80px rgba(11,43,34,.16),0 4px 14px rgba(11,43,34,.08);border:1px solid #e3e8e5}
+.hdr{position:absolute;left:0;top:0;right:0;height:64px;background:#fff;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;padding:0 24px;gap:14px}
+.hdr .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:rgba(0,0,0,.88)}
+.hdr .logo svg{width:28px;height:28px}
+.hdr .sep{width:1px;height:20px;background:#e5e5e5}
+.hdr .board{font-size:15px;color:rgba(0,0,0,.65)}
+.tabs{display:flex;height:64px;margin-left:12px}
+.tabs span{display:flex;align-items:center;padding:0 13px;font-size:15px;color:rgba(0,0,0,.88)}
+.tabs span.on{color:var(--verde);box-shadow:inset 0 -2px 0 var(--verde)}
+.hdr .me{margin-left:auto;display:flex;align-items:center;gap:18px;color:rgba(0,0,0,.55)}
+.av{flex:none;display:inline-grid;place-items:center;border-radius:50%;color:#fff;font-weight:600}
+.main{position:absolute;left:136px;top:64px;width:1168px}
+.ttl{position:absolute;top:28px;left:0;font-size:24px;font-weight:700}
+.sub{position:absolute;top:62px;left:0;font-size:14.5px;color:rgba(0,0,0,.45)}
+.tools{position:absolute;top:103px;left:0;right:0;display:flex;gap:12px;align-items:center}
+.inp{height:32px;padding:0 11px;border:1px solid #d9d9d9;border-radius:6px;font-size:14px;background:#fff;display:flex;align-items:center;color:rgba(0,0,0,.35)}
+.seg{display:flex;background:#f0f0f0;border-radius:6px;padding:2px;height:32px}
+.seg span{padding:0 13px;display:flex;align-items:center;font-size:14px;color:rgba(0,0,0,.65);border-radius:4px}
+.seg span.on{background:#fff;color:rgba(0,0,0,.88);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.sel{height:32px;padding:0 10px;border:1px solid #d9d9d9;border-radius:6px;font-size:14px;background:#fff;display:flex;align-items:center;gap:22px}
+.sel:after{content:"";width:7px;height:7px;border-right:1.5px solid rgba(0,0,0,.6);border-bottom:1.5px solid rgba(0,0,0,.6);transform:translateY(-2px) rotate(45deg)}
+.right{position:absolute;top:44px;right:0;display:flex;gap:12px;align-items:center}
+.toggle{display:flex;background:#f0f0f0;border-radius:6px;padding:2px;height:34px}
+.toggle i{width:32px;display:grid;place-items:center;border-radius:4px}
+.toggle i.on{background:#fff}
+.btnp{height:34px;padding:0 16px;border-radius:6px;background:var(--verde);color:#fff;font-size:14.5px;display:flex;align-items:center;box-shadow:0 2px 0 rgba(5,150,105,.1);white-space:nowrap}
+.btn{height:32px;padding:0 15px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+
+/* Tarjetas de idea */
+.card{position:absolute;width:378px;height:282px;background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.tags{display:flex;gap:6px;height:22px}
+.tag{height:22px;padding:0 7px;border-radius:4px;border:1px solid;font-size:12.5px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.ctitle{font-size:17px;font-weight:600;line-height:23px;max-height:46px;overflow:hidden}
+.author{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(0,0,0,.55)}
+.desc{font-size:14.5px;line-height:22px;color:rgba(0,0,0,.65);height:66px;overflow:hidden}
+.foot{margin-top:auto;border-top:1px solid #f0f0f0;padding-top:12px;display:flex;align-items:center;gap:14px;font-size:13px;color:rgba(0,0,0,.45)}
+.foot b{font-weight:400;display:inline-flex;align-items:center;gap:5px}
+.vote{margin-left:auto;height:28px;padding:0 12px;border-radius:6px;font-size:13px;border:1px solid var(--verde);color:var(--verde);background:#fff;display:flex;align-items:center}
+.vote.off{border-color:#d9d9d9;color:rgba(0,0,0,.25);background:rgba(0,0,0,.04)}
+
+/* Modal «Nueva idea» */
+#veil{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+#modal{position:absolute;left:460px;top:90px;width:520px;background:#fff;border-radius:8px;padding:20px 24px;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05)}
+#modal h3{margin:0 0 8px;font-size:16px;font-weight:600;line-height:24px;display:flex;justify-content:space-between}
+#modal h3 i{font-style:normal;color:rgba(0,0,0,.45);font-weight:400}
+.f{display:flex;flex-direction:column;gap:6px;font-size:14px;margin-top:18px}
+.box{border:1px solid #d9d9d9;border-radius:6px;background:#fff;font-size:14px;padding:5px 11px;line-height:21px;color:rgba(0,0,0,.88);position:relative}
+.box.focus{border-color:var(--verde);box-shadow:0 0 0 2px rgba(5,150,105,.1)}
+.box .ph{color:rgba(0,0,0,.25)}
+.box.area{height:117px}
+.cnt{align-self:flex-end;font-size:12px;color:rgba(0,0,0,.45)}
+.caret{display:inline-block;width:1.5px;height:17px;background:rgba(0,0,0,.88);vertical-align:-3px;margin-left:1px}
+.choice{display:flex}
+.choice span{height:32px;padding:0 14px;font-size:14px;display:flex;align-items:center;border:1px solid #d9d9d9;margin-left:-1px;background:#fff;position:relative}
+.choice span:first-child{border-radius:6px 0 0 6px;margin-left:0}
+.choice span:last-child{border-radius:0 6px 6px 0}
+.choice span.on{background:var(--verde);border-color:var(--verde);color:#fff;z-index:1}
+.hint{font-size:13px;color:rgba(0,0,0,.45);margin-top:18px}
+.acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.acts .btnp{height:32px;font-size:14px;padding:0 15px}
+.pro{font-size:11px;font-weight:700;color:#fff;background:#4338ca;border-radius:4px;padding:1px 5px}
+
+/* Aviso de antd */
+#toast{position:absolute;top:80px;left:50%;transform:translateX(-50%);background:#fff;border-radius:8px;padding:9px 12px;font-size:14px;display:flex;gap:8px;align-items:center;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05);white-space:nowrap}
+
+/* Chips de votos que suben */
+.chip{position:absolute;left:0;top:0;height:44px;padding:0 18px;border-radius:22px;background:#fff;border:1.5px solid #a7f3d0;color:var(--hondo);font:700 22px/1 "Plus Jakarta Sans",var(--sys);display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 4px 10px rgba(5,150,105,.12)}
+
+/* Escena 1: el chat */
+#chat{position:absolute;left:470px;top:300px;width:980px;background:#fff;border-radius:28px;padding:36px 40px;box-shadow:0 30px 80px rgba(11,43,34,.14),0 4px 14px rgba(11,43,34,.06);font-family:var(--sys)}
+#chat .who{display:flex;gap:18px;align-items:center}
+#chat .who b{display:block;font-size:28px;color:var(--tinta)}
+#chat .who small{display:block;font-size:21px;color:#64748b;margin-top:2px}
+#chat p{font-size:34px;line-height:1.38;color:var(--tinta);margin:24px 0 28px}
+#chat .reply{display:flex;align-items:center;gap:16px;border-top:1px solid #edf0ee;padding-top:26px}
+#chat .field{flex:1;font-size:28px;color:var(--tinta);min-height:40px;display:flex;align-items:center}
+#chat .field .ph{color:#94a3b8}
+#chat .field .caret{height:32px;width:2.5px;vertical-align:-6px}
+#chat .send{width:56px;height:56px;border-radius:50%;background:var(--verde);display:grid;place-items:center}
+
+/* Cursores con nombre (en coordenadas de pantalla) */
+.cur{position:absolute;left:0;top:0;transform-origin:0 0}
+.cur svg{display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+.cur .nm{position:absolute;left:26px;top:30px;padding:5px 13px;border-radius:999px;font:700 20px/1.1 "Plus Jakarta Sans",var(--sys);white-space:nowrap;color:#fff}
+.ring{position:absolute;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:3px solid var(--verde)}
+
+/* Escena final */
+#veil2{position:absolute;inset:0;background:var(--niebla)}
+#words{position:absolute;left:0;right:0;top:360px;text-align:center;font-family:"Plus Jakarta Sans",var(--sys);font-weight:800;font-size:104px;line-height:1.12;letter-spacing:-.035em;color:var(--tv)}
+#words .w{display:inline-block;margin:0 .13em}
+#words .g{color:var(--verde)}
+#end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Plus Jakarta Sans",var(--sys)}
+#end .lock{display:flex;align-items:center;gap:30px;font-weight:800;font-size:124px;letter-spacing:-.03em;color:var(--tv)}
+#end .lock svg{width:132px;height:132px}
+#end .cta{font-size:60px;font-weight:700;letter-spacing:-.01em;word-spacing:.04em;color:var(--tinta);margin-top:46px}
+#end .url{margin-top:38px;background:var(--verde);color:#fff;font-weight:700;font-size:38px;padding:16px 40px;border-radius:999px}
+#end .free{margin-top:22px;font-size:28px;font-weight:500;color:#475569}
+</style></head>
+<body>
+<div id="stage">
+  <div id="dots"></div>
+  <div id="world">
+    <div id="win">
+      <div class="hdr">
+        <span class="logo"><svg viewBox="18.5 28.6 362 362"><use href="#lg"/></svg>Boxinger</span>
+        <span class="sep"></span><span class="board">Pampa Pagos</span>
+        <div class="tabs"><span class="on">Buzón</span><span>Ranking</span><span>Backlog</span><span>Roadmap</span><span>Novedades</span></div>
+        <span class="me">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 20.5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span class="av" style="width:32px;height:32px;font-size:13px;background:#d46b08">MG</span>
+        </span>
+      </div>
+      <div class="main" style="height:836px">
+        <div class="ttl">Buzón de Ideas</div>
+        <div class="sub">Agregá tus ideas, dejá tus comentarios y votá para que luego pasen al backlog.</div>
+        <div class="right">
+          <div class="toggle"><i class="on"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#059669" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></i><i><svg width="15" height="15" viewBox="0 0 16 16" stroke="rgba(0,0,0,.55)" stroke-width="1.5"><path d="M3 4h10M3 8h10M3 12h10"/></svg></i></div>
+          <div class="btnp" id="newBtn">+ Nueva idea</div>
+        </div>
+        <div class="tools">
+          <div class="inp" style="width:320px">Buscar en título y descripción</div>
+          <div class="seg"><span class="on">Todas</span><span>Equipo</span><span>Comunidad</span></div>
+          <div class="sel">Todas las categorías</div>
+          <div class="sel">Todos los estados</div>
+          <div class="sel" style="width:34px;padding:0;justify-content:center" ><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="1.5" stroke-linecap="round"><path d="M4 2v12M1.5 11.5L4 14l2.5-2.5M9 4h6M9 8h4.5M9 12h3"/></svg></div>
+        </div>
+        <div id="grid"></div>
+      </div>
+      <div id="toast"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#52c41a"/><path d="M4.6 8.2l2.3 2.2 4.5-4.6" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Idea publicada · Pendiente de revisión</div>
+      <div id="veil"></div>
+      <div id="modal">
+        <h3>Nueva idea <i>✕</i></h3>
+        <div class="f" style="margin-top:8px">Título
+          <div class="box" id="fTitle"><span id="vTitle"></span></div>
+          <span class="cnt" id="cTitle">0 / 80</span>
+        </div>
+        <div class="f">Descripción
+          <div class="box area" id="fDesc"><span id="vDesc"></span></div>
+          <span class="cnt" id="cDesc">0 / 2.000</span>
+        </div>
+        <div class="f">Categoría
+          <div class="choice"><span id="chF">Feature</span><span>Mejora funcional</span><span>Propuesta</span></div>
+        </div>
+        <div class="f">Imagen (opcional)
+          <span class="btn" style="align-self:flex-start"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.6" fill="currentColor"/><path d="M4 17l5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Adjuntar imagen</span>
+        </div>
+        <div class="hint">Se publica al instante con estado Pendiente de revisión y tag Comunidad.</div>
+        <div class="acts"><span class="btn">Cancelar</span><span class="btnp" id="pubBtn">Publicar idea</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer" id="chips"></div>
+
+  <div id="chat">
+    <div class="who"><span class="av" style="width:64px;height:64px;font-size:24px;background:#d46b08">MG</span><span><b>Martina Gómez</b><small>Clienta de Pampa Pagos</small></span></div>
+    <p>¿Podrían sumar exportar los movimientos a Excel? Se los paso a mi contador todos los meses.</p>
+    <div class="reply"><span class="av" style="width:52px;height:52px;font-size:19px;background:#0b2b22">SL</span>
+      <div class="field" id="vReply"></div>
+      <span class="send" id="sendBtn"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 12l15-7-5 15-2.5-6z" fill="#fff"/></svg></span>
+    </div>
+  </div>
+
+  <div id="veil2"></div>
+  <div id="words"></div>
+  <div id="end">
+    <div class="lock"><svg viewBox="18.5 28.6 362 362"><use href="#lg"/></svg>Boxinger</div>
+    <div class="cta">Abrí tu primer buzón hoy.</div>
+    <div class="url">www.boxinger.com</div>
+    <div class="free">Plan Free sin tarjeta de crédito.</div>
+  </div>
+
+  <div class="layer" id="cursors"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute"><defs><g id="lg"><path fill="#059669" d="M308.74,36.87L90.77,36.88C73.25,37.77,57.85,49.15,51.9,65.56c-1.97,5.26-2.84,10.64-2.83,16.34l0.05,206.73c0,9.19,3.68,17.99,8.98,25.18c7.97,9.82,19.36,16.25,32.11,16.62l31.01,0.12l9.85,44.72c0.67,3.22,1.62,5.5,3.91,6.77c2.54,1.42,5.74,1.55,8.37-0.25l86.57-51.24l76.68-1c10.22,0,19.74-3.34,27.6-9.84c9.58-7.91,16.72-18.68,16.72-31.35l0.02-209.05C350.05,56.17,331.83,37.8,308.74,36.87z"/><path fill="#FAFAFA" d="M206.57,266.88h-51.86c-7.49,0-12.83-1.68-16.03-5.04c-3.2-3.36-4.8-8.7-4.8-16.03V118.25c0-7.49,1.64-12.87,4.92-16.15s8.59-4.92,15.92-4.92h54.98c8.1,0,15.13,0.5,21.07,1.5c5.94,1,11.27,2.93,15.97,5.79c4.01,2.39,7.56,5.42,10.65,9.09c3.09,3.67,5.44,7.72,7.06,12.15c1.62,4.44,2.43,9.13,2.43,14.06c0,16.98-8.49,29.4-25.47,37.27c22.3,7.1,33.45,20.91,33.45,41.44c0,9.49-2.43,18.04-7.29,25.64c-4.86,7.6-11.42,13.22-19.68,16.84c-5.17,2.16-11.11,3.68-17.83,4.57S215.53,266.88,206.57,266.88z M168.26,123v43.87h31.48c8.57,0,15.18-0.81,19.85-2.43s8.24-4.71,10.71-9.26c1.93-3.24,2.89-6.87,2.89-10.88c0-8.57-3.05-14.26-9.14-17.07c-6.1-2.82-15.4-4.22-27.9-4.22H168.26z M204.03,191.52h-35.77v49.54h36.93c23.23,0,34.84-8.37,34.84-25.12c0-8.57-3.01-14.78-9.03-18.64C224.98,193.45,215.99,191.52,204.03,191.52z"/></g></defs></svg>
+
+<script>
+// ---------- Datos (Pampa Pagos, empresa ficticia de la marca) ----------
+const ORI = { c: ['Comunidad', '#f9f0ff', '#d3adf7', '#531dab'], e: ['Equipo', '#eff6ff', '#93c5fd', '#3b82f6'] };
+const ST = { p: ['Pendiente de revisión', '#fafafa', '#d9d9d9', 'rgba(0,0,0,0.88)'], r: ['En revisión', '#fff7e6', '#ffd591', '#d46b08'], a: ['Aprobada', '#f6ffed', '#b7eb8f', '#389e0d'] };
+const IDEAS = [
+  { id: 'nueva', o: 'c', cat: 'Feature', st: 'p', t: 'Exportar movimientos a Excel', a: 'Martina Gómez', ini: 'MG', col: '#d46b08', d: 'Todos los meses le paso los movimientos a mi contador y hoy los copio a mano.', v: 0, c: 0, age: 'ahora', own: true },
+  { o: 'c', cat: 'Feature', st: 'r', t: 'Notificación cuando se acredita un pago', a: 'Carolina Díaz', ini: 'CD', col: '#2f6f9f', d: 'Hoy entro a la app varias veces por día para ver si ya me pagaron. Un aviso me ahorraría eso.', v: 31, c: 7, age: '5 d' },
+  { o: 'e', cat: 'Mejora funcional', st: 'a', t: 'Conciliación automática con el banco', a: 'Sofía López', ini: 'SL', col: '#0b2b22', d: 'Cruzar los movimientos del banco con los cobros de Pampa sin armar la planilla a mano.', v: 19, c: 4, age: '9 d' },
+  { o: 'c', cat: 'Propuesta', st: 'p', t: 'Pagar servicios con QR desde la app', a: 'Diego Ferrari', ini: 'DF', col: '#6d8b3a', d: 'Escanear la boleta de luz o de gas y pagarla con el saldo de la cuenta.', v: 12, c: 3, age: '12 d' },
+  { o: 'c', cat: 'Feature', st: 'r', t: 'Varios usuarios en la misma cuenta', a: 'Lucía Benítez', ini: 'LB', col: '#8a4fbf', d: 'Somos tres socios y hoy compartimos el mismo usuario y la misma contraseña.', v: 10, c: 2, age: '15 d' },
+  { o: 'c', cat: 'Mejora funcional', st: 'p', t: 'Recordatorio de cobros pendientes', a: 'Pablo Acosta', ini: 'PA', col: '#c2562f', d: 'Un aviso automático al cliente cuando está por vencer un link de pago.', v: 8, c: 1, age: '21 d' },
+  { o: 'c', cat: 'Propuesta', st: 'p', t: 'Modo oscuro en la app', a: 'Ana Torres', ini: 'AT', col: '#3d7f74', d: 'Uso la app de noche y la pantalla blanca encandila.', v: 6, c: 0, age: '1 mes' },
+];
+const VOTE_SVG = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2.5l5 6H3z" fill="currentColor"/><path d="M4.5 11.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+const COM_SVG = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const PEOPLE_SVG = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="6" cy="5.5" r="2.3"/><path d="M1.8 13c.6-2.3 2.2-3.5 4.2-3.5s3.6 1.2 4.2 3.5"/><circle cx="11.3" cy="6" r="1.8"/><path d="M11 9.6c1.6.1 2.7 1.2 3.2 3"/></svg>';
+const TEAM_SVG = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M5 7h6M5 9.5h4"/></svg>';
+const tag = (x) => `<span class="tag" style="background:${x[1]};border-color:${x[2]};color:${x[3]}">${x[4] || ''}${x[0]}</span>`;
+
+const grid = document.getElementById('grid');
+const cards = IDEAS.map((i) => {
+  const el = document.createElement('div');
+  el.className = 'card';
+  const o = [...ORI[i.o]]; o[4] = i.o === 'c' ? PEOPLE_SVG : TEAM_SVG;
+  el.innerHTML = `<div class="tags">${tag(o)}${tag([i.cat, '#fff', '#d9d9d9', 'rgba(0,0,0,0.88)'])}<span class="stslot">${tag(ST[i.st])}</span></div>
+    <div class="ctitle">${i.t}</div>
+    <div class="author"><span class="av" style="width:18px;height:18px;font-size:8px;background:${i.col}">${i.ini}</span>${i.a}</div>
+    <div class="desc">${i.d}</div>
+    <div class="foot"><b>${VOTE_SVG}<span class="nv">${i.v}</span></b><b>${COM_SVG}<span class="nc">${i.c}</span></b><span>${i.age}</span>
+      <span class="vote${i.own ? ' off' : ''}">${i.own ? 'Tu idea' : 'Votar'}</span></div>`;
+  grid.appendChild(el);
+  return el;
+});
+// Lugares de la grilla (relativos a .main): 3 columnas de 378 px, filas de 282 px
+const slot = (n) => ({ x: (n % 3) * 395, y: 156 + Math.floor(n / 3) * 299 });
+
+// ---------- Utilidades de tiempo ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const io = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2); // ease in-out
+const out = (k) => 1 - Math.pow(1 - k, 3);
+const back = (k) => { const c = 1.7; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+const prog = (t, a, b, f = io) => f(clamp((t - a) / (b - a)));
+function track(t, keys) { // keys: [t, ...valores]; interpola con ease in-out
+  if (t <= keys[0][0]) return keys[0].slice(1);
+  for (let n = 1; n < keys.length; n++) {
+    if (t <= keys[n][0]) {
+      const k = io((t - keys[n - 1][0]) / (keys[n][0] - keys[n - 1][0]));
+      return keys[n].slice(1).map((v, j) => lerp(keys[n - 1][j + 1], v, k));
+    }
+  }
+  return keys[keys.length - 1].slice(1);
+}
+const typed = (s, t, a, b) => s.slice(0, Math.round(s.length * clamp((t - a) / (b - a))));
+const caret = (t) => `<span class="caret" style="opacity:${Math.floor(t * 2.2) % 2 ? 0 : 1}"></span>`;
+const $ = (id) => document.getElementById(id);
+
+// ---------- Medidas: centro de cada elemento en coordenadas del mundo ----------
+const world = $('world');
+function center(el) {
+  const r = el.getBoundingClientRect(), w = world.getBoundingClientRect();
+  return [r.left - w.left + r.width / 2, r.top - w.top + r.height / 2];
+}
+let P = {};
+function measure() {
+  world.style.transform = 'none';
+  cards.forEach((c, n) => { const s = slot(n); c.style.left = s.x + 'px'; c.style.top = s.y + 'px'; });
+  P = {
+    newBtn: center($('newBtn')), modal: center($('modal')), title: center($('fTitle')), desc: center($('fDesc')),
+    chF: center($('chF')), pub: center($('pubBtn')),
+  };
+  // el chat va en pantalla: lo mido en reposo
+  const st = $('stage').getBoundingClientRect(), sc = (el) => { const r = el.getBoundingClientRect(); return [r.left - st.left, r.top - st.top, r.width, r.height]; };
+  $('chat').style.transform = 'none';
+  const f = sc($('vReply')), b = sc($('sendBtn'));
+  P.reply = [f[0] + 60, f[1] + f[3] / 2 + 6]; P.send = [b[0] + b[2] / 2 + 4, b[1] + b[3] / 2 + 4];
+  // la tarjeta nueva, ya en su lugar (primer casillero)
+  const m = $('win').offsetLeft + 136, top = $('win').offsetTop + 64;
+  P.card = [m + 189, top + 156 + 141];
+  P.stTag = [m + 20 + 250, top + 156 + 31];
+  P.voteN = [m + 20 + 22, top + 156 + 254];
+}
+
+// ---------- Guion ----------
+const CAM = [ // t, escala, centro x, centro y (mundo)
+  [3.5, 0.98, 960, 540], [4.4, 1.12, 960, 540], [5.25, 1.12, 960, 540], [6.15, 1.72, 0, 0],
+  [12.7, 1.72, 0, 0], [13.6, 1.12, 960, 540], [14.6, 1.12, 960, 540], [15.6, 1.95, 0, 0], [20.2, 2.05, 0, 0],
+];
+const CUR = {
+  sofia: { name: 'Sofía · Equipo', col: '#0b2b22', fg: '#fff' },
+  martina: { name: 'Martina', col: '#059669', fg: '#fff' },
+  juan: { name: 'Juan', col: '#475569', fg: '#fff' },
+  ana: { name: 'Ana', col: '#ffb700', fg: '#0f172a' },
+  lucas: { name: 'Lucas', col: '#3b82f6', fg: '#fff' },
+};
+const CUR_SVG = (c) => `<svg width="34" height="36" viewBox="0 0 34 36"><path d="M3 2l26 13.5-11.5 2.8L12 31z" fill="${c}" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>`;
+const curEls = {};
+for (const [k, c] of Object.entries(CUR)) {
+  const el = document.createElement('div');
+  el.className = 'cur';
+  el.innerHTML = CUR_SVG(c.col) + `<span class="nm" style="background:${c.col};color:${c.fg}">${c.name}</span>`;
+  $('cursors').appendChild(el);
+  const ring = document.createElement('div'); ring.className = 'ring'; ring.style.borderColor = c.col;
+  $('cursors').appendChild(ring);
+  curEls[k] = { el, ring };
+}
+const REPLY = '¡Buenísima! Cargala en nuestro buzón así la votan todos.';
+const TITLE = 'Exportar movimientos a Excel';
+const DESC = IDEAS[0].d;
+const CHIPS = Array.from({ length: 14 }, (_, n) => ({
+  t: 15.6 + n * 0.24, dx: [-220, -330, -160, -290, -380, -200, -310, -250, -170, -360, -230, -300, -190, -340][n], dy: [250, 180, 320, 220, 290, 360, 200, 270, 230, 330, 190, 300, 260, 210][n],
+  l: ['Importante', 'Importante', 'Interesante', 'Importante', 'Interesante', 'Importante', 'Importante', 'Interesante', 'Importante', 'Importante', 'Interesante', 'Importante', 'Importante', 'Interesante'][n],
+}));
+for (const c of CHIPS) { const el = document.createElement('div'); el.className = 'chip'; el.innerHTML = VOTE_SVG + c.l; $('chips').appendChild(el); c.el = el; }
+const LEMA = [['Las', 0], ['ideas', 0], ['de', 0], ['tus', 0], ['usuarios,', 0], ['<br>', 0], ['ordenadas', 0], ['en', 0], ['un', 1], ['solo', 1], ['buzón.', 1]];
+$('words').innerHTML = LEMA.map(([w, g]) => (w === '<br>' ? '<br>' : `<span class="w${g ? ' g' : ''}">${w}</span>`)).join('');
+const wordEls = [...document.querySelectorAll('#words .w')];
+
+function renderAt(t) {
+  // Cámara
+  const cam = track(t, CAM.map((k) => {
+    const c = k[2] === 0 ? (k[0] < 13 ? [P.modal[0], P.modal[1] - 6] : [P.card[0] + 30, P.card[1] - 10]) : [k[2], k[3]];
+    return [k[0], k[1], c[0], c[1]];
+  }));
+  const [s, cx, cy] = cam;
+  world.style.transform = `translate(${960 - cx * s}px,${540 - cy * s}px) scale(${s})`;
+  $('dots').style.transform = `translate(${(-cx * s) % 32}px,${(-cy * s) % 32}px)`;
+  const toScreen = (p) => [960 + (p[0] - cx) * s, 540 + (p[1] - cy) * s];
+
+  // Escena 1: chat
+  const chatIn = prog(t, 0.15, 0.7, back), chatOut = prog(t, 3.35, 3.85);
+  $('chat').style.opacity = Math.min(prog(t, 0.15, 0.45), 1 - chatOut);
+  $('chat').style.transform = `translateY(${lerp(40, 0, chatIn) - 60 * chatOut}px) scale(${lerp(0.94, 1, chatIn) - 0.06 * chatOut})`;
+  const rep = typed(REPLY, t, 1.45, 2.85);
+  $('vReply').innerHTML = t < 1.35 ? '<span class="ph">Responder…</span>' : rep + (t < 3.15 ? caret(t) : '');
+  $('sendBtn').style.transform = `scale(${1 - 0.12 * (prog(t, 3.12, 3.2, out) - prog(t, 3.2, 3.32, out))})`;
+  $('world').style.opacity = prog(t, 3.5, 4.2);
+
+  // Botón «+ Nueva idea»
+  $('newBtn').style.transform = `scale(${1 - 0.07 * (prog(t, 5.07, 5.15, out) - prog(t, 5.15, 5.3, out))})`;
+  $('newBtn').style.background = t > 4.8 && t < 5.4 ? '#047857' : '#059669';
+
+  // Modal
+  const mIn = prog(t, 5.3, 5.65, out), mOut = prog(t, 12.65, 12.95);
+  const mv = mIn * (1 - mOut);
+  $('veil').style.opacity = mv;
+  $('modal').style.opacity = mv;
+  $('modal').style.transform = `scale(${lerp(0.94, 1, mIn) - 0.04 * mOut})`;
+  const ti = typed(TITLE, t, 6.25, 7.85), de = typed(DESC, t, 8.35, 11.0);
+  const fT = t > 6.05 && t < 8.15, fD = t > 8.15;
+  $('fTitle').className = 'box' + (fT ? ' focus' : '');
+  $('fDesc').className = 'box area' + (fD ? ' focus' : '');
+  $('vTitle').innerHTML = (ti || (fT ? '' : '<span class="ph">Resumí la idea en una línea</span>')) + (fT ? caret(t) : '');
+  $('vDesc').innerHTML = (de || (fD ? '' : '<span class="ph">Contá qué problema resuelve y para quién</span>')) + (fD && t < 11.3 ? caret(t) : '');
+  $('cTitle').textContent = ti.length + ' / 80';
+  $('cDesc').textContent = de.length + ' / 2.000';
+  $('chF').className = t > 11.6 ? 'on' : '';
+  $('pubBtn').style.transform = `scale(${1 - 0.08 * (prog(t, 12.42, 12.5, out) - prog(t, 12.5, 12.64, out))})`;
+  $('pubBtn').style.background = t > 12.2 ? '#047857' : '#059669';
+
+  // Grilla: la idea nueva entra primera y las demás se corren un lugar
+  const ins = prog(t, 13.15, 13.95);
+  cards.forEach((c, n) => {
+    if (n === 0) {
+      const k = prog(t, 13.35, 14.0, back), s0 = slot(0);
+      c.style.left = s0.x + 'px'; c.style.top = s0.y + 'px';
+      c.style.opacity = prog(t, 13.35, 13.7);
+      c.style.transform = `scale(${lerp(0.85, 1, k)})`;
+      const glow = prog(t, 13.4, 13.9) * (1 - prog(t, 15.2, 16.2));
+      c.style.boxShadow = `0 0 0 ${3 * glow}px rgba(5,150,105,${0.55 * glow}), 0 ${12 * glow}px ${30 * glow}px rgba(5,150,105,${0.18 * glow})`;
+      c.style.borderColor = glow > 0.05 ? '#6ee7b7' : '#f0f0f0';
+      return;
+    }
+    const a = slot(n - 1), b = slot(n);
+    c.style.left = lerp(a.x, b.x, ins) + 'px'; c.style.top = lerp(a.y, b.y, ins) + 'px';
+  });
+  $('toast').style.opacity = prog(t, 13.4, 13.65) * (1 - prog(t, 15.4, 15.7));
+  $('toast').style.transform = `translate(-50%,${lerp(-16, 0, prog(t, 13.4, 13.7, out))}px)`;
+
+  // Votos y comentarios
+  const vk = prog(t, 15.6, 19.0, (k) => k);
+  cards[0].querySelector('.nv').textContent = Math.round(48 * out(vk));
+  cards[0].querySelector('.nc').textContent = Math.round(12 * out(prog(t, 16.2, 19.3, (k) => k)));
+  const vs = toScreen(P.voteN);
+  for (const c of CHIPS) {
+    const k = clamp((t - c.t) / 1.5);
+    c.el.style.opacity = k <= 0 || k >= 1 ? 0 : Math.min(1, k * 6) * (1 - prog(k, 0.6, 1, (x) => x));
+    c.el.style.transform = `translate(${vs[0] + c.dx * out(k) - 40}px,${vs[1] - 50 - c.dy * out(k)}px) scale(${lerp(0.7, 1, out(Math.min(1, k * 3)))})`;
+  }
+  // Estado: Pendiente de revisión → Aprobada
+  const ap = t > 19.75;
+  const slotEl = cards[0].querySelector('.stslot');
+  const want = ap ? 'a' : 'p';
+  if (slotEl.dataset.st !== want) { slotEl.innerHTML = tag(ST[want]); slotEl.dataset.st = want; }
+  const pop = prog(t, 19.75, 20.05, out) - prog(t, 20.05, 20.4, out);
+  slotEl.style.display = 'inline-block';
+  slotEl.style.transform = `scale(${1 + 0.18 * pop})`;
+
+  // Cursores (posiciones en el mundo, salvo Sofía en el chat, que va en pantalla)
+  const card = P.card;
+  const paths = {
+    sofia: t < 4 ? { screen: true, k: [[0.5, P.reply[0] + 420, 1080], [1.25, P.reply[0], P.reply[1]], [2.85, P.reply[0] + 40, P.reply[1] + 30], [3.12, P.send[0], P.send[1]], [3.45, P.send[0], P.send[1]], [3.9, P.send[0] + 220, 1150]], a: [0.55, 0.75, 3.4, 3.85], clicks: [1.3, 3.18] }
+      : { k: [[18.7, card[0] + 260, card[1] + 230], [19.55, P.stTag[0] + 6, P.stTag[1] + 4], [20.6, P.stTag[0] + 10, P.stTag[1] + 8]], a: [18.7, 18.95, 20.5, 20.85], clicks: [19.72] },
+    martina: { k: [[3.9, 1640, 1000], [5.05, P.newBtn[0] + 10, P.newBtn[1] + 4], [5.5, P.newBtn[0] + 10, P.newBtn[1] + 4], [6.05, P.title[0] + 40, P.title[1] + 2], [8.0, P.title[0] + 60, P.title[1] + 30], [8.2, P.desc[0] + 40, P.desc[1] + 10], [11.1, P.desc[0] + 140, P.desc[1] + 40], [11.55, P.chF[0] + 4, P.chF[1] + 2], [11.9, P.chF[0] + 4, P.chF[1] + 2], [12.45, P.pub[0] + 6, P.pub[1] + 2], [13.0, P.pub[0] + 6, P.pub[1] + 2], [14.4, card[0] + 250, card[1] + 120], [15.4, card[0] + 330, card[1] + 160]],
+      a: [3.95, 4.3, 15.0, 15.5], clicks: [5.12, 6.08, 8.22, 11.6, 12.48] },
+    juan: { k: [[15.0, card[0] - 330, card[1] + 260], [16.0, card[0] - 120, card[1] + 150], [17.4, card[0] - 210, card[1] + 70], [19.2, card[0] - 280, card[1] + 200]], a: [15.0, 15.3, 19.0, 19.4], clicks: [16.05] },
+    ana: { k: [[15.5, card[0] + 380, card[1] - 200], [16.6, card[0] + 215, card[1] - 30], [18.0, card[0] + 260, card[1] - 90], [19.4, card[0] + 340, card[1] - 40]], a: [15.5, 15.8, 19.1, 19.5], clicks: [16.65] },
+    lucas: { k: [[16.1, card[0] + 330, card[1] + 260], [17.2, card[0] + 220, card[1] + 120], [18.6, card[0] + 300, card[1] + 200]], a: [16.1, 16.4, 18.8, 19.3], clicks: [17.25] },
+  };
+  for (const [k, p] of Object.entries(paths)) {
+    const { el, ring } = curEls[k];
+    const pos = track(t, p.k);
+    const sp = p.screen ? pos : toScreen(pos);
+    const op = prog(t, p.a[0], p.a[1]) * (1 - prog(t, p.a[2], p.a[3]));
+    let press = 0, rk = -1;
+    for (const c of p.clicks) { press = Math.max(press, prog(t, c - 0.08, c, out) - prog(t, c, c + 0.16, out)); if (t >= c && t < c + 0.45) rk = (t - c) / 0.45; }
+    el.style.opacity = op;
+    el.style.transform = `translate(${sp[0] - 4}px,${sp[1] - 3}px) scale(${1 - 0.14 * press})`;
+    ring.style.opacity = rk < 0 ? 0 : (1 - rk) * op;
+    ring.style.transform = `translate(${sp[0]}px,${sp[1]}px) scale(${lerp(0.3, 1.25, out(Math.max(rk, 0)))})`;
+  }
+
+  // Cierre: fondo difuminado, lema palabra por palabra y logo
+  const bl = prog(t, 20.6, 21.4);
+  world.style.filter = bl > 0 ? `blur(${14 * bl}px)` : 'none';
+  $('chips').style.opacity = 1 - bl;
+  $('veil2').style.opacity = 0.72 * bl + 0.28 * prog(t, 24.8, 25.4);
+  const wOut = prog(t, 24.75, 25.15);
+  wordEls.forEach((w, n) => {
+    const k = prog(t, 21.2 + n * 0.2, 21.65 + n * 0.2, out);
+    w.style.opacity = k * (1 - wOut);
+    w.style.transform = `translateY(${lerp(28, 0, k) - 24 * wOut}px)`;
+    w.style.filter = k < 1 ? `blur(${8 * (1 - k)}px)` : 'none';
+  });
+  const e = $('end').children;
+  [[25.0, 0], [25.35, 1], [25.65, 2], [25.85, 3]].forEach(([a, n]) => {
+    const k = prog(t, a, a + 0.55, out);
+    e[n].style.opacity = k;
+    e[n].style.transform = `translateY(${lerp(30, 0, k)}px)` + (n === 0 ? ` scale(${lerp(0.9, 1, prog(t, a, a + 0.7, back))})` : '');
+  });
+}
+const DURATION = 30.5;
+window.ready = document.fonts.ready.then(() => { measure(); renderAt(0); });
+if (location.search.includes('play')) window.ready.then(() => { const t0 = performance.now(); const f = () => { renderAt(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(f); }; f(); });
+</script>
+</body></html>
