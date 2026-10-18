@@ -16,3 +16,7 @@ __pycache__/
 
 # handoff original de Claude Design (el contenido ya está en design/)
 *.zip
+
+# prueba de carga: emails y contraseña de prueba
+scripts/stress/usuarios.json
+scripts/stress/resultados/
