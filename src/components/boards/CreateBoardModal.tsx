@@ -17,8 +17,8 @@ export function CreateBoardModal({ open, teamId, ownTeams, onClose }: { open: bo
   const { t } = useI18n();
   const { refresh } = useSession();
   const [step, setStep] = useState(0);
-  const [start, setStart] = useState<'blank' | 'template'>('template');
-  const [kind, setKind] = useState('producto');
+  const [start, setStart] = useState<'blank' | 'template' | null>(null); // nothing chosen until the person picks
+  const [kind, setKind] = useState('');
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [team, setTeam] = useState(teamId);
@@ -30,13 +30,14 @@ export function CreateBoardModal({ open, teamId, ownTeams, onClose }: { open: bo
 
   useEffect(() => {
     if (!open) return;
-    setStep(0); setStart('template'); setKind('producto'); setName(''); setDesc(''); setTeam(teamId);
+    setStep(0); setStart(null); setKind(''); setName(''); setDesc(''); setTeam(teamId);
     setVis('invite'); setMembersIdeas(true); setGuestsIdeas(true); setTried(false); setBusy(false);
   }, [open, teamId]);
 
   const teamPro = !!ownTeams.find((x) => x.id === team)?.pro;
   const finalKind = start === 'blank' ? 'blank' : kind;
   const next = () => {
+    if (step === 0 && !(start === 'blank' || (start === 'template' && kind))) return;
     if (step === 1) { setTried(true); if (!name.trim()) return; }
     setTried(false); setStep(step + 1);
   };
@@ -53,7 +54,8 @@ export function CreateBoardModal({ open, teamId, ownTeams, onClose }: { open: bo
   }
 
   const option = (k: 'blank' | 'template', title: string, d: string, icon: React.ReactNode) => (
-    <button type="button" onClick={() => setStart(k)} style={{
+    // A blank board goes straight to the name; a template opens the types below.
+    <button type="button" onClick={() => { setStart(k); if (k === 'blank') { setKind(''); setTried(false); setStep(1); } }} style={{
       flex: 1, minWidth: 200, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 8, padding: 16, borderRadius: 10, cursor: 'pointer', font: 'inherit', color: 'inherit',
       border: start === k ? '2px solid #059669' : '1px solid #e5e7eb', background: start === k ? '#ecfdf5' : '#fff',
     }}>
@@ -64,7 +66,7 @@ export function CreateBoardModal({ open, teamId, ownTeams, onClose }: { open: bo
   );
 
   return (
-    <Modal open={open} onCancel={onClose} title={t('Crear buzón')} width={step === 0 && start === 'template' ? 620 : 520} destroyOnHidden footer={null}>
+    <Modal open={open} onCancel={onClose} title={t('Crear buzón')} width={680} destroyOnHidden footer={null}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 4 }}>
         <Steps size="small" current={step} items={[{ title: t('Tipo') }, { title: t('Nombre') }, { title: t('Accesos') }]} />
 
@@ -120,7 +122,7 @@ export function CreateBoardModal({ open, teamId, ownTeams, onClose }: { open: bo
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', borderTop: '1px solid #f0f0f0', paddingTop: 14 }}>
           {step === 0 ? <button type="button" className="bx-btn" onClick={onClose}>{t('Cancelar')}</button> : <button type="button" className="bx-btn" onClick={() => setStep(step - 1)}>{t('Atrás')}</button>}
           {step < 2
-            ? <button type="button" className="bx-btn-primary" onClick={next}>{t('Siguiente')}</button>
+            ? <button type="button" className="bx-btn-primary" onClick={next} disabled={step === 0 && !(start === 'blank' || (start === 'template' && kind))}>{t('Siguiente')}</button>
             : <button type="button" className="bx-btn-primary" disabled={busy} onClick={create}>{busy ? t('Creando…') : t('Crear buzón')}</button>}
         </div>
       </div>

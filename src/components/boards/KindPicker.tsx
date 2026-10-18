@@ -20,13 +20,13 @@ export function KindPicker({ value, onChange, pro, templatesOnly }: { value: str
           <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>{t(BLANK.d)}</span>
         </button>
       </>}
-      {KIND_CATEGORIES.map((c) => (
+      {KIND_CATEGORIES.filter((c) => !templatesOnly || c.status === 'ready').map((c) => (
         <div key={c.k} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.45)' }}>
             {t(c.l)}{c.status === 'soon' && soon}
           </span>
           {c.status === 'soon' ? <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginTop: -4 }}>{t(c.d)}</span> : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: 8 }}>
               {c.types.map((x) => {
                 const off = x.status === 'soon', locked = !off && x.pro && !pro;
                 return (
