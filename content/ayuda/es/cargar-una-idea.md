@@ -26,7 +26,7 @@ Una captura o una foto ayuda a entender la idea. Se acepta **una imagen por idea
 
 ## Publicar como anónimo
 
-Si marcás **Publicar como anónimo**, la idea aparece como «Anónimo» para la Comunidad y para los miembros del equipo. **Solo el Admin del equipo** sabe que es tuya. Igual te siguen llegando por email los comentarios, los cambios de estado y el lanzamiento de tu idea.
+Si marcás **Publicar como anónimo**, la idea aparece como «Anónimo» para la Comunidad y para los miembros del equipo. **Solo los Admins del equipo** saben que es tuya. Igual te siguen llegando por email los comentarios, los cambios de estado y el lanzamiento de tu idea.
 
 - Tus comentarios en esa idea también salen como «Anónimo (autor de la idea)».
 - Podés mostrar tu nombre más tarde: abrí la idea y tocá **Mostrar mi nombre**.

@@ -17,7 +17,7 @@ Open them from the board's **Settings** tab.
 - **What guests see:** whether they can see the Roadmap.
 - **Vote options:** rename *Important*, *Interesting* and *Not important* to whatever you prefer.
 - **Prioritization:** turn **Impact and effort** (the Matrix and Value) and **Growth** on or off. They start on; turning them off deletes nothing.
-- **Anonymous ideas:** allow ideas to be posted anonymously or not. Starts on.
+- **Anonymous ideas:** allow ideas to be posted anonymously or not; only Admins see who proposed them. Starts on.
 
 ## Categories
 

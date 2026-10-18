@@ -297,7 +297,7 @@ export function AuthorLine({ i, size = 18 }: { i: Pick<Idea, 'author_id' | 'auth
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
       <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={size} color={i.author_id ? undefined : '#d9d9d9'} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.author_id ? i.author_name : t(i.author_name)}</span>
-      {i.anonymous && <span title={t('Publicada como anónimo: solo el Admin del equipo ve quién la propuso.')} style={{ display: 'inline-flex', color: '#6b7280' }}><MaskIcon size={14} /></span>}
+      {i.anonymous && <span title={t('Publicada como anónimo: solo los Admins del equipo ven quién la propuso.')} style={{ display: 'inline-flex', color: '#6b7280' }}><MaskIcon size={14} /></span>}
     </span>
   );
 }

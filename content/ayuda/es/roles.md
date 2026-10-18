@@ -1,18 +1,23 @@
 ---
-title: "Roles: Admin, miembros y Comunidad"
-summary: Quién puede hacer qué en un buzón.
+title: "Roles: Admin Owner, Admins, miembros y Comunidad"
+summary: Quién puede hacer qué en un equipo y en un buzón.
 section: inicio
 order: 3
-plans: Todos los planes
+plans: Todos los planes (Admins en Team y Enterprise)
 roles: Todos
-covers: roles, permissions
+covers: roles, permissions, team_admins
 ---
 En Boxinger hay dos grandes grupos: el **Equipo**, que decide, y la **Comunidad**, que propone y vota.
 
 ## Equipo
 
-- **Admin del equipo:** el dueño de la cuenta, quienes tienen rol Admin en el equipo y quien creó el buzón. Configura el buzón, invita personas, importa y exporta, y es el único que ve quién publicó una idea anónima.
-- **Miembros:** personas del equipo con acceso a uno o varios buzones. Revisan ideas, cambian estados, priorizan y trabajan el Roadmap. Pueden cargar ideas si el Admin lo habilitó.
+| Rol | Quién es | Qué puede hacer |
+|---|---|---|
+| **Admin Owner** | El dueño de la cuenta (uno solo) | Todo: la suscripción y los pagos, eliminar el equipo, hacer Admin a otros y quitarles el rol, y todo lo que hace un Admin. |
+| **Admin** | Personas del equipo a las que el Admin Owner les dio el rol (Team y Enterprise) | Configurar buzones, invitar y quitar miembros, importar y exportar, conectar integraciones y ver quién publicó las ideas anónimas. No toca la suscripción, no elimina el equipo y no puede quitar a otros Admins. |
+| **Miembro** | El resto del equipo | Revisar, priorizar y planificar ideas en los buzones a los que tiene acceso. Puede cargar ideas si el Admin lo habilitó. |
+
+Quien crea un buzón también lo puede administrar, aunque sea Miembro.
 
 ## Comunidad
 
@@ -21,12 +26,13 @@ En Boxinger hay dos grandes grupos: el **Equipo**, que decide, y la **Comunidad*
 
 ## Qué ve cada uno
 
-| | Comunidad | Miembros | Admin |
+| | Comunidad | Miembros | Admins |
 |---|---|---|---|
 | Buzón, Ranking, Backlog, Novedades | Sí | Sí | Sí |
 | Roadmap | Si el Admin lo habilita | Sí | Sí |
 | Matriz y Status | No | Sí | Sí |
-| Configuración | No | Parcial | Sí |
+| Configuración del buzón | No | Parcial | Sí |
 | Autor de una idea anónima | No | No | Sí |
+| Suscripción y pagos | No | No | Solo el Admin Owner |
 
-> **Tip:** El plan Free es solo para vos, sin miembros. Con Pro sumás hasta 4 miembros por equipo, con Team hasta 20, y con Enterprise los que acuerdes.
+> **Tip:** El plan Free es solo para vos. Con Pro sumás hasta 4 personas por equipo, con Team hasta 20 (miembros y Admins juntos), y con Enterprise las que acuerdes. Más detalle en [Miembros del equipo](/app/ayuda/miembros-del-equipo).

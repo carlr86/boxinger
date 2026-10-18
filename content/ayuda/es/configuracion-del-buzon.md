@@ -17,7 +17,7 @@ Entrá desde la pestaña **Configuración** del buzón.
 - **Qué ven los invitados:** si pueden ver el Roadmap.
 - **Opciones de voto:** cambiá *Importante*, *Interesante* y *No importante* por los que prefieras.
 - **Priorización:** prendé o apagá **Impacto y esfuerzo** (la Matriz y el Valor) y **Growth**. Vienen prendidos; apagarlos no borra lo cargado.
-- **Ideas anónimas:** permitir o no que se publiquen ideas como anónimo. Viene prendido.
+- **Ideas anónimas:** permitir o no que se publiquen ideas como anónimo; solo los Admins ven quién las propuso. Viene prendido.
 
 ## Categorías
 

@@ -26,7 +26,7 @@ A screenshot or a photo helps explain the idea. **One image per idea**, in JPG, 
 
 ## Post anonymously
 
-If you check **Post anonymously**, the idea shows as "Anonymous" to the Community and to team members. **Only the team Admin** knows it's yours. You still get emails about comments, status changes and your idea's launch.
+If you check **Post anonymously**, the idea shows as "Anonymous" to the Community and to team members. **Only the team's Admins** know it's yours. You still get emails about comments, status changes and your idea's launch.
 
 - Your comments on that idea also show as "Anonymous (idea author)".
 - You can show your name later: open the idea and tap **Show my name**.

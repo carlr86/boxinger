@@ -169,13 +169,13 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, lineHeight: 1.4, textWrap: 'pretty', overflowWrap: 'anywhere' }}>{i.title}</h2>
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              {i.anonymous && <span title={t('Publicada como anónimo: solo el Admin del equipo ve quién la propuso.')} style={{ display: 'inline-flex' }}><MaskIcon size={14} /></span>}
+              {i.anonymous && <span title={t('Publicada como anónimo: solo los Admins del equipo ven quién la propuso.')} style={{ display: 'inline-flex' }}><MaskIcon size={14} /></span>}
               <span>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span>{i.imported && <span title={t('Idea importada desde un archivo, con su fecha original')}> · {t('Importada')}</span>}</span>
             </span>
             {/* The author can hide or show their name at any time. */}
             {api.me && i.author_id === api.me.id && api.canWrite && (i.anonymous || api.data.board.allow_anonymous !== false) && (
               <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
-                {i.anonymous ? t('Publicaste esta idea como anónimo: solo el Admin del equipo sabe que es tuya.') + ' ' : ''}
+                {i.anonymous ? t('Publicaste esta idea como anónimo: solo los Admins del equipo saben que es tuya.') + ' ' : ''}
                 <a onClick={() => act(rpc('set_idea_anonymous', { p_id: i.id, p_on: !i.anonymous }), i.anonymous ? 'Ahora la idea muestra tu nombre' : 'Ahora la idea se muestra como anónima')}>
                   {i.anonymous ? t('Mostrar mi nombre') : t('Publicar como anónimo')}
                 </a>
@@ -403,7 +403,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 13 }}>
                       <strong style={{ fontWeight: 600, fontSize: 14 }}>{c.author_id && !c.deleted ? c.author_name : t(c.author_name)}</strong>
-                      {c.author_anonymous && c.author_id && !c.deleted && <span title={t('Comentó como autor anónimo de la idea: solo el Admin del equipo ve su nombre.')} style={{ display: 'inline-flex', color: '#6b7280' }}><MaskIcon size={14} /></span>}
+                      {c.author_anonymous && c.author_id && !c.deleted && <span title={t('Comentó como autor anónimo de la idea: solo los Admins del equipo ven su nombre.')} style={{ display: 'inline-flex', color: '#6b7280' }}><MaskIcon size={14} /></span>}
                       {!c.deleted && !(c.author_anonymous && !c.author_id) && (
                         <span style={{ fontSize: 12, lineHeight: '18px', padding: '0 6px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid ' + ORIGIN[o].bd, background: ORIGIN[o].bg, color: ORIGIN[o].fg }}>
                           {o === 'comunidad' ? <CommunityIcon /> : <TeamIcon />}{t(ORIGIN[o].l)}

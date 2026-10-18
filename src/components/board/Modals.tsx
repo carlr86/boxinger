@@ -104,7 +104,7 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
             <input type="checkbox" checked={anon} onChange={(x) => setAnon(x.target.checked)} style={{ width: 16, height: 16, marginTop: 2, accentColor: '#059669', cursor: 'pointer' }} />
             <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ fontSize: 14, fontWeight: 500 }}>{t('Publicar como anónimo')}</span>
-              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>{t('Tu nombre no se muestra. Solo el Admin del equipo sabe que es tuya, y te seguimos avisando por email.')}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>{t('Tu nombre no se muestra. Solo los Admins del equipo saben que es tuya, y te seguimos avisando por email.')}</span>
             </span>
           </label>
         )}

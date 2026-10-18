@@ -4,7 +4,7 @@ summary: What each plan includes, and how to pay, change or cancel.
 section: cuenta
 order: 2
 plans: Every plan
-roles: Account owner
+roles: Admin Owner
 covers: plans, billing, cancel
 ---
 ## The plans
@@ -13,7 +13,8 @@ covers: plans, billing, cancel
 |---|---|---|---|---|
 | Price | Free | USD 9.99 / month | USD 19.99 / month | Custom |
 | Teams and boards | 1 and 1 | Unlimited | Unlimited | Unlimited |
-| Members per team | Just you | Up to 4 | Up to 20 | As agreed |
+| People per team | Just you | Up to 4 | Up to 20 | As agreed |
+| Admins besides the Admin Owner | No | No | Yes | Yes |
 | Matrix, Roadmap, Status, Updates | No | Yes | Yes | Yes |
 | Import, merge ideas, images | No | Yes | Yes | Yes |
 | Slack and integrations | No | Yes | Yes | Yes |

@@ -192,6 +192,24 @@ export function render(template: string, p: P, locale: Locale = 'es'): { subject
           { label: ent ? t('Volver a Team') : t('Volver a Pro'), url: `${SITE_URL}/app/perfil?tab=sub` }),
       };
     }
+    case 'owner_admin_action': {
+      // To the Admin Owner when someone else (a team Admin) does something sensitive on one of their boards.
+      const what: Record<string, string> = {
+        board_deleted: t('eliminó el buzón {board}', { board: b(p.board_name) }),
+        board_emptied: t('vació el buzón {board} (borró todas sus ideas)', { board: b(p.board_name) }),
+        ideas_exported: t('exportó las ideas del buzón {board}', { board: b(p.board_name) }),
+        api_key_created: t('creó una clave de integración en el buzón {board}', { board: b(p.board_name) }),
+        api_key_rotated: t('cambió la clave de integración del buzón {board}', { board: b(p.board_name) }),
+        slack_connected: t('conectó Slack al buzón {board}', { board: b(p.board_name) }),
+      };
+      const who = esc(p.actor) + (p.actor_email && p.actor_email !== p.actor ? ` (${esc(p.actor_email)})` : '');
+      return {
+        subject: t('Actividad de un Admin en {team}', { team: s(p.team_name) }),
+        html: layout(t('Un Admin hizo un cambio en tu equipo'),
+          `${who} ${what[s(p.action)] || esc(p.action)}.` + '<br><br>' + t('Te avisamos porque sos el Admin Owner de {team}. Si no lo esperabas, podés quitarle el rol desde Mis Buzones › Gestionar equipo.', { team: b(p.team_name) }),
+          p.slug && p.action !== 'board_deleted' ? { label: t('Ver el buzón'), url: boardLink(p) } : { label: t('Ir a mis buzones'), url: `${SITE_URL}/app/buzones` }),
+      };
+    }
     case 'payment_failed':
       return {
         subject: t('No pudimos cobrar tu suscripción Pro'),

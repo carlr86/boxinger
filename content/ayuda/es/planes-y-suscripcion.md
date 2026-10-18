@@ -4,7 +4,7 @@ summary: Qué incluye cada plan, cómo pagar, cambiar o cancelar.
 section: cuenta
 order: 2
 plans: Todos los planes
-roles: Dueño de la cuenta
+roles: Admin Owner
 covers: plans, billing, cancel
 ---
 ## Los planes
@@ -13,7 +13,8 @@ covers: plans, billing, cancel
 |---|---|---|---|---|
 | Precio | Gratis | USD 9,99 / mes | USD 19,99 / mes | A medida |
 | Equipos y buzones | 1 y 1 | Ilimitados | Ilimitados | Ilimitados |
-| Miembros por equipo | Solo vos | Hasta 4 | Hasta 20 | Los que acuerdes |
+| Personas por equipo | Solo vos | Hasta 4 | Hasta 20 | Las que acuerdes |
+| Admins además del Admin Owner | No | No | Sí | Sí |
 | Matriz, Roadmap, Status, Novedades | No | Sí | Sí | Sí |
 | Importar, unir ideas, imágenes | No | Sí | Sí | Sí |
 | Slack e integraciones | No | Sí | Sí | Sí |

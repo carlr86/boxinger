@@ -15,6 +15,7 @@ import { MemberRow } from './BoardsPage';
 
 type Team = {
   id: string; name: string; color: string; pro: boolean; max_members: number | null; plan?: string; members_can_create_boards?: boolean;
+  is_owner?: boolean; // the Admin Owner (account owner): only they give or take the Admin role and remove Admins
   owner: { id: string; name: string; email: string; avatar_url: string | null };
   members: { user_id: string; name: string; email: string; avatar_url: string | null; role: string; all_boards: boolean }[];
   pending: { id: string; email: string; created_at: string; board_id: string | null }[];
@@ -60,6 +61,18 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
     } catch (e) { toast.err(e); } finally { setBusy(false); }
   }
 
+  // Admin role (Team and Enterprise = plan 'enterprise'): only the Admin Owner gives or takes it.
+  const setRole = async (userId: string, name: string, role: 'admin' | 'member') => {
+    if (!team) return;
+    try {
+      await rpc('set_team_member_role', { p_team: team.id, p_user: userId, p_role: role });
+      toast.ok(role === 'admin' ? t('{name} ahora es Admin del equipo', { name }) : t('{name} vuelve a ser Miembro', { name }));
+      load(); refresh();
+    } catch (e) { toast.err(e); }
+  };
+  const canAdmins = team?.plan === 'enterprise';
+  const accessMembers = team ? team.members.filter((m) => m.role !== 'admin') : []; // Admins always see every board
+
   const toggle = async (boardId: string, userId: string, on: boolean, boardName: string, name: string) => {
     if (!team) return;
     setTeam({ ...team, boards: team.boards.map((b) => (b.id === boardId ? { ...b, access: { ...b.access, [userId]: !on } } : b)) });
@@ -89,14 +102,33 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Miembros')} · {team.pro ? (unlimited ? `${team.members.length + 1}` : t('{n} de {max}', { n: team.members.length + 1, max: limit + 1 })) : t('{n} de {max}', { n: 1, max: 1 })}</span>
-            <MemberRow name={team.owner.name} email={team.owner.email} id={team.owner.id} status={t('Admin')} />
+            <MemberRow name={team.owner.name} email={team.owner.email} id={team.owner.id} status={t('Admin Owner')} />
             {team.members.map((m) => (
-              <MemberRow key={m.user_id} name={m.name} email={m.email} id={m.user_id} status={team.pro ? (m.all_boards ? t('Miembro') : t('Miembro · por buzón')) : t('Pausado · requiere Pro')} warn={!team.pro}
+              <MemberRow key={m.user_id} name={m.name} email={m.email} id={m.user_id}
+                status={!team.pro ? t('Pausado · requiere Pro') : m.role === 'admin' ? t('Admin') : m.all_boards ? t('Miembro') : t('Miembro · por buzón')} warn={!team.pro}
                 action={
-                  <Popconfirm title={t('¿Quitar a {name} del equipo?', { name: m.name })} okText={t('Quitar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }}
-                    onConfirm={async () => { try { await rpc('remove_team_member', { p_team: team.id, p_user: m.user_id }); toast.ok(t('{name} ya no es parte del equipo', { name: m.name })); load(); refresh(); } catch (e) { toast.err(e); } }}>
-                    <a className="bx-link-muted" style={{ fontSize: 13 }}>{t('Quitar')}</a>
-                  </Popconfirm>
+                  <span style={{ display: 'inline-flex', gap: 10 }}>
+                    {team.is_owner && team.pro && (m.role === 'admin' ? (
+                      <Popconfirm title={t('¿Quitarle el rol Admin a {name}?', { name: m.name })} description={t('Vuelve a ser Miembro: deja de configurar buzones e integraciones y de gestionar el equipo.')}
+                        okText={t('Quitar Admin')} cancelText={t('Cancelar')} onConfirm={() => setRole(m.user_id, m.name, 'member')}>
+                        <a className="bx-link-muted" style={{ fontSize: 13 }}>{t('Quitar Admin')}</a>
+                      </Popconfirm>
+                    ) : canAdmins ? (
+                      <Popconfirm title={t('¿Hacer Admin a {name}?', { name: m.name })} okText={t('Hacer Admin')} cancelText={t('Cancelar')}
+                        description={<span style={{ display: 'block', maxWidth: 300 }}>{t('Va a poder configurar los buzones, invitar y quitar miembros, importar y exportar, conectar integraciones y ver quién publicó las ideas anónimas. No puede tocar la suscripción, eliminar el equipo ni quitar a otros Admins. Te avisamos por email si elimina o vacía un buzón, exporta ideas o conecta una integración.')}</span>}
+                        onConfirm={() => setRole(m.user_id, m.name, 'admin')}>
+                        <a className="bx-link-muted" style={{ fontSize: 13 }}>{t('Hacer Admin')}</a>
+                      </Popconfirm>
+                    ) : (
+                      <a className="bx-link-muted" style={{ fontSize: 13, opacity: 0.6 }} title={t('Sumar Admins al equipo está disponible en los planes Team y Enterprise.')} onClick={() => { onClose(); router.push('/app/perfil?tab=sub'); }}>{t('Hacer Admin')} · Team</a>
+                    ))}
+                    {(team.is_owner || m.role !== 'admin') && (
+                      <Popconfirm title={t('¿Quitar a {name} del equipo?', { name: m.name })} okText={t('Quitar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }}
+                        onConfirm={async () => { try { await rpc('remove_team_member', { p_team: team.id, p_user: m.user_id }); toast.ok(t('{name} ya no es parte del equipo', { name: m.name })); load(); refresh(); } catch (e) { toast.err(e); } }}>
+                        <a className="bx-link-muted" style={{ fontSize: 13 }}>{t('Quitar')}</a>
+                      </Popconfirm>
+                    )}
+                  </span>
                 } />
             ))}
             {team.pending.map((p) => (
@@ -127,24 +159,24 @@ export function TeamDrawer({ teamId, onClose, onRename }: { teamId: string; onCl
               </div>
             </div>
           )}
-          {team.pro && free <= 0 && <Note>{t('El equipo está completo: vos y {n} miembros. Quitá a alguien para invitar a otra persona.', { n: limit })}</Note>}
+          {team.pro && free <= 0 && <Note>{t('El equipo está completo: vos y {n} personas (miembros y Admins). Quitá a alguien para invitar a otra persona.', { n: limit })}</Note>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Acceso a buzones')}</span>
-              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Los miembros ven todos los buzones del equipo. Tocá un nombre para quitarle o devolverle el acceso a ese buzón.')}</span>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Los miembros ven todos los buzones del equipo, y los Admins siempre ven todos. Tocá un nombre para quitarle o devolverle el acceso a ese buzón.')}</span>
             </div>
-            {(!team.pro || team.members.length === 0) && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Sumá miembros para gestionar el acceso por buzón.')}</span>}
-            {team.pro && team.members.length > 0 && team.boards.map((b) => {
-              const n = team.members.filter((m) => b.access[m.user_id] !== false).length;
+            {(!team.pro || accessMembers.length === 0) && <span style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{t('Sumá miembros para gestionar el acceso por buzón.')}</span>}
+            {team.pro && accessMembers.length > 0 && team.boards.map((b) => {
+              const n = accessMembers.filter((m) => b.access[m.user_id] !== false).length;
               return (
                 <div key={b.id} style={{ border: '1px solid #f0f0f0', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Avatar name={b.name} color={b.color} size={22} square />
                     <span style={{ flex: 1, fontSize: 14, fontWeight: 500 }}>{b.name}</span>
-                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('{n} de {max} con acceso', { n: n + 1, max: team.members.length + 1 })}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('{n} de {max} con acceso', { n: n + 1, max: accessMembers.length + 1 })}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {team.members.map((m) => {
+                    {accessMembers.map((m) => {
                       const on = b.access[m.user_id] !== false;
                       const nm = m.name ? m.name.split(' ')[0] : m.email.split('@')[0];
                       return (
