@@ -81,6 +81,9 @@ export interface BoardInfo {
   invite_code: string | null; guests: number; version: string;
   created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean; allow_anonymous?: boolean;
   use_rating?: boolean; use_growth?: boolean; // optional prioritization tools (on by default)
+  kind?: string; // board type: producto | brainstorm | blank (src/lib/board-kinds.ts)
+  modules?: Record<string, boolean>; // effective modules: ranking, backlog, rating, growth, roadmap, status, changelog, affinity
+  module_states?: Record<string, 'fixed' | 'optional' | 'off'>; // what the type allows for each one
   allowed_domains: string[] | null; // only for whoever can manage the board
   guests_can_view_roadmap: boolean; // effective (setting on, Pro, not private)
   roadmap_setting: boolean; // the raw board setting

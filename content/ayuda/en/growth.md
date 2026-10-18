@@ -23,4 +23,4 @@ Open the idea and, in the **Growth** section, tap the goals that apply. They sho
 
 In [Status](/app/ayuda/status), the **Growth of launched ideas** card shows how many launched ideas target each goal and their average impact.
 
-> **Tip:** If you don't use it, the Admin can turn growth off in **Settings › Prioritization**. Nothing already entered is deleted.
+> **Tip:** If you don't use it, the Admin can turn growth off in **Settings › Type and modules**. Nothing already entered is deleted.

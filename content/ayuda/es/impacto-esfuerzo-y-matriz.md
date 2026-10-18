@@ -28,4 +28,4 @@ El tamaño de cada burbuja indica el impacto. A la derecha está la lista ordena
 
 En el Roadmap, cada idea muestra su **Valor = Impacto × Puntaje de votos ÷ Esfuerzo**. Cuanto más alto, más valor por el esfuerzo.
 
-> **Tip:** Si tu equipo no usa estas calificaciones, el Admin puede apagarlas en **Configuración › Priorización**: desaparecen la Matriz, las filas de las tarjetas y el Valor. Lo ya cargado no se borra.
+> **Tip:** Si tu equipo no usa estas calificaciones, el Admin puede apagarlas en **Configuración › Tipo y módulos**: desaparecen la Matriz, las filas de las tarjetas y el Valor. Lo ya cargado no se borra.

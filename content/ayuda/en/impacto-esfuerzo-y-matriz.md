@@ -28,4 +28,4 @@ The size of each bubble shows the impact. On the right is the list sorted by pri
 
 On the Roadmap, each idea shows its **Value = Impact × Vote score ÷ Effort**. The higher, the more value for the effort.
 
-> **Tip:** If your team doesn't use these ratings, the Admin can turn them off in **Settings › Prioritization**: the Matrix, the card rows and the Value disappear. Nothing already entered is deleted.
+> **Tip:** If your team doesn't use these ratings, the Admin can turn them off in **Settings › Type and modules**: the Matrix, the card rows and the Value disappear. Nothing already entered is deleted.

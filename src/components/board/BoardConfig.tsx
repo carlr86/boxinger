@@ -12,6 +12,11 @@ import { useSession, useToast } from '@/components/Providers';
 import { VisibilityModal } from './VisibilityModal';
 import { ExportButton } from './ExportButton';
 import { Integrations } from './Integrations';
+import { MODULES, kindLabel } from '@/lib/board-kinds';
+import { usesModule } from './shared';
+
+// Boards from before types: «Producto digital» rules.
+const PRODUCT_STATES: Record<string, string> = { ranking: 'fixed', backlog: 'fixed', rating: 'optional', growth: 'optional', roadmap: 'fixed', status: 'fixed', changelog: 'fixed', affinity: 'off' };
 import { VISIBILITY, VOTE, VOTE_KEYS, VOTE_LABEL_MAX, VOTE_LABEL_MIN } from '@/lib/constants';
 
 type Tab = 'general' | 'cats' | 'com' | 'integ';
@@ -131,12 +136,34 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
-      <Section title={t('Priorización')} desc={t('Herramientas para que el Equipo decida qué construir. Si no las usan, apagalas y desaparecen del buzón; lo ya cargado no se borra.')}>
+      <Section title={t('Tipo y módulos')} desc={t('Qué partes tiene este buzón. Los módulos incluidos en el tipo no se pueden apagar; los demás, sí. Apagar un módulo no borra lo cargado.')}>
         <Options>
-          <ToggleRow label={t('Impacto y esfuerzo')} desc={t('Calificá cada idea de 1 a 5 y ordená con la Matriz y el Valor del Roadmap.')} on={b.use_rating !== false}
-            onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, p_rating: v, p_growth: null }), v ? 'Impacto y esfuerzo activados' : 'Impacto y esfuerzo desactivados'); api.reload(); }} />
-          <ToggleRow label={t('Growth')} desc={t('Marcá a qué objetivo apunta cada idea: adquisición, activación, retención, monetización o churn.')} on={b.use_growth !== false}
-            onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, p_rating: null, p_growth: v }), v ? 'Growth activado' : 'Growth desactivado'); api.reload(); }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+            <span style={{ color: 'rgba(0,0,0,0.55)' }}>{t('Tipo de buzón')}</span>
+            <span style={{ fontWeight: 600 }}>{t(kindLabel(b.kind))}</span>
+            <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>· {t('se elige al crear el buzón')}</span>
+          </div>
+          {MODULES.map((m) => {
+            const st = (b.module_states || PRODUCT_STATES)[m.k];
+            if (!st || st === 'off') return null;
+            const on = usesModule(api, m.k);
+            if (st === 'fixed') return (
+              <div key={m.k} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '8px 0' }}>
+                <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 14 }}>{t(m.l)}</span>
+                  <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t(m.d)}</span>
+                </span>
+                <span title={t('Incluido en este tipo de buzón')} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#047857', background: '#ecfdf5', border: '1px solid #a9cbc2', borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap' }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2" /><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" strokeWidth="2" /></svg>
+                  {t('Incluido')}
+                </span>
+              </div>
+            );
+            return (
+              <ToggleRow key={m.k} label={t(m.l)} desc={t(m.d)} on={on}
+                onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, ['p_' + m.k]: v }), v ? t('{m} activado', { m: t(m.l) }) : t('{m} desactivado', { m: t(m.l) })); api.reload(); }} />
+            );
+          })}
         </Options>
       </Section>
 

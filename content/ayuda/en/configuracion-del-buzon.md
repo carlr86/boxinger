@@ -16,7 +16,7 @@ Open them from the board's **Settings** tab.
 - **Who can create ideas:** team members and guests.
 - **What guests see:** whether they can see the Roadmap.
 - **Vote options:** rename *Important*, *Interesting* and *Not important* to whatever you prefer.
-- **Prioritization:** turn **Impact and effort** (the Matrix and Value) and **Growth** on or off. They start on; turning them off deletes nothing.
+- **Type and modules:** the board's type and its modules (Ranking, Backlog, Impact and effort, Growth, Roadmap, Status, Updates). Ones included in the type have a lock; optional ones turn on or off without deleting anything. See [Board types and modules](/app/ayuda/tipos-de-buzon).
 - **Anonymous ideas:** allow ideas to be posted anonymously or not; only Admins see who proposed them. Starts on.
 
 ## Categories

@@ -8,6 +8,7 @@ import { useSession, useToast } from '@/components/Providers';
 import { SITE_URL } from '@/lib/env';
 import { slugify } from '@/lib/format';
 import { useI18n } from '@/lib/i18n/client';
+import { KindPicker } from '@/components/boards/KindPicker';
 
 export function Onboarding({ defaultName }: { defaultName: string }) {
   const router = useRouter();
@@ -18,6 +19,7 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
   const [team, setTeam] = useState('');
   const [board, setBoard] = useState('');
   const [desc, setDesc] = useState('');
+  const [kind, setKind] = useState('producto');
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const host = SITE_URL.replace(/^https?:\/\//, '');
@@ -39,7 +41,7 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
     if (!(board.trim() || team.trim())) return;
     setBusy(true);
     try {
-      const r = await rpc<{ slug: string }>('onboard', { p_team_name: team.trim(), p_board_name: board.trim() || team.trim(), p_visibility: 'invite', p_description: desc.trim() });
+      const r = await rpc<{ slug: string }>('onboard', { p_team_name: team.trim(), p_board_name: board.trim() || team.trim(), p_visibility: 'invite', p_description: desc.trim(), p_kind: kind });
       await refresh();
       toast.ok('¡Listo! Tu buzón está creado. Invitá a tu Comunidad desde Configuración.');
       router.replace('/app/b/' + r.slug);
@@ -69,6 +71,7 @@ export function Onboarding({ defaultName }: { defaultName: string }) {
         </>
       ) : (
         <>
+          <KindPicker value={kind} onChange={setKind} pro={false} />
           <Field label={t('Nombre del buzón')} hint={t('Link del buzón (solo para quienes invites): {url}', { url: `${host}/app/b/${slugify(board || team) || 'mi-buzon'}` })}>
             <input className="bx-input" autoFocus maxLength={60} value={board} placeholder={team} onChange={(e) => setBoard(e.target.value)} />
           </Field>

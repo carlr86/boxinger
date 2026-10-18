@@ -53,8 +53,14 @@ export function quadrant(imp: number, eff: number): [string, string] | null {
 }
 
 /** The board uses Impact / Effort (Matrix, Value) and Growth: each Admin can turn them off (both on by default). */
-export const usesRating = (api: BoardApi) => api.data.board.use_rating !== false;
-export const usesGrowth = (api: BoardApi) => api.data.board.use_growth !== false;
+export const usesRating = (api: BoardApi) => usesModule(api, 'rating');
+export const usesGrowth = (api: BoardApi) => usesModule(api, 'growth');
+/** Whether the board shows a module (its type and the Admin decide; boards from before types have them all). */
+export const usesModule = (api: Pick<BoardApi, 'data'>, k: string) => {
+  const b = api.data.board;
+  if (b.modules && k in b.modules) return !!b.modules[k];
+  return k === 'rating' ? b.use_rating !== false : k === 'growth' ? b.use_growth !== false : k !== 'affinity';
+};
 
 export const scoreOf = (i: Idea) => {
   const imp = rateOf(i, 'impact'), eff = rateOf(i, 'effort');

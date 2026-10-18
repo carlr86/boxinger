@@ -16,7 +16,7 @@ import { Novedades } from './Novedades';
 import { prepareImage, uploadIdeaImage } from '@/lib/images';
 import { Matrix, Status } from './Insights';
 import { BoardConfig } from './BoardConfig';
-import type { BoardApi, IdeaDraft, View } from './shared';
+import { usesModule, type BoardApi, type IdeaDraft, type View } from './shared';
 import { useI18n } from '@/lib/i18n/client';
 
 const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'matriz', 'roadmap', 'status', 'novedades', 'config'];
@@ -91,7 +91,10 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const push = (url: string) => window.history.pushState(null, '', url);
   // The Community only gets the Roadmap (read only) when the board shares it; other team views stay closed.
   // Novedades: everyone who can see the board, on paid plans (the team also sees it on Free, with the Pro lock).
-  const canSee = (v: View) => (v === 'novedades' ? isTeam || b.pro : v === 'matriz' && b.use_rating === false ? false : isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap));
+  // Each view belongs to a module; a board's type and its Admin decide which modules it shows (src/lib/board-kinds.ts).
+  const VIEW_MODULE: Partial<Record<View, string>> = { ranking: 'ranking', backlog: 'backlog', matriz: 'rating', roadmap: 'roadmap', status: 'status', novedades: 'changelog' };
+  const hasModule = (v: View) => !VIEW_MODULE[v] || usesModule({ data }, VIEW_MODULE[v]!);
+  const canSee = (v: View) => hasModule(v) && (v === 'novedades' ? isTeam || b.pro : isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap));
   const setView = (v: View) => {
     if (!canSee(v)) return;
     setViewState(v); setSelId(null);
@@ -153,10 +156,11 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
     }
   }
 
-  const tabs = [{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }]
-    .concat(isTeam ? [...(b.use_rating !== false ? [{ key: 'matriz', label: t('Matriz') }] : []), { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
+  const tabs = ([{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }] as { key: string; label: string }[])
+    .concat(isTeam ? [{ key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
       : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : [])
-    .concat(isTeam || b.pro ? [{ key: 'novedades', label: t('Novedades') }] : []);
+    .concat(isTeam || b.pro ? [{ key: 'novedades', label: t('Novedades') }] : [])
+    .filter((x) => hasModule(x.key as View));
   const shownView = canSee(view) ? view : 'buzon';
 
   return (

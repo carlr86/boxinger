@@ -21,7 +21,7 @@ Un **equipo** agrupa a las personas que deciden. Un **buzón** es el lugar donde
 
 ## Crear más buzones o equipos
 
-Desde **Mis Buzones** tocá **Crear buzón** dentro de un equipo, o **Crear equipo**.
+Desde **Mis Buzones** tocá **Crear buzón** dentro de un equipo, o **Crear equipo**. Al crear un buzón elegís cómo empezar: en blanco o con un tipo ya armado. Más detalle en [Tipos de buzón y módulos](/app/ayuda/tipos-de-buzon).
 
 > **Importante:** En el plan Free tenés 1 equipo con 1 buzón. Con Pro, Team o Enterprise son ilimitados.
 

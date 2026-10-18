@@ -23,4 +23,4 @@ Abrí la idea y, en la sección **Growth**, tocá los objetivos que correspondan
 
 En [Status](/app/ayuda/status), la tarjeta **Growth de las ideas lanzadas** muestra cuántas ideas lanzadas apuntan a cada objetivo y su impacto promedio.
 
-> **Tip:** Si no lo usan, el Admin puede apagar el growth en **Configuración › Priorización**. Lo ya cargado no se borra.
+> **Tip:** Si no lo usan, el Admin puede apagar el growth en **Configuración › Tipo y módulos**. Lo ya cargado no se borra.
