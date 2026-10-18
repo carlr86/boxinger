@@ -134,7 +134,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
       {i && (
         <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
+            <OriginTag origin={i.origin} ai={i.ai} source={i.source} />
             <Tag>{api.catL(i.category_id)}</Tag>
             <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
             {i.hidden && <Tag>{i.archived ? t('Archivada') : t('Oculta para la Comunidad')}</Tag>}
@@ -170,7 +170,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, lineHeight: 1.4, textWrap: 'pretty', overflowWrap: 'anywhere' }}>{i.title}</h2>
             <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)', display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               {i.anonymous && <span title={t('Publicada como anónimo: solo el Admin del equipo ve quién la propuso.')} style={{ display: 'inline-flex' }}><MaskIcon size={14} /></span>}
-              <span>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span></span>
+              <span>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span>{i.imported && <span title={t('Idea importada desde un archivo, con su fecha original')}> · {t('Importada')}</span>}</span>
             </span>
             {/* The author can hide or show their name at any time. */}
             {api.me && i.author_id === api.me.id && api.canWrite && (i.anonymous || api.data.board.allow_anonymous !== false) && (
@@ -326,7 +326,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600 }}>{t('Impacto y esfuerzo')} <ProPill /></span>
-                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.status === 'aprobada' || i.status === 'rechazada' ? t('Visible en la card para el Equipo.') : t('Se muestra en la card cuando la idea se aprueba o se rechaza.')}</span>}
+                {api.pro && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Visible en la card para el Equipo.')}</span>}
               </div>
               {!api.pro ? (
                 <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>

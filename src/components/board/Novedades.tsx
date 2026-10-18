@@ -113,7 +113,7 @@ function Entry({ api, i, tag }: { api: BoardApi; i: Idea; tag: string }) {
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
         <Tag>{api.catL(i.category_id)}</Tag>
-        <OriginTag origin={i.origin} imported={i.imported} />
+        <OriginTag origin={i.origin} />
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           {/* Novedades is for everyone (and gets downloaded): an anonymous idea stays «Anónimo» even for the Admin. */}
           {i.anonymous ? <AnonAvatar size={18} /> : <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={18} color={i.author_id ? undefined : '#d9d9d9'} />}

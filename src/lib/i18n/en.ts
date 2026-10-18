@@ -1722,6 +1722,7 @@ export const EN: Record<string, string> = {
   "Tu suscripción con tarjeta sigue vigente: usá Volver a Team para reactivarla sin pagar de nuevo.": "Your card subscription is still active: use Back to Team to reactivate it without paying again.",
 
   // ── Ideas anónimas ──
+  "Sin growth": "No growth",
   "Anónimo": "Anonymous",
   "Anónimo (autor de la idea)": "Anonymous (idea author)",
   "Comentó como autor anónimo de la idea: solo el Admin del equipo ve su nombre.": "Commented as the idea's anonymous author: only the team Admin sees their name.",

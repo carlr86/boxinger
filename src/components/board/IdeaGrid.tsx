@@ -348,7 +348,7 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
       <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{i.title}</span>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-          <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
+          <OriginTag origin={i.origin} ai={i.ai} source={i.source} />
           <Tag>{api.catL(i.category_id)}</Tag>
           <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
           {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.archived ? t('Archivada') : t('Oculta')}</span>}
@@ -368,23 +368,25 @@ function IdeaRow({ api, i, backlog, first }: { api: BoardApi; i: Idea; backlog?:
 
 function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boolean }) {
   const { t, dshort, exact, relShort } = useI18n();
-  const short = i.description.length > 140 ? i.description.slice(0, 140).trimEnd() : i.description;
-  const showRate = api.isTeam && api.pro && (i.status === 'aprobada' || i.status === 'rechazada');
+  // The team on a paid plan always gets the Impact / Effort and Growth rows, so every card reads the same way;
+  // the description gives up the room (3 lines).
+  const teamRows = api.isTeam && api.pro;
 
   return (
     <div className="bx-card" onClick={() => api.openIdea(i.id)} style={{ opacity: i.hidden ? 0.55 : 1 }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <OriginTag origin={i.origin} ai={i.ai} imported={i.imported} source={i.source} />
+        <OriginTag origin={i.origin} ai={i.ai} source={i.source} />
         <Tag>{api.catL(i.category_id)}</Tag>
         <Tag tone={statusTone(i)}>{t(statusTone(i).l)}</Tag>
         {i.hidden && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{i.archived ? t('Archivada') : t('Oculta')}</span>}
       </div>
       <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{i.title}</div>
       <AuthorLine i={i} />
-      <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 14, lineHeight: 1.57, flex: 1, overflowWrap: 'anywhere' }}>
-        {short}{i.description.length > 140 && <><span>… </span><a style={{ color: '#059669' }}>{t('Ver más')}</a></>}
+      <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 14, lineHeight: 1.57, overflowWrap: 'anywhere', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        {i.description}
       </div>
-      {showRate && (
+      <div style={{ flex: 1 }} />
+      {teamRows && (
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
           {(['impact', 'effort'] as const).map((k) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -393,9 +395,11 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
           ))}
         </div>
       )}
-      {api.isTeam && api.pro && i.status === 'aprobada' && !!i.growth?.length && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }} title={t('Growth · solo visible para el Equipo')}>
-          {i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{t(GROWTH[k].l)}</Tag>)}
+      {teamRows && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', minHeight: 24, alignItems: 'center' }} title={t('Growth · solo visible para el Equipo')}>
+          {i.growth?.length
+            ? i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{t(GROWTH[k].l)}</Tag>)
+            : <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)' }}>{t('Sin growth')}</span>}
         </div>
       )}
       {backlog && i.approved_at && (
