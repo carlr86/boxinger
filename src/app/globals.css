@@ -54,3 +54,50 @@ textarea.bx-input{height:auto;padding:6px 11px;resize:vertical;line-height:1.5}
   .bx-ah-tabs::-webkit-scrollbar{display:none}
 }
 .bx-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Documentación (/app/ayuda) */
+.doc-shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;align-items:start;max-width:1120px;width:100%;margin:0 auto}
+.doc-nav{position:sticky;top:80px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 100px);overflow:auto;padding-bottom:16px}
+.doc-nav-title{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;color:rgba(0,0,0,0.88)}
+.doc-nav-title:hover{color:#059669}
+.doc-nav-select{display:none;width:100%;height:36px}
+.doc-nav-list{display:flex;flex-direction:column;gap:14px}
+.doc-nav-section{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:rgba(0,0,0,0.45);padding:0 8px 2px}
+.doc-nav-link{font-size:14px;padding:5px 8px;border-radius:6px;color:rgba(0,0,0,0.72)}
+.doc-nav-link:hover{background:#f5f5f5;color:rgba(0,0,0,0.88)}
+.doc-nav-link.on{background:#ecfdf5;color:#047857;font-weight:500}
+.doc-main{background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:32px 36px;min-width:0}
+.doc-h1{margin:0;font-size:26px;line-height:1.25;font-weight:600}
+.doc-crumb{font-size:13px;color:rgba(0,0,0,0.45)}
+.doc-chip{font-size:12px;line-height:22px;padding:0 8px;border-radius:999px;border:1px solid #e5e7eb;background:#fafafa;color:rgba(0,0,0,0.65)}
+.doc-chip-plan{border-color:#a9cbc2;background:#ecfdf5;color:#047857}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.doc-card{display:flex;flex-direction:column;gap:4px;border:1px solid #f0f0f0;border-radius:8px;padding:14px 16px;color:rgba(0,0,0,0.88);transition:border-color .15s,box-shadow .15s}
+.doc-card:hover{border-color:#a9cbc2;box-shadow:0 4px 12px rgba(0,0,0,0.05);color:rgba(0,0,0,0.88)}
+.doc-card b{font-weight:600;font-size:15px}
+.doc-card span{font-size:13px;color:rgba(0,0,0,0.55);line-height:1.5}
+.doc-body{font-size:15px;line-height:1.7;color:rgba(0,0,0,0.78)}
+.doc-body h2{font-size:19px;font-weight:600;margin:28px 0 8px;color:rgba(0,0,0,0.88)}
+.doc-body h3{font-size:16px;font-weight:600;margin:20px 0 6px;color:rgba(0,0,0,0.88)}
+.doc-body p{margin:0 0 12px}
+.doc-body ul,.doc-body ol{margin:0 0 14px;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.doc-body code{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:#f5f5f5;border-radius:4px;padding:1px 5px}
+.doc-body a{color:#059669}
+.doc-callout{border-radius:8px;padding:12px 14px;margin:0 0 14px;font-size:14px;border:1px solid #e6f4ff;background:#f5faff}
+.doc-tip{border-color:#a9cbc2;background:#ecfdf5}
+.doc-warn{border-color:#ffd591;background:#fff7e6}
+.doc-table{overflow-x:auto;margin:0 0 14px}
+.doc-table table{border-collapse:collapse;width:100%;font-size:14px}
+.doc-table th,.doc-table td{border:1px solid #f0f0f0;padding:8px 10px;text-align:left;vertical-align:top}
+.doc-table th{background:#fafafa;font-weight:600}
+.doc-pager{display:flex;justify-content:space-between;gap:16px;border-top:1px solid #f0f0f0;padding-top:16px;font-size:14px}
+.doc-pager a{color:#059669}
+.doc-foot{font-size:14px;color:rgba(0,0,0,0.55);background:#fafafa;border-radius:8px;padding:12px 16px}
+.doc-foot a{color:#059669}
+@media (max-width:860px){
+  .doc-shell{grid-template-columns:minmax(0,1fr);gap:16px}
+  .doc-nav{position:static;max-height:none;padding:0}
+  .doc-nav-list{display:none}
+  .doc-nav-select{display:block}
+  .doc-main{padding:20px 18px}
+}

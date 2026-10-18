@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Dropdown } from 'antd';
-import { BellOutlined, CreditCardOutlined, DashboardOutlined, InboxOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { BellOutlined, CreditCardOutlined, ReadOutlined, DashboardOutlined, InboxOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { useSession, useToast } from '@/components/Providers';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar } from '@/components/ui';
@@ -117,6 +117,7 @@ export function AppHeader({ board, tabs, view, onTab, onConfig, loginNext, sloga
                 <Link className="bx-item" style={menuLink} href="/app/perfil"><UserOutlined style={menuIcon} />{t('Mi perfil')}</Link>
                 <Link className="bx-item" style={menuLink} href="/app/perfil?tab=notif"><BellOutlined style={menuIcon} />{t('Notificaciones')}</Link>
                 <Link className="bx-item" style={menuLink} href="/app/perfil?tab=sub"><CreditCardOutlined style={menuIcon} />{t('Suscripción')}</Link>
+                <Link className="bx-item" style={menuLink} href="/app/ayuda"><ReadOutlined style={menuIcon} />{t('Documentación')}</Link>
                 {me.is_super_admin && <Link className="bx-item" style={menuLink} href="/app/admin"><DashboardOutlined style={menuIcon} />{t('Panel de Admin')}</Link>}
                 <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
                 {(I18N_LIVE || me.is_super_admin || locale === 'en') && <>

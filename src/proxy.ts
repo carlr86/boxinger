@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { publicOrigin } from '@/lib/origin';
 
-const PROTECTED = ['/app/buzones', '/app/perfil', '/app/admin', '/app/onboarding'];
+const PROTECTED = ['/app/buzones', '/app/perfil', '/app/admin', '/app/onboarding', '/app/ayuda'];
 
 // Refreshes the Supabase session cookie on every /app request and sends signed-out
 // users away from private screens. Authorization itself lives in Postgres.

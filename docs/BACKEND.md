@@ -123,6 +123,10 @@ Límites anti-bots dentro de las funciones: 5 ideas cada 10 minutos, 30 votos y 
 - Priorización opcional por buzón (migración 059): `boards.use_rating` (Impacto/Esfuerzo, la Matriz y el Valor del Roadmap) y `boards.use_growth`, prendidos por defecto; el Admin los cambia con `set_board_features` (Configuración › Priorización). Apagar solo oculta: lo cargado en las ideas queda y vuelve al prender. Sin growth, la tarjeta de Status muestra un estado vacío.
 - El Super Admin puede dar Pro "manual" (sin cobro) desde el panel.
 
+## Documentación
+
+Ayuda dentro del producto, en el menú del perfil › Documentación (`/app/ayuda`, solo con sesión). Hay un artículo Markdown por idioma en `content/ayuda/<es|en>/<slug>.md`, con encabezado (title, summary, section, order, plans, roles, covers). `src/lib/docs.ts` los lee en el servidor y los convierte a HTML con un visor propio; `src/components/docs/DocsShell.tsx` muestra el índice, el buscador y el artículo. `npm run docs:check` (incluido en `npm run i18n`) valida que estén los dos idiomas, los encabezados y los links internos. Cada funcionalidad nueva o ajuste actualiza su artículo.
+
 ## Emails
 
 Las funciones de Postgres encolan emails en `email_outbox` respetando las preferencias del usuario. La app los envía por Resend enseguida (`/api/outbox`) y el job diario reintenta los que fallaron. Los emails de Auth (verificación, recuperar contraseña) los manda Supabase por SMTP de Resend.

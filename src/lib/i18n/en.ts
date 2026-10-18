@@ -1799,6 +1799,16 @@ export const EN: Record<string, string> = {
   "{n} lanzadas sin growth. Una idea puede tener más de una categoría.": "{n} launched without growth. An idea can have more than one category.",
   "{n} lanzadas sin growth. Una idea puede tener más de una categoría; el growth y el impacto se cargan desde el detalle de cada idea.": "{n} launched without growth. An idea can have more than one category; growth and impact are set from each idea's detail.",
 
+  // ── Documentación ──
+  "Documentación": "Documentation",
+  "Buscar en la ayuda": "Search the help",
+  "Elegí un tema": "Pick a topic",
+  "Resultados para «{q}»": "Results for “{q}”",
+  "No encontramos nada con esas palabras. Probá con otras o escribinos.": "We found nothing with those words. Try others or write to us.",
+  "Todo lo que podés hacer en Boxinger, paso a paso.": "Everything you can do in Boxinger, step by step.",
+  "¿No encontraste lo que buscabas?": "Didn't find what you were looking for?",
+  "Escribinos a hola@boxinger.com": "Write to us at hola@boxinger.com",
+
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",
