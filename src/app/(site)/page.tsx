@@ -66,10 +66,11 @@ function Sparkle({ size = 12 }: { size?: number }) {
     </svg>
   );
 }
-function Check() {
+function Check({ color = '#059669' }: { color?: string }) {
   return (
-    <svg className={s.check} width="16" height="16" viewBox="0 0 16 16" aria-hidden>
-      <path d="M3 8.5l3 3 7-7" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <svg className={s.check} width="18" height="18" viewBox="0 0 16 16" aria-hidden>
+      <circle cx="8" cy="8" r="8" fill={color} opacity="0.12" />
+      <path d="M4.8 8.3l2.1 2.1 4.3-4.6" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -81,8 +82,8 @@ export default async function Landing() {
   const [usd, entUsd, { t, locale }] = await Promise.all([getPublicProPrice(), getPublicEnterprisePrice(), getT()]);
   const plans = [
     { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog', 'Exportá tus ideas a Excel'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
-    { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados y acceso por miembro', 'Acceso por dominio de email', 'Matriz, Roadmap y Status', 'Importá ideas desde CSV o Excel', 'Uní ideas repetidas sin perder votos', 'Adjuntá una imagen a cada idea', 'Novedades: lo que lanzaste, para toda tu comunidad', 'Avisos en Slack', 'Ideas desde Zapier, Make y Google Forms'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
-    { name: 'Team', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias de ideas por mes, para usar entre todos tus buzones'], cta: 'Contratar Team', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=team' },
+    { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados, con acceso por miembro o por dominio', 'Matriz, Roadmap y Status', 'Importar ideas y unir las repetidas', 'Imagen en cada idea', 'Novedades con lo que lanzaste', 'Avisos en Slack, Zapier, Make y Google Forms'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
+    { name: 'Team', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias por mes'], cta: 'Contratar Team', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=team' },
     { name: 'Enterprise', price: 'A medida', per: '', cls: '', items: ['Todo lo de Team', 'Más miembros por equipo', 'Más uso del Asistente IA', 'Precio y facturación a medida', 'Atención directa con el equipo de Boxinger'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un plan para tu empresa.', cta: 'Contactanos', ctaCls: s.ctaGhost, href: '#contacto-enterprise' },
   ];
 
@@ -339,7 +340,7 @@ export default async function Landing() {
                   <span className={s.planName}>{p.name}{'badge' in p && p.badge && <span className={s.entBadge}><Sparkle size={11} />{t(p.badge)}</span>}</span>
                   <div className={s.priceRow}><span className={s.price}>{t(p.price)}</span>{p.per && <span className={s.per}>{t(p.per)}</span>}</div>
                 </div>
-                <div className={s.items}>{p.items.map((it) => <div key={it} className={s.item}><Check /><span>{t(it)}</span></div>)}</div>
+                <div className={s.items}>{p.items.map((it, n) => <div key={it} className={`${s.item} ${n === 0 && p.name !== 'Free' ? s.itemLead : ''}`}><Check color={p.name === 'Team' || p.name === 'Enterprise' ? '#4338ca' : '#059669'} /><span>{t(it)}</span></div>)}</div>
                 {'note' in p && p.note && <span className={s.planNote}>{t(p.note)}</span>}
                 {'href' in p && p.href
                   ? <a href={p.href} className={`${s.planCta} ${p.ctaCls}`}>{t(p.cta)}</a>

@@ -254,7 +254,8 @@
 .per{font-size:14px;color:rgba(0,0,0,0.45)}
 .items{display:flex;flex-direction:column;gap:10px;flex:1}
 .item{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.5}
-.check{flex:none;margin-top:3px}
+.check{flex:none;margin-top:2px}
+.itemLead{font-weight:700}
 .planNote{font-size:13px;color:rgba(0,0,0,0.55);text-wrap:pretty}
 .planNote a{color:var(--violet)}
 .planCta{height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600}
