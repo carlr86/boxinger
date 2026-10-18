@@ -1845,6 +1845,13 @@ export const EN: Record<string, string> = {
   "Solo el Admin Owner puede eliminar un equipo.": "Only the Admin Owner can delete a team.",
 
   // ── Tipos de buzón ──
+  "Accesos": "Access",
+  "Descripción (opcional)": "Description (optional)",
+  "Elegí un tipo de buzón que ya viene armado para tu caso.": "Pick a board type that comes set up for your case.",
+  "Para qué es este buzón y qué tipo de ideas esperás.": "What this board is for and what kind of ideas you expect.",
+  "Tipo": "Type",
+  "Usar una plantilla": "Use a template",
+  "¿Quién puede verlo?": "Who can see it?",
   "Disponible en los planes Pro, Team y Enterprise.": "Available on the Pro, Team and Enterprise plans.",
   "Incluido": "Included",
   "Incluido en este tipo de buzón": "Included in this board type",

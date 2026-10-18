@@ -11,7 +11,7 @@ import { rpc, flushEmails } from '@/lib/rpc';
 import { boardUrl, displayUrl } from '@/lib/env';
 import { useI18n } from '@/lib/i18n/client';
 import { MAX_MEMBERS, VISIBILITY, VISIBILITY_ORDER, planName } from '@/lib/constants';
-import { KindPicker } from './KindPicker';
+import { CreateBoardModal } from './CreateBoardModal';
 import type { BoardCard, TeamCtx, Visibility } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
 import { BoardDetail } from './BoardDetail';
@@ -285,7 +285,6 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
   const { ctx, refresh } = useSession();
   const [input, setInput] = useState('');
   const [vis, setVis] = useState<Visibility>('invite');
-  const [kindSel, setKindSel] = useState('producto'); // board type: «producto», «blank»… (see src/lib/board-kinds.ts)
   const [membersIdeas, setMembersIdeas] = useState(true);
   const [guestsIdeas, setGuestsIdeas] = useState(true);
   const [memberBoards, setMemberBoards] = useState(false);
@@ -322,7 +321,6 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
     text = t(VISIBILITY[vis].d) + ' ' + t('Todos los miembros del equipo tienen acceso.');
     body = (
       <>
-        <KindPicker value={kindSel} onChange={setKindSel} pro={teamPro} />
         <input className={'bx-input' + (nameErr ? ' err' : '')} autoFocus maxLength={60} placeholder={t('Nombre del buzón')} value={input} onChange={(e) => setInput(e.target.value)} />
         <Choice options={VISIBILITY_ORDER.map((k) => [k, t(VISIBILITY[k].l)] as [Visibility, string])} value={vis} onChange={(v) => (v === 'private' && !teamPro ? toast.info('Los buzones privados están disponibles en Pro.') : setVis(v))} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 14px' }}>
@@ -343,7 +341,7 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
       </>
     );
     okL = t('Crear buzón');
-    ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis, p_members_ideas: membersIdeas, p_guests_ideas: guestsIdeas, p_kind: kindSel }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
+    ok = () => { setTried(true); if (!input.trim()) return; setBusy(true); rpc<{ slug: string }>('create_board', { p_team: team, p_name: input, p_visibility: vis, p_members_ideas: membersIdeas, p_guests_ideas: guestsIdeas }).then(async (r) => { toast.ok('Buzón creado'); await refresh(); onClose(); router.push('/app/b/' + r.slug + '/config'); }).catch((e) => toast.err(e)).finally(() => setBusy(false)); };
   } else if (kind === 'createTeam') {
     title = t('Crear equipo');
     text = ctx?.account?.plan === 'enterprise' && ctx.account.member_limit == null ? t('Cada equipo tiene sus propios buzones y miembros ilimitados.') : t('Cada equipo tiene sus propios buzones y hasta {n} miembros además de vos.', { n: ctx?.account?.member_limit ?? MAX_MEMBERS });
@@ -436,6 +434,9 @@ function BoardModals({ modal, onClose, ownTeams, isPro, onOpenTeam }: {
       </>
     );
   }
+
+  // «Crear buzón» is a three-step wizard of its own.
+  if (kind === 'create' && modal?.type === 'create') return <CreateBoardModal open teamId={modal.teamId} ownTeams={ownTeams} onClose={onClose} />;
 
   return (
     <Modal open={!!modal} onCancel={onClose} title={title} width={460} destroyOnHidden footer={null}>

@@ -21,7 +21,11 @@ A **team** groups the people who decide. A **board** is where ideas for a produc
 
 ## Create more boards or teams
 
-From **My boards**, tap **Create board** inside a team, or **Create team**. When creating a board you choose how to start: blank or with a type already set up. More in [Board types and modules](/app/ayuda/tipos-de-buzon).
+From **My boards**, tap **Create team**, or **Create board** inside a team. Creating a board takes 3 steps:
+
+1. **Type:** pick **Blank board** or **Use a template**, and then the type (for example, Digital product). More in [Board types and modules](/app/ayuda/tipos-de-buzon).
+2. **Name:** the name and, if you want, a short description.
+3. **Access:** who can see it (invite-only, public or private) and who can create ideas. Tap **Create board**.
 
 > **Important:** On the Free plan you get 1 team with 1 board. With Pro, Team or Enterprise they're unlimited.
 
