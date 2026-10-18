@@ -15,7 +15,7 @@ export type ChangelogCtx = {
   origin: string; // window.location.origin, for the links
 };
 
-const author = (i: Idea, t: T) => (i.author_id ? i.author_name : t(i.author_name));
+const author = (i: Idea, t: T) => (i.anonymous ? t('Anónimo') : i.author_id ? i.author_name : t(i.author_name));
 const originL = (i: Idea, t: T) => t(i.origin === 'equipo' ? 'Equipo' : 'Comunidad');
 const link = (c: ChangelogCtx, i: Idea) => `${c.origin}/app/b/${c.board.slug}/idea/${i.id}`;
 const fileDate = () => new Date().toLocaleDateString('en-CA'); // local YYYY-MM-DD

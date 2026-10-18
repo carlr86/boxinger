@@ -1721,6 +1721,28 @@ export const EN: Record<string, string> = {
   "Adjuntar imágenes está disponible en los planes Pro, Team y Enterprise.": "Attaching images is available on the Pro, Team and Enterprise plans.",
   "Tu suscripción con tarjeta sigue vigente: usá Volver a Team para reactivarla sin pagar de nuevo.": "Your card subscription is still active: use Back to Team to reactivate it without paying again.",
 
+  // ── Ideas anónimas ──
+  "Anónimo": "Anonymous",
+  "Anónimo (autor de la idea)": "Anonymous (idea author)",
+  "Comentó como autor anónimo de la idea: solo el Admin del equipo ve su nombre.": "Commented as the idea's anonymous author: only the team Admin sees their name.",
+  "Ideas anónimas": "Anonymous ideas",
+  "Mostrar mi nombre": "Show my name",
+  "Permitir ideas anónimas": "Allow anonymous ideas",
+  "Publicada como anónimo: solo el Admin del equipo ve quién la propuso.": "Posted anonymously: only the team Admin sees who proposed it.",
+  "Publicar como anónimo": "Post anonymously",
+  "Publicaste esta idea como anónimo: solo el Admin del equipo sabe que es tuya.": "You posted this idea anonymously: only the team Admin knows it's yours.",
+  "Quien carga una idea puede elegir que se muestre como «Anónimo». Solo el Admin del equipo ve quién la propuso, y al autor le siguen llegando los avisos por email.": "Whoever posts an idea can choose to show it as “Anonymous”. Only the team Admin sees who proposed it, and the author still gets the email notices.",
+  "Tu nombre no se muestra. Solo el Admin del equipo sabe que es tuya, y te seguimos avisando por email.": "Your name isn't shown. Only the team Admin knows it's yours, and we keep emailing you updates.",
+  "Idea publicada como anónimo · Pendiente de revisión": "Idea posted anonymously · Pending review",
+  "Ahora la idea muestra tu nombre": "The idea now shows your name",
+  "Ahora la idea se muestra como anónima": "The idea now shows as anonymous",
+  "Ahora se pueden publicar ideas como anónimo": "Ideas can now be posted anonymously",
+  "Ya no se pueden publicar ideas nuevas como anónimo": "New ideas can no longer be posted anonymously",
+  "Anónima": "Anonymous",
+  "Este buzón no permite ideas anónimas.": "This board doesn't allow anonymous ideas.",
+  "Solo quien propuso la idea puede cambiar esto.": "Only whoever proposed the idea can change this.",
+  "Publicá ideas como anónimo": "Post ideas anonymously",
+
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",

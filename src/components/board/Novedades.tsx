@@ -7,7 +7,7 @@ import { LAUNCHED } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import type { BoardApi } from './shared';
-import { OriginTag } from './IdeaGrid';
+import { AnonAvatar, OriginTag } from './IdeaGrid';
 import { downloadChangelogCsv, downloadChangelogPdf, type ChangelogCtx } from '@/lib/changelog-export';
 import { useToast } from '@/components/Providers';
 
@@ -115,8 +115,9 @@ function Entry({ api, i, tag }: { api: BoardApi; i: Idea; tag: string }) {
         <Tag>{api.catL(i.category_id)}</Tag>
         <OriginTag origin={i.origin} imported={i.imported} />
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={18} color={i.author_id ? undefined : '#d9d9d9'} />
-          {t('Propuesta por {name}', { name: i.author_id ? i.author_name : t(i.author_name) })}
+          {/* Novedades is for everyone (and gets downloaded): an anonymous idea stays «Anónimo» even for the Admin. */}
+          {i.anonymous ? <AnonAvatar size={18} /> : <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={18} color={i.author_id ? undefined : '#d9d9d9'} />}
+          {t('Propuesta por {name}', { name: i.anonymous ? t('Anónimo') : i.author_id ? i.author_name : t(i.author_name) })}
         </span>
         <span>· {plural(i.votes, 'voto', 'votos')}</span>
         <a style={{ marginLeft: 'auto' }} onClick={() => api.openIdea(i.id)}>{t('Ver idea')} →</a>

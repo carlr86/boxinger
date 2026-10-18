@@ -190,7 +190,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
 
       <IdeaForm open={form.open} idea={form.idea} draft={form.draft} cats={cats} isTeam={isTeam} isMobile={isMobile}
         onClose={() => setForm({ open: false, idea: null })}
-        imageMode={b.pro ? 'on' : isTeam ? 'pro' : 'off'} onPro={api.goPro}
+        imageMode={b.pro ? 'on' : isTeam ? 'pro' : 'off'} onPro={api.goPro} allowAnonymous={b.allow_anonymous !== false && !form.draft?.ai}
         onSubmit={async (v) => {
           if (!canWrite) { toast.info('Este buzón está en solo lectura.'); return false; }
           if (form.idea) {
@@ -201,7 +201,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
           }
           const id = await run(form.draft?.ai
             ? rpc<number>('create_ai_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id, p_suggestion: form.draft.suggestion ?? null })
-            : rpc<number>('create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id }), 'Idea publicada · Pendiente de revisión');
+            : rpc<number>('create_idea', { p_board: b.id, p_title: v.title, p_description: v.description, p_category: v.category_id, p_anonymous: !!v.anonymous }), v.anonymous ? 'Idea publicada como anónimo · Pendiente de revisión' : 'Idea publicada · Pendiente de revisión');
           if (id === undefined) return false;
           flushEmails(); // the board's Slack channel, if it has one
           await saveImage(id, v.image);

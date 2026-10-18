@@ -192,7 +192,7 @@ function Notifs() {
   );
 }
 
-const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog'];
+const FREE_ITEMS = ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos y comentarios', 'Ranking y Backlog', 'Publicá ideas como anónimo'];
 const TEAM_ITEMS = ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias por mes'];
 const ENTERPRISE_ITEMS = ['Todo lo de Team', 'Más miembros por equipo', 'Más uso del Asistente IA', 'Precio y facturación a medida'];
 const PRO_ITEMS = ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados, con acceso por miembro o por dominio', 'Matriz, Roadmap y Status', 'Importar ideas y unir las repetidas', 'Imagen en cada idea', 'Novedades con lo que lanzaste', 'Avisos en Slack, Zapier, Make y Google Forms'];

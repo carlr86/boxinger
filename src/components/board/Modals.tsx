@@ -7,17 +7,20 @@ import type { Category, Idea } from '@/lib/types';
 import { useI18n } from '@/lib/i18n/client';
 
 /** image: a new file to attach, null to remove the current one, undefined to leave it as is. */
-export type IdeaFormValue = { title: string; description: string; category_id: string; image?: File | null };
+export type IdeaFormValue = { title: string; description: string; category_id: string; image?: File | null; anonymous?: boolean };
 
-export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, isMobile, imageMode = 'off', onPro }: {
+export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, isMobile, imageMode = 'off', onPro, allowAnonymous = false }: {
   open: boolean; idea: Idea | null; draft?: { title: string; description: string; category_id: string }; cats: Category[]; isTeam: boolean; isMobile: boolean;
   onClose: () => void; onSubmit: (v: IdeaFormValue) => Promise<boolean>;
   /** on: can attach an image (paid plan) · pro: show the option with the Pro pill (team on Free) · off: hide it */
   imageMode?: 'on' | 'pro' | 'off'; onPro?: () => void;
+  /** the board lets people post as «Anónimo» (new ideas only; later the author changes it from the idea) */
+  allowAnonymous?: boolean;
 }) {
   const { t } = useI18n();
   const [f, setF] = useState({ title: '', description: '', category_id: '' });
   const [tried, setTried] = useState(false);
+  const [anon, setAnon] = useState(false);
   const [busy, setBusy] = useState(false);
   // Image: the picked file (or null = removed) and what the preview shows.
   const [img, setImg] = useState<File | null | undefined>(undefined);
@@ -28,6 +31,7 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
     if (open) {
       setF(idea ? { title: idea.title, description: idea.description, category_id: idea.category_id } : draft ? { ...draft } : { title: '', description: '', category_id: '' });
       setTried(false);
+      setAnon(false);
       setImg(undefined); setImgErr(''); setPreview(null);
       if (idea?.image_path) signedImageUrl(thumbPath(idea.image_path)).then((u) => setPreview((p) => p ?? u));
     }
@@ -51,7 +55,7 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
     setTried(true);
     if (e.title || e.desc || e.cat || busy) return;
     setBusy(true);
-    const ok = await onSubmit({ ...f, image: img });
+    const ok = await onSubmit({ ...f, image: img, anonymous: !idea && allowAnonymous && anon });
     setBusy(false);
     if (ok) onClose();
   }
@@ -94,6 +98,15 @@ export function IdeaForm({ open, idea, draft, cats, isTeam, onClose, onSubmit, i
             {imgErr ? <span style={{ fontSize: 13, color: '#ff4d4f' }}>{imgErr}</span>
               : imageMode === 'on' && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Una captura o foto que muestre la idea. JPG, PNG o WebP, hasta 10 MB: la achicamos antes de subirla.')}</span>}
           </div>
+        )}
+        {!idea && allowAnonymous && (
+          <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '10px 12px' }}>
+            <input type="checkbox" checked={anon} onChange={(x) => setAnon(x.target.checked)} style={{ width: 16, height: 16, marginTop: 2, accentColor: '#059669', cursor: 'pointer' }} />
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontSize: 14, fontWeight: 500 }}>{t('Publicar como anónimo')}</span>
+              <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>{t('Tu nombre no se muestra. Solo el Admin del equipo sabe que es tuya, y te seguimos avisando por email.')}</span>
+            </span>
+          </label>
         )}
         {!idea && <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{isTeam ? t('Se publica al instante con estado Pendiente de revisión y tag Equipo.') : t('Se publica al instante con estado Pendiente de revisión y tag Comunidad.')}</span>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

@@ -18,9 +18,10 @@ export interface Idea {
   approved_at: string | null;
   hidden: boolean;
   created_at: string;
-  author_id: string | null;
+  author_id: string | null; // null when the idea is anonymous and you're not its author or the board's Admin
   author_name: string;
   author_avatar?: string | null;
+  anonymous?: boolean; // posted as «Anónimo»
   votes: number;
   comments: number;
   my_vote: VoteValue | null;
@@ -59,12 +60,13 @@ export interface Comment {
   body: string | null; deleted: boolean; edited: boolean; hidden: boolean; created_at: string;
   likes: number; dislikes: number; my_reaction: 'like' | 'no_like' | null; reply: Reply | null;
   merged_from_title?: string | null; // came from a duplicate merged into this idea
+  author_anonymous?: boolean; // the anonymous author commenting on their own idea
 }
 export interface IdeaDetail extends Idea {
   board_slug: string;
   comment_list: Comment[];
   history: { from: IdeaStatus; to: IdeaStatus; at: string; reason: string | null }[] | null;
-  merges?: { title: string; description: string; author_name: string; created_at: string; merged_at: string }[]; // duplicates merged into it
+  merges?: { title: string; description: string; author_name: string; anonymous?: boolean; created_at: string; merged_at: string }[]; // duplicates merged into it
 }
 /** get_idea of a duplicate that was merged: where it lives now. */
 export type MergedIdea = { merged_into: number };
@@ -77,7 +79,7 @@ export interface BoardInfo {
   roadmap_names: Record<string, string>; team_id: string; team_name: string;
   account_status: 'active' | 'suspended'; locked: boolean; pro: boolean; created_at: string;
   invite_code: string | null; guests: number; version: string;
-  created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean;
+  created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean; allow_anonymous?: boolean;
   allowed_domains: string[] | null; // only for whoever can manage the board
   guests_can_view_roadmap: boolean; // effective (setting on, Pro, not private)
   roadmap_setting: boolean; // the raw board setting

@@ -32,7 +32,7 @@ export function buildMessage(kind: string, t: T, board: { name: string; slug: st
   const boardUrl = `${SITE_URL}/app/b/${board.slug}`;
   const url = ideaId ? `${boardUrl}/idea/${ideaId}` : boardUrl;
   const title = idea ? cut(idea.title, 150) : '';
-  const meta = idea ? [t(idea.origin === 'equipo' ? 'Equipo' : 'Comunidad'), idea.category, idea.author ? t('por {name}', { name: idea.author }) : null].filter(Boolean).map(esc).join(' · ') : '';
+  const meta = idea ? [t(idea.origin === 'equipo' ? 'Equipo' : 'Comunidad'), idea.category, idea.author ? t('por {name}', { name: idea.author === 'Anónimo' ? t('Anónimo') : idea.author }) : null].filter(Boolean).map(esc).join(' · ') : '';
   const desc = idea?.description ? '\n>' + esc(cut(idea.description.replace(/\s+/g, ' ').trim(), 280)) : '';
   const boardName = esc(board.name);
 

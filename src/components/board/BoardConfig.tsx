@@ -131,6 +131,13 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
+      <Section title={t('Ideas anónimas')} desc={t('Quien carga una idea puede elegir que se muestre como «Anónimo». Solo el Admin del equipo ve quién la propuso, y al autor le siguen llegando los avisos por email.')}>
+        <Options>
+          <ToggleRow label={t('Permitir ideas anónimas')} on={b.allow_anonymous !== false}
+            onChange={async (v) => { await api.run(rpc('set_board_allow_anonymous', { p_board: b.id, p_on: v }), v ? 'Ahora se pueden publicar ideas como anónimo' : 'Ya no se pueden publicar ideas nuevas como anónimo'); api.reload(); }} />
+        </Options>
+      </Section>
+
       <Section title={t('Qué ven los invitados')} desc={t('Siempre ven Buzón, Ranking y Backlog. Matriz, Status y la configuración son solo del Equipo.')}>
         <Options>
           {b.visibility === 'private' ? (

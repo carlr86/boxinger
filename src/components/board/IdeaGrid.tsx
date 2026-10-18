@@ -266,13 +266,34 @@ const VoteIcon = () => (<svg width="14" height="14" viewBox="0 0 16 16" fill="no
 const CommentIcon = () => (<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>);
 export { VoteIcon, CommentIcon };
 
-/** Who proposed the idea: small avatar + name (team members and Community alike). */
-export function AuthorLine({ i, size = 18 }: { i: Pick<Idea, 'author_id' | 'author_name' | 'author_avatar'>; size?: number }) {
+/** A little mask: the idea (or comment) was posted as «Anónimo». */
+export const MaskIcon = ({ size = 12, color = 'currentColor' }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden style={{ flex: 'none' }}>
+    <path d="M2.5 9.5c0-1.4 1.1-2.5 2.5-2.5h14c1.4 0 2.5 1.1 2.5 2.5v1.2c0 3.1-2.4 5.3-5.2 5.3-1.6 0-2.7-.8-3.3-2.1-.3-.6-.6-.9-1-.9s-.7.3-1 .9c-.6 1.3-1.7 2.1-3.3 2.1-2.8 0-5.2-2.2-5.2-5.3z" fill={color} />
+    <ellipse cx="7.6" cy="10.6" rx="1.8" ry="1.3" fill="#fff" /><ellipse cx="16.4" cy="10.6" rx="1.8" ry="1.3" fill="#fff" />
+  </svg>
+);
+/** Grey avatar with the mask, for «Anónimo». */
+export const AnonAvatar = ({ size = 18 }: { size?: number }) => (
+  <span aria-hidden style={{ width: size, height: size, borderRadius: '50%', background: '#e5e7eb', display: 'inline-grid', placeItems: 'center', flex: 'none' }}>
+    <MaskIcon size={Math.round(size * 0.66)} color="#6b7280" />
+  </span>
+);
+
+/** Who proposed the idea: small avatar + name (team members and Community alike). Anonymous ideas show «Anónimo»,
+ *  except to the board's Admin and the author, who see the name with a mask. */
+export function AuthorLine({ i, size = 18 }: { i: Pick<Idea, 'author_id' | 'author_name' | 'author_avatar' | 'anonymous'>; size?: number }) {
   const { t } = useI18n();
+  if (i.anonymous && !i.author_id) return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+      <AnonAvatar size={size} /><span>{t('Anónimo')}</span>
+    </span>
+  );
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
       <Avatar name={i.author_name} id={i.author_id || ''} url={i.author_avatar} size={size} color={i.author_id ? undefined : '#d9d9d9'} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i.author_id ? i.author_name : t(i.author_name)}</span>
+      {i.anonymous && <span title={t('Publicada como anónimo: solo el Admin del equipo ve quién la propuso.')} style={{ display: 'inline-flex', color: '#6b7280' }}><MaskIcon size={14} /></span>}
     </span>
   );
 }

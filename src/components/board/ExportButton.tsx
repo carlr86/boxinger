@@ -9,7 +9,7 @@ import type { BoardApi } from './shared';
 
 type Row = {
   id: number; title: string; description: string; category: string; status: string; origin: string; reject_reason: string | null;
-  hidden: boolean; imported: boolean; ai: boolean; has_image?: boolean; requester_name: string | null; requester_email: string | null;
+  hidden: boolean; imported: boolean; ai: boolean; has_image?: boolean; anonymous?: boolean; requester_name: string | null; requester_email: string | null;
   author_name: string | null; author_email: string | null; created_at: string; approved_at: string | null; launched_at: string | null;
   importante: number; interesante: number; no_importante: number; comments: number;
   impact: number | null; effort: number | null; priority: string | null; rm_col: string | null; dev_status: string; growth: string[] | null;
@@ -40,7 +40,7 @@ export function ExportButton({ api }: { api: BoardApi }) {
     const col = (k: string | null) => (k ? r.roadmap_names?.[k] || t(RM_COLS.find((c) => c.k === k)?.l || k) : '');
     const head = ['ID', 'Título', 'Descripción', 'Categoría', 'Estado', 'Fecha', 'Nombre', 'Email', 'Origen', 'Votos', 'Importante', 'Interesante', 'No importante',
       'Puntaje', 'Comentarios', 'Impacto', 'Esfuerzo', 'Prioridad', 'Roadmap', 'Desarrollo', 'Lanzada el', 'Aprobada el', 'Motivo del rechazo', 'Growth',
-      'Oculta para la Comunidad', 'Importada', 'Sugerida por IA', 'Tiene imagen', 'Link'].map((h) => t(h));
+      'Oculta para la Comunidad', 'Importada', 'Sugerida por IA', 'Tiene imagen', 'Anónima', 'Link'].map((h) => t(h));
     const rows: CsvCell[][] = r.ideas.map((i) => {
       const votes = Number(i.importante) + Number(i.interesante) + Number(i.no_importante);
       return [
@@ -50,7 +50,7 @@ export function ExportButton({ api }: { api: BoardApi }) {
         2 * Number(i.importante) + Number(i.interesante), Number(i.comments), i.impact ?? '', i.effort ?? '',
         i.priority && PRIO[i.priority] ? t(PRIO[i.priority].l) : '', col(i.rm_col), DEV[i.dev_status] ? t(DEV[i.dev_status].l) : '',
         day(i.launched_at), day(i.approved_at), i.reject_reason || '', (i.growth || []).map((g) => (GROWTH[g] ? t(GROWTH[g].l) : g)).join(', '),
-        yesNo(i.hidden), yesNo(i.imported), yesNo(i.ai), yesNo(!!i.has_image), `${window.location.origin}/app/b/${r.slug}/idea/${i.id}`,
+        yesNo(i.hidden), yesNo(i.imported), yesNo(i.ai), yesNo(!!i.has_image), yesNo(!!i.anonymous), `${window.location.origin}/app/b/${r.slug}/idea/${i.id}`,
       ];
     });
     const today = new Date().toLocaleDateString('en-CA'); // local YYYY-MM-DD
