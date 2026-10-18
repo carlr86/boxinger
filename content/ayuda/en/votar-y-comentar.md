@@ -19,6 +19,8 @@ You can change your vote anytime. You can't vote for your own idea, and once the
 
 An idea's **score** adds 2 points for each *Important* and 1 for each *Interesting*. That score builds the [Ranking](/app/ayuda/ranking-y-backlog).
 
+On [Brainstorming](/app/ayuda/brainstorming) boards the scale can be 1 to 5 stars or a single “like”.
+
 > **Tip:** The Admin can rename the three vote options in the board settings, so they speak your community's language.
 
 ## Comment

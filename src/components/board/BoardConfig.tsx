@@ -136,6 +136,20 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
+      {b.kind === 'brainstorm' && (
+        <Section title={t('Escala de votos')} desc={t('Cómo vota cada persona. Se puede cambiar mientras nadie haya votado.')}>
+          <Options>
+            <Seg options={[['tres', t('Tres opciones')], ['cinco', t('Del 1 al 5')], ['like', t('Me gusta')]]} value={b.vote_scale || 'tres'}
+              onChange={async (v) => { await api.run(rpc('set_vote_scale', { p_board: b.id, p_scale: v }), 'Escala de votos guardada'); api.reload(); }} />
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
+              {b.vote_scale === 'cinco' ? t('Cada persona da de 1 a 5 estrellas. Ordena por la suma de estrellas.')
+                : b.vote_scale === 'like' ? t('Un solo voto: «me gusta». Ordena por cantidad de me gusta.')
+                : t('Importante, Interesante o No importante (con los nombres que elijas). Suman 2, 1 y 0 puntos.')}
+            </span>
+          </Options>
+        </Section>
+      )}
+
       <Section title={t('Tipo y módulos')} desc={t('Qué partes tiene este buzón. Los módulos incluidos en el tipo no se pueden apagar; los demás, sí. Apagar un módulo no borra lo cargado.')}>
         <Options>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>

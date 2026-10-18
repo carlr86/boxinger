@@ -30,7 +30,7 @@ export function KindPicker({ value, onChange, pro, templatesOnly }: { value: str
               {c.types.map((x) => {
                 const off = x.status === 'soon', locked = !off && x.pro && !pro;
                 return (
-                  <button key={x.k} type="button" disabled={off} style={card(value === x.k, off)} onClick={() => !off && onChange(x.k)} title={locked ? t('Disponible en los planes Pro, Team y Enterprise.') : undefined}>
+                  <button key={x.k} type="button" disabled={off || locked} style={card(value === x.k, off || locked)} onClick={() => !off && !locked && onChange(x.k)} title={locked ? t('Disponible en los planes Pro, Team y Enterprise.') : undefined}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between' }}>
                       <b style={{ fontSize: 14, fontWeight: 600 }}>{t(x.l)}</b>{off ? soon : locked ? <ProPill /> : null}
                     </span>

@@ -5,7 +5,7 @@ import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from
 import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, SOURCE_TAG, VOTE_KEYS, statusTone } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
-import { rateOf, usesGrowth, usesRating, voteMode, type BoardApi } from './shared';
+import { rateOf, usesGrowth, usesRating, voteMode, type BoardApi, voteOptions } from './shared';
 import { AiButton, AiPanel, AiTag } from './AiPanel';
 import { ImportButton, ImportModal } from './ImportModal';
 import { ExportButton } from './ExportButton';
@@ -324,7 +324,7 @@ function VoteControl({ api, i }: { api: BoardApi; i: Idea }) {
     <Dropdown open={pop} onOpenChange={setPop} trigger={['click']} placement="topRight"
       popupRender={() => (
         <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 8, boxShadow: SHADOW_POP, padding: 4, minWidth: 200 }}>
-          {VOTE_KEYS.map((k) => (
+          {voteOptions(api).map((k) => (
             <div key={k} className="bx-item" onClick={() => { setPop(false); api.vote(i.id, k); }}
               style={{ display: 'flex', justifyContent: 'space-between', gap: 12, background: mine === k ? '#d1fae5' : undefined, color: mine === k ? '#059669' : 'rgba(0,0,0,0.88)' }}>
               {api.voteL(k)}<span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{mine === k ? t('Tu voto') : ''}</span>

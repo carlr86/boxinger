@@ -19,6 +19,8 @@ Podés cambiar tu voto cuando quieras. No se puede votar una idea propia, y cuan
 
 El **puntaje** de una idea suma 2 puntos por cada *Importante* y 1 por cada *Interesante*. Con ese puntaje se arma el [Ranking](/app/ayuda/ranking-y-backlog).
 
+En los buzones de [Brainstorming](/app/ayuda/brainstorming) la escala puede ser de 1 a 5 estrellas o un solo «me gusta».
+
 > **Tip:** El Admin puede cambiar el nombre de las tres opciones de voto en la configuración del buzón, para que hablen el idioma de tu comunidad.
 
 ## Comentar

@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { Dropdown } from 'antd';
+import { rpc, flushEmails } from '@/lib/rpc';
 import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { Bar, Dots, PageHead, ProLock, Seg, Stat, Tag } from '@/components/ui';
 import { DEV, GROWTH, GROWTH_KEYS, NO_PRIO, PRIO, RATE_C, RATE_L } from '@/lib/constants';
@@ -28,7 +29,9 @@ export function Matrix({ api }: { api: BoardApi }) {
   const { t, plural } = useI18n();
   const { isMobile } = useGridCols();
   const [sel, setSel] = useState<number | null>(null);
-  const appr = api.data.ideas.filter((i) => i.status === 'aprobada' && !i.hidden);
+  // Brainstorming: the ideas already grouped by affinity (accepted or not); otherwise the approved ones.
+  const brain = api.data.board.kind === 'brainstorm';
+  const appr = api.data.ideas.filter((i) => !i.hidden && (brain ? !!i.group_id && i.status !== 'rechazada' : i.status === 'aprobada'));
   const rated = appr.filter((i) => rateOf(i, 'impact') > 0 && rateOf(i, 'effort') > 0)
     .map((i) => ({ i, imp: rateOf(i, 'impact'), eff: rateOf(i, 'effort'), score: scoreOf(i) || 0 }))
     .sort((a, b) => b.score - a.score);
@@ -95,13 +98,20 @@ export function Matrix({ api }: { api: BoardApi }) {
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {rated.length === 0 && <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, fontSize: 14, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{t('Todavía no hay ideas aprobadas con impacto y esfuerzo calificados.')}</div>}
+          {rated.length === 0 && <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #f0f0f0', padding: 24, fontSize: 14, color: 'rgba(0,0,0,0.45)', textWrap: 'pretty' }}>{brain ? t('Todavía no hay ideas agrupadas con impacto y esfuerzo calificados. Agrupalas y calificalas desde el detalle de cada idea.') : t('Todavía no hay ideas aprobadas con impacto y esfuerzo calificados.')}</div>}
           {rated.slice().sort((a, b) => prioN(b.i.priority) - prioN(a.i.priority) || b.score - a.score).map((x) => {
             const P = x.i.priority ? PRIO[x.i.priority] : NO_PRIO, on = sel === x.i.id;
             return (
               <div key={x.i.id} onMouseEnter={() => setSel(x.i.id)} onMouseLeave={() => setSel(null)}
                 style={{ background: '#fff', borderRadius: 8, border: '1px solid ' + (on ? '#7aa7f5' : '#f0f0f0'), boxShadow: on ? '0 0 0 1px #7aa7f5' : 'none', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow .15s,border-color .15s' }}>
                 <a onClick={() => api.openIdea(x.i.id)} className="bx-row-link" style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.35 }}>{x.i.title}</a>
+                {brain && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(0,0,0,0.55)' }}>
+                    <span>{api.data.board.groups?.find((g) => g.id === x.i.group_id)?.name}</span>
+                    <span style={{ marginLeft: 'auto' }}>{x.i.status === 'aprobada' ? <Tag tone={{ l: '', bg: '#f6ffed', bd: '#b7eb8f', fg: '#389e0d' }}>{t('Aceptada')}</Tag>
+                      : api.canWrite && <button type="button" className="bx-btn" style={{ height: 24, padding: '0 10px', fontSize: 12 }} onClick={async () => { const r = await api.run(rpc('accept_idea', { p_idea: x.i.id }), 'Idea aceptada: pasó al Backlog'); if (r !== undefined) { flushEmails(); api.reload(); } }}>{t('Aceptar')}</button>}</span>
+                  </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', rowGap: 8, alignItems: 'center', fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
                   <span>{t('Prioridad')}</span><span><Tag tone={P}>{t(P.l)}</Tag></span>
                   <span>{t('Esfuerzo')}</span><Dots v={x.eff} k="effort" />
@@ -119,7 +129,7 @@ export function Matrix({ api }: { api: BoardApi }) {
           })}
           {unrated.length > 0 && (
             <div style={{ background: '#fff', borderRadius: 8, border: '1px dashed #d9d9d9', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{plural(unrated.length, 'idea aprobada sin calificar', 'ideas aprobadas sin calificar')}</span>
+              <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{brain ? plural(unrated.length, 'idea agrupada sin calificar', 'ideas agrupadas sin calificar') : plural(unrated.length, 'idea aprobada sin calificar', 'ideas aprobadas sin calificar')}</span>
               {unrated.map((i) => <a key={i.id} onClick={() => api.openIdea(i.id)} style={{ fontSize: 14 }}>{i.title}</a>)}
             </div>
           )}

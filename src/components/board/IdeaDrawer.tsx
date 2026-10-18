@@ -11,7 +11,7 @@ import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail, MergedIdea } from '@/lib/types';
 import { AnonAvatar, MaskIcon, OriginTag, toReviewIdea, useGridCols } from './IdeaGrid';
 import { MergeModal } from './MergeModal';
-import { quadrant, rateOf, usesGrowth, usesRating, voteMode, type BoardApi } from './shared';
+import { quadrant, rateOf, usesGrowth, usesRating, voteMode, type BoardApi, voteOptions } from './shared';
 import { useToast } from '@/components/Providers';
 
 const More = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>);
@@ -231,7 +231,7 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
             {vm === 'can' ? (
               <>
                 <div style={{ display: 'flex', gap: 2, background: '#ebebeb', padding: 2, borderRadius: 6, flexWrap: 'wrap' }}>
-                  {VOTE_KEYS.map((k) => {
+                  {voteOptions(api).map((k) => {
                     const on = i.my_vote === k;
                     return (
                       <button key={k} type="button" onClick={() => api.vote(i.id, k).then(load)}

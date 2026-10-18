@@ -23,7 +23,7 @@ Each type comes set up for a use, with its modules ready:
 
 | Category | Types |
 |---|---|
-| Product | **Digital product** (available) · Brainstorming, Customer feedback and Complaints (coming soon) |
+| Product | **Digital product** and **Brainstorming** (available) · Customer feedback and Complaints (coming soon) |
 | Work teams | Coming soon |
 | Communities | Coming soon |
 | Events | Coming soon |
@@ -32,6 +32,10 @@ Each type comes set up for a use, with its modules ready:
 ### Digital product
 
 The classic board, to listen to your product's users and plan. It includes Ranking, Backlog, Roadmap, Status and Updates. Impact and effort and Growth are optional.
+
+### Brainstorming
+
+For a team to come up with ideas, vote, group them and decide which to do. It includes Group by affinity, the Matrix and the Backlog; Ranking is optional. Pro and up. See [Brainstorming](/app/ayuda/brainstorming).
 
 > **Important:** The type is chosen when the board is created and doesn't change afterwards. Boards that already existed are Digital product and stay exactly the same.
 

@@ -23,7 +23,7 @@ Cada tipo viene armado para un uso, con sus módulos listos:
 
 | Categoría | Tipos |
 |---|---|
-| Producto | **Producto digital** (disponible) · Brainstorming, Feedback de clientes y Reclamos (próximamente) |
+| Producto | **Producto digital** y **Brainstorming** (disponibles) · Feedback de clientes y Reclamos (próximamente) |
 | Equipos de trabajo | Próximamente |
 | Comunidades | Próximamente |
 | Eventos | Próximamente |
@@ -32,6 +32,10 @@ Cada tipo viene armado para un uso, con sus módulos listos:
 ### Producto digital
 
 Es el buzón de siempre, para escuchar a los usuarios de tu producto y planificar. Incluye Ranking, Backlog, Roadmap, Status y Novedades. Impacto y esfuerzo y Growth son opcionales.
+
+### Brainstorming
+
+Para que un equipo piense ideas, las vote, las agrupe y decida cuáles hacer. Incluye Agrupar por afinidad, la Matriz y el Backlog; el Ranking es opcional. Es de Pro en adelante. Ver [Brainstorming](/app/ayuda/brainstorming).
 
 > **Importante:** El tipo se elige al crear el buzón y no se cambia después. Los buzones que ya existían son de tipo Producto digital y siguen igual que siempre.
 

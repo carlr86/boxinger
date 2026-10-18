@@ -22,6 +22,7 @@ export interface Idea {
   author_name: string;
   author_avatar?: string | null;
   anonymous?: boolean; // posted as «Anónimo»
+  points?: number; avg?: number | null; group_id?: string | null; // vote points (any scale), average, affinity group
   votes: number;
   comments: number;
   my_vote: VoteValue | null;
@@ -82,6 +83,8 @@ export interface BoardInfo {
   created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean; allow_anonymous?: boolean;
   use_rating?: boolean; use_growth?: boolean; // optional prioritization tools (on by default)
   kind?: string; // board type: producto | brainstorm | blank (src/lib/board-kinds.ts)
+  vote_scale?: 'tres' | 'cinco' | 'like'; // how people vote (Brainstorming can change it while nobody has voted)
+  groups?: { id: string; name: string; position: number }[] | null; // affinity groups (team only)
   modules?: Record<string, boolean>; // effective modules: ranking, backlog, rating, growth, roadmap, status, changelog, affinity
   module_states?: Record<string, 'fixed' | 'optional' | 'off'>; // what the type allows for each one
   allowed_domains: string[] | null; // only for whoever can manage the board

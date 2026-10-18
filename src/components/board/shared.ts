@@ -3,7 +3,7 @@ import type { BoardData, Category, Idea } from '@/lib/types';
 
 export type IdeaDraft = { title: string; description: string; category_id: string; ai?: boolean; suggestion?: string };
 
-export type View = 'buzon' | 'ranking' | 'backlog' | 'matriz' | 'roadmap' | 'status' | 'novedades' | 'config';
+export type View = 'buzon' | 'ranking' | 'backlog' | 'afinidad' | 'matriz' | 'roadmap' | 'status' | 'novedades' | 'config';
 
 export interface BoardApi {
   data: BoardData;
@@ -53,6 +53,9 @@ export function quadrant(imp: number, eff: number): [string, string] | null {
 }
 
 /** The board uses Impact / Effort (Matrix, Value) and Growth: each Admin can turn them off (both on by default). */
+/** The vote options of this board's scale (three options, 1 to 5 stars, or a single «me gusta»). */
+export const voteOptions = (api: Pick<BoardApi, 'data'>): string[] =>
+  api.data.board.vote_scale === 'cinco' ? ['5', '4', '3', '2', '1'] : api.data.board.vote_scale === 'like' ? ['like'] : ['importante', 'interesante', 'no_importante'];
 export const usesRating = (api: BoardApi) => usesModule(api, 'rating');
 export const usesGrowth = (api: BoardApi) => usesModule(api, 'growth');
 /** Whether the board shows a module (its type and the Admin decide; boards from before types have them all). */

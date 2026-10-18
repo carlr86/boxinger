@@ -17,10 +17,11 @@ import { prepareImage, uploadIdeaImage } from '@/lib/images';
 import { Matrix, Status } from './Insights';
 import { BoardConfig } from './BoardConfig';
 import { usesModule, type BoardApi, type IdeaDraft, type View } from './shared';
+import { Affinity } from './Affinity';
 import { useI18n } from '@/lib/i18n/client';
 
-const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'matriz', 'roadmap', 'status', 'novedades', 'config'];
-const TEAM_VIEWS: View[] = ['matriz', 'roadmap', 'status', 'config'];
+const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'afinidad', 'matriz', 'roadmap', 'status', 'novedades', 'config'];
+const TEAM_VIEWS: View[] = ['afinidad', 'matriz', 'roadmap', 'status', 'config'];
 
 function parse(path: string): { view: View; idea: number | null } {
   const parts = path.split('/').filter(Boolean).slice(3); // app / b / slug / …
@@ -92,7 +93,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   // The Community only gets the Roadmap (read only) when the board shares it; other team views stay closed.
   // Novedades: everyone who can see the board, on paid plans (the team also sees it on Free, with the Pro lock).
   // Each view belongs to a module; a board's type and its Admin decide which modules it shows (src/lib/board-kinds.ts).
-  const VIEW_MODULE: Partial<Record<View, string>> = { ranking: 'ranking', backlog: 'backlog', matriz: 'rating', roadmap: 'roadmap', status: 'status', novedades: 'changelog' };
+  const VIEW_MODULE: Partial<Record<View, string>> = { ranking: 'ranking', backlog: 'backlog', afinidad: 'affinity', matriz: 'rating', roadmap: 'roadmap', status: 'status', novedades: 'changelog' };
   const hasModule = (v: View) => !VIEW_MODULE[v] || usesModule({ data }, VIEW_MODULE[v]!);
   const canSee = (v: View) => hasModule(v) && (v === 'novedades' ? isTeam || b.pro : isTeam || !TEAM_VIEWS.includes(v) || (v === 'roadmap' && b.guests_can_view_roadmap));
   const setView = (v: View) => {
@@ -112,7 +113,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   const patchIdea = (id: number, patch: Partial<Idea>) => setData((d) => ({ ...d, ideas: d.ideas.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
 
   const cats = data.categories;
-  const voteL = useCallback((k: string) => b.vote_labels?.[k] || (VOTE[k] ? t(VOTE[k]) : k), [b.vote_labels, t]);
+  const voteL = useCallback((k: string) => (k === 'like' ? '👍 ' + t('Me gusta') : /^[1-5]$/.test(k) ? '★'.repeat(Number(k)) : b.vote_labels?.[k] || (VOTE[k] ? t(VOTE[k]) : k)), [b.vote_labels, t]);
   const catL = useMemo(() => { const m = new Map(cats.map((c) => [c.id, c.name])); return (id: string) => m.get(id) || t('Sin categoría'); }, [cats, t]);
 
   const api: BoardApi = {
@@ -157,7 +158,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
   }
 
   const tabs = ([{ key: 'buzon', label: t('Buzón') }, { key: 'ranking', label: t('Ranking') }, { key: 'backlog', label: t('Backlog') }] as { key: string; label: string }[])
-    .concat(isTeam ? [{ key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
+    .concat(isTeam ? [{ key: 'afinidad', label: t('Agrupar') }, { key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
       : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : [])
     .concat(isTeam || b.pro ? [{ key: 'novedades', label: t('Novedades') }] : [])
     .filter((x) => hasModule(x.key as View));
@@ -179,6 +180,7 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
         {(shownView === 'buzon' || shownView === 'backlog') && <IdeaGrid api={api} backlog={shownView === 'backlog'} />}
         {shownView === 'ranking' && <Ranking api={api} />}
         {shownView === 'roadmap' && <Roadmap api={api} />}
+        {shownView === 'afinidad' && <Affinity api={api} />}
         {shownView === 'matriz' && <Matrix api={api} />}
         {shownView === 'status' && <Status api={api} />}
         {shownView === 'novedades' && <Novedades api={api} />}

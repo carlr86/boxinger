@@ -13,8 +13,7 @@ export const KIND_CATEGORIES: KindCategory[] = [
     k: 'producto', l: 'Producto', d: 'Para equipos que construyen un producto.', status: 'ready',
     types: [
       { k: 'producto', l: 'Producto digital', d: 'Escuchá a los usuarios de tu producto, priorizá y planificá en el Roadmap.', status: 'ready' },
-      // Brainstorming's dynamic (grouping by affinity) ships in the next delivery: until then it stays «Próximamente».
-      { k: 'brainstorm', l: 'Brainstorming', d: 'Tu equipo piensa ideas, las vota, las agrupa y decide cuáles hacer.', status: 'soon', pro: true },
+      { k: 'brainstorm', l: 'Brainstorming', d: 'Tu equipo piensa ideas, las vota, las agrupa y decide cuáles hacer.', status: 'ready', pro: true },
       { k: 'feedback', l: 'Feedback de clientes', d: 'Opiniones de tus clientes sobre tu servicio o tu local.', status: 'soon' },
       { k: 'reclamos', l: 'Reclamos', d: 'Reclamos privados con número de caso y seguimiento.', status: 'soon' },
     ],
