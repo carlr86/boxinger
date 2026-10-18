@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Popconfirm } from 'antd';
+import { Modal, Popconfirm, Tooltip } from 'antd';
 import { rpc } from '@/lib/rpc';
 import { downloadBlob } from '@/lib/csv';
-import { Choice, Note, ProPill, SectionLabel } from '@/components/ui';
+import { Choice, Note, SectionLabel } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { useI18n } from '@/lib/i18n/client';
 import { FIELDS, MAX_ROWS, guessColumns, normalizeRows, readFile, templateCsv, type Field, type Mapping, type Sheet, type SkipReason } from '@/lib/import/parse';
@@ -253,16 +253,19 @@ function FieldRow({ label, hint, children }: { label: string; hint: string; chil
   );
 }
 
-/** The "Importar" button in the Buzón header (team Admin). On Free it shows the Pro pill and leads to the plan. */
+/** The "Importar" button in the Buzón header (team Admin): just the icon, the description on hover. On Free it leads to the plan. */
 export function ImportButton({ api, onClick }: { api: BoardApi; onClick: () => void }) {
   const { t } = useI18n();
+  const label = api.pro ? t('Importar ideas desde un CSV o Excel') : t('Importar ideas desde un CSV o Excel · Pro');
   return (
-    <button type="button" className="bx-btn" onClick={api.pro ? onClick : api.goPro} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      {t('Importar')}
-      {!api.pro && <ProPill />}
-    </button>
+    <Tooltip title={label}>
+      <button type="button" className="bx-btn" onClick={api.pro ? onClick : api.goPro} aria-label={label}
+        style={{ position: 'relative', width: 36, padding: 0, display: 'inline-grid', placeItems: 'center' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {!api.pro && <span aria-hidden style={{ position: 'absolute', top: -4, right: -4, width: 9, height: 9, borderRadius: '50%', background: '#059669', border: '2px solid #fff' }} />}
+      </button>
+    </Tooltip>
   );
 }

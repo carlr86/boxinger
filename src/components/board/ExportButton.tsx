@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { Tooltip } from 'antd';
 import { rpc } from '@/lib/rpc';
 import { csvSep, downloadBlob, toCsv, type CsvCell } from '@/lib/csv';
 import { DEV, GROWTH, IDEA_STATUS, PRIO, RM_COLS } from '@/lib/constants';
@@ -17,7 +18,7 @@ type Row = {
 type Export = { board: string; slug: string; roadmap_names: Record<string, string>; ideas: Row[] };
 
 /** "Exportar": every idea of the board to a CSV for Excel or Google Sheets (team Admin, every plan). Same first columns as the import. */
-export function ExportButton({ api }: { api: BoardApi }) {
+export function ExportButton({ api, iconOnly }: { api: BoardApi; iconOnly?: boolean }) {
   const { t, locale, plural } = useI18n();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -58,12 +59,22 @@ export function ExportButton({ api }: { api: BoardApi }) {
     toast.ok(r.ideas.length ? t('Exportamos {ideas}.', { ideas: plural(r.ideas.length, 'idea', 'ideas') }) : t('El buzón todavía no tiene ideas: el archivo solo tiene los títulos de las columnas.'));
   }
 
+  const icon = (
+    <svg width={iconOnly ? 16 : 14} height={iconOnly ? 16 : 14} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 15V4m0 0l-4 4m4-4l4 4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  const label = t('Exportar todas las ideas a Excel o Google Sheets');
+  // Buzón header: just the icon, the description on hover.
+  if (iconOnly) return (
+    <Tooltip title={busy ? t('Exportando…') : label}>
+      <button type="button" className="bx-btn" onClick={run} disabled={busy} aria-label={label} style={{ width: 36, padding: 0, display: 'inline-grid', placeItems: 'center' }}>{icon}</button>
+    </Tooltip>
+  );
   return (
     <button type="button" className="bx-btn" onClick={run} disabled={busy} title={t('Descargar todas las ideas del buzón en un archivo para Excel o Google Sheets')}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M12 15V4m0 0l-4 4m4-4l4 4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      {icon}
       {busy ? t('Exportando…') : t('Exportar')}
     </button>
   );

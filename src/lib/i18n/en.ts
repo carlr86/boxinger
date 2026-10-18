@@ -1722,6 +1722,9 @@ export const EN: Record<string, string> = {
   "Tu suscripción con tarjeta sigue vigente: usá Volver a Team para reactivarla sin pagar de nuevo.": "Your card subscription is still active: use Back to Team to reactivate it without paying again.",
 
   // ── Ideas anónimas ──
+  "Importar ideas desde un CSV o Excel": "Import ideas from a CSV or Excel file",
+  "Importar ideas desde un CSV o Excel · Pro": "Import ideas from a CSV or Excel file · Pro",
+  "Exportar todas las ideas a Excel o Google Sheets": "Export every idea to Excel or Google Sheets",
   "Sin growth": "No growth",
   "Anónimo": "Anonymous",
   "Anónimo (autor de la idea)": "Anonymous (idea author)",

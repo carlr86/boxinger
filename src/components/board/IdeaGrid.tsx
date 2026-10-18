@@ -178,8 +178,12 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {!backlog && api.data.role === 'admin' && <AiButton onClick={() => setAiOpen(true)} />}
             <LayoutToggle value={layout} onChange={setLayout} />
-            {!backlog && !isMobile && api.isAdmin && <ImportButton api={api} onClick={() => setImportOpen(true)} />}
-            {!backlog && !isMobile && api.isAdmin && <ExportButton api={api} />}
+            {!backlog && !isMobile && api.isAdmin && (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <ImportButton api={api} onClick={() => setImportOpen(true)} />
+                <ExportButton api={api} iconOnly />
+              </div>
+            )}
             {!backlog && !isMobile && api.me && api.canCreate && <button type="button" className="bx-btn-primary" onClick={api.openNew}>+ {t('Nueva idea')}</button>}
           </div>
         }
