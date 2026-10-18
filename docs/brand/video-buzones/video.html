@@ -1,0 +1,436 @@
+<!doctype html>
+<!-- Video de LinkedIn «Tu buzón, a tu medida» (1080 × 1350, 7 diapositivas que se deslizan solas).
+     Cada cuadro sale de renderAt(segundos). grabar.py lo graba y guarda en eventos.json los momentos
+     de cada clic, tecleo y pase de diapositiva para que sonido.py arme los efectos en el lugar justo.
+     Para mirarlo en el navegador, abrí el archivo con ?play al final de la ruta. -->
+<html lang="es"><head><meta charset="utf-8">
+<title>Tu buzón a medida</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&display=swap">
+<style>
+:root{--verde:#059669;--hondo:#047857;--brote:#10b981;--tinta:#0f172a;--tv:#0b2b22;--niebla:#f5f7f6;--menta:#d1fae5;
+  --sys:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,monospace;--pj:"Plus Jakarta Sans",var(--sys)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{width:1080px;height:1350px;overflow:hidden;background:var(--niebla);font-family:var(--sys);-webkit-font-smoothing:antialiased}
+.slide{position:absolute;inset:0;overflow:hidden}
+.light{background:var(--niebla);--fg:#0f172a;--soft:#475569;--acc:#059669;--line:#059669;--pillbg:#0f172a;--pillfg:#fff}
+.dark{background:var(--tv);--fg:#fff;--soft:#94a3b8;--acc:#10b981;--line:#10b981;--pillbg:#fff;--pillfg:#0b2b22}
+.green{background:var(--verde);--fg:#fff;--soft:#d1fae5;--acc:#d1fae5;--line:#d1fae5;--pillbg:#fff;--pillfg:#047857}
+.dark{background:radial-gradient(120% 70% at 80% 10%,#0f3d30 0%,#0b2b22 60%)}
+.green{background:radial-gradient(120% 80% at 85% 5%,#0aa678 0%,#059669 55%,#04805a 100%)}
+.top{position:absolute;left:64px;right:64px;top:62px;height:44px;display:flex;align-items:center;justify-content:space-between;color:var(--soft)}
+.top .d{font:500 24px var(--mono)}
+.top .h{font:600 25px var(--pj);color:var(--fg);opacity:.8}
+.top .p{font:800 21px var(--pj);letter-spacing:.06em;background:var(--pillbg);color:var(--pillfg);padding:8px 16px;border-radius:999px;text-transform:uppercase}
+.eye{position:absolute;left:64px;font:700 30px var(--mono);letter-spacing:.04em;color:var(--acc)}
+h1{position:absolute;left:64px;right:64px;margin:0;font:800 100px/1.0 var(--pj);letter-spacing:-.045em;word-spacing:.08em;color:var(--fg)}
+h1 em{font-style:italic;color:var(--acc);letter-spacing:-.04em}
+.green h1 em{color:var(--menta)}
+.lineb{position:absolute;left:0;right:0;top:1168px;height:4px;background:var(--line)}
+.dot{position:absolute;top:1158px;width:24px;height:24px;margin-left:-12px;border-radius:50%;border:4px solid var(--line);background:inherit}
+.light .dot{background:var(--niebla)} .dark .dot{background:var(--tv)} .green .dot{background:var(--verde)}
+.foot{position:absolute;left:64px;right:64px;top:1208px;display:flex;justify-content:space-between;align-items:center;font:800 38px var(--pj);color:var(--fg);letter-spacing:-.02em}
+.foot b{color:var(--acc)}
+.foot .r{font-size:32px;color:var(--acc);letter-spacing:.02em}
+.stub{position:absolute;overflow:visible}
+.note{position:absolute;font:italic 700 34px var(--pj);color:var(--acc);white-space:nowrap;letter-spacing:-.02em}
+.arrow{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+
+/* Tarjetas de la app (escala ~1,6 de la app real) */
+.card{position:absolute;left:64px;right:64px;background:#fff;border-radius:24px;box-shadow:0 30px 70px rgba(11,43,34,.18),0 4px 14px rgba(11,43,34,.08);color:rgba(0,0,0,.88);font-family:var(--sys);overflow:hidden}
+.dark .card{box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:30px 36px 0;font-size:27px;font-weight:600}
+.mh i{font-style:normal;color:rgba(0,0,0,.4);font-weight:400}
+.mb{padding:24px 36px 32px;display:flex;flex-direction:column;gap:22px}
+.steps{display:flex;align-items:center;gap:14px;font-size:22px;color:rgba(0,0,0,.45)}
+.steps .s{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.steps .n{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:19px;border:1.5px solid rgba(0,0,0,.25);color:rgba(0,0,0,.45)}
+.steps .s.on{color:rgba(0,0,0,.88);font-weight:600}
+.steps .s.on .n{background:var(--verde);border-color:var(--verde);color:#fff}
+.steps .s.ok .n{border-color:var(--verde);color:var(--verde)}
+.steps .bar{flex:1;height:1.5px;background:#e5e7eb}
+.steps .bar.ok{background:var(--verde)}
+.opts{display:flex;gap:16px}
+.opt{flex:1;display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:16px;border:1.5px solid #e5e7eb;background:#fff}
+.opt .ic{width:56px;height:56px;border-radius:12px;display:grid;place-items:center;background:#f5f5f5;color:var(--hondo)}
+.opt b{font-size:25px;font-weight:600}
+.opt span{font-size:20px;line-height:1.42;color:rgba(0,0,0,.55)}
+.opt.on{border:3px solid var(--verde);background:#ecfdf5;padding:22.5px}
+.opt.on .ic{background:var(--menta)}
+.opt.hov{border-color:#a7d9c5}
+.mf{display:flex;justify-content:space-between;border-top:1.5px solid #f0f0f0;padding:22px 36px 28px}
+.b1{height:52px;padding:0 24px;border-radius:10px;border:1.5px solid #d9d9d9;background:#fff;font-size:22px;display:inline-flex;align-items:center}
+.b2{height:52px;padding:0 26px;border-radius:10px;background:var(--verde);color:#fff;font-size:22px;display:inline-flex;align-items:center}
+.b2.off{background:rgba(0,0,0,.04);color:rgba(0,0,0,.25);border:1.5px solid #d9d9d9}
+.cat{font-size:19px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(0,0,0,.45)}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ty{display:flex;flex-direction:column;gap:6px;padding:18px 20px;border-radius:14px;border:1.5px solid #e5e7eb;background:#fff}
+.ty b{font-size:23px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ty span.d{font-size:18.5px;line-height:1.4;color:rgba(0,0,0,.55)}
+.ty.soon{background:#fafafa;opacity:.62}
+.ty.on{border:3px solid var(--verde);background:#ecfdf5;padding:16.5px 18.5px}
+.soonp{font-size:15px;font-weight:600;color:rgba(0,0,0,.45);background:#f0f0f0;border-radius:999px;padding:2px 11px;white-space:nowrap}
+.inc{display:inline-flex;align-items:center;gap:7px;font-size:20px;color:var(--hondo);background:#ecfdf5;border:1.5px solid #a9cbc2;border-radius:999px;padding:6px 16px;white-space:nowrap}
+.row{display:flex;align-items:center;gap:20px;padding:15px 0;border-top:1.5px solid #f3f4f6}
+.row:first-child{border-top:0}
+.row .tx{flex:1;display:flex;flex-direction:column;gap:3px}
+.row .tx b{font-size:24px;font-weight:500}
+.row .tx span{font-size:18.5px;color:rgba(0,0,0,.45);line-height:1.35}
+.tg{flex:none;width:72px;height:40px;border-radius:20px;background:rgba(0,0,0,.25);position:relative}
+.tg i{position:absolute;top:4px;left:4px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.fl{display:flex;flex-direction:column;gap:10px;font-size:23px}
+.box{border:1.5px solid #d9d9d9;border-radius:10px;padding:10px 16px;font-size:23px;line-height:1.45;min-height:56px;color:rgba(0,0,0,.88)}
+.box.focus{border-color:var(--verde);box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+.box.area{height:126px}
+.cnt{align-self:flex-end;font-size:18px;color:rgba(0,0,0,.45)}
+.caret{display:inline-block;width:2.5px;height:28px;background:rgba(0,0,0,.88);vertical-align:-5px;margin-left:2px}
+.choice{display:flex}
+.choice span{height:54px;padding:0 24px;font-size:22px;display:flex;align-items:center;border:1.5px solid #d9d9d9;margin-left:-1.5px;background:#fff;position:relative}
+.choice span:first-child{border-radius:10px 0 0 10px;margin-left:0}
+.choice span:last-child{border-radius:0 10px 10px 0}
+.choice span.on{background:var(--verde);border-color:var(--verde);color:#fff;z-index:1}
+.small{font-size:19.5px;color:rgba(0,0,0,.55);line-height:1.45}
+.grp{border:1.5px solid #f0f0f0;border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:6px}
+.toast{position:absolute;left:50%;top:30px;background:#fff;border-radius:14px;padding:16px 22px;font-size:23px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.14),0 3px 8px rgba(0,0,0,.08);white-space:nowrap}
+
+/* Diapositiva 1 */
+.tiles{position:absolute;left:64px;right:64px;top:170px;display:flex;justify-content:space-between;align-items:flex-start}
+.tile{width:220px;display:flex;flex-direction:column;align-items:center;gap:22px}
+.tile .sq{width:200px;height:200px;border-radius:44px;background:#fff;box-shadow:0 18px 40px rgba(11,43,34,.12),0 2px 6px rgba(11,43,34,.06);display:grid;place-items:center;position:relative}
+.tile .lb{font:500 25px var(--mono);color:#475569}
+.badge{position:absolute;right:-12px;top:-12px;width:50px;height:50px;border-radius:50%;background:var(--verde);display:grid;place-items:center;box-shadow:0 0 0 5px var(--niebla)}
+.dash{position:absolute;top:268px;height:4px;background-image:linear-gradient(90deg,#b9c6bf 50%,transparent 50%);background-size:18px 4px}
+.mov{position:absolute;top:262px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--verde)}
+.notif{position:absolute;left:300px;width:640px;top:500px;background:#fff;border:3px solid var(--verde);border-radius:26px;padding:24px 30px;box-shadow:0 22px 50px rgba(11,43,34,.14)}
+.notif .t1{display:flex;justify-content:space-between;font:500 22px var(--sys);color:#475569;align-items:center}
+.notif .t1 span{display:flex;gap:10px;align-items:center}
+.notif .t2{font:800 34px var(--pj);letter-spacing:-.03em;color:var(--tinta);margin-top:10px}
+.notif .t3{font:500 24px var(--sys);color:#475569;margin-top:6px}
+.notif .t3 b{color:var(--verde)}
+.cta{position:absolute;left:64px;top:1030px;background:var(--tinta);color:#fff;font:800 32px var(--pj);letter-spacing:-.02em;padding:18px 30px;border-radius:999px}
+.cta b{color:var(--brote)}
+
+/* Diapositiva 7 */
+.chk{display:flex;align-items:center;gap:20px;font-size:27px;padding:18px 0;border-top:1.5px solid #f3f4f6}
+.chk:first-of-type{border-top:0}
+.chk .bx{width:40px;height:40px;border-radius:9px;border:2px solid #cbd5d1;display:grid;place-items:center;flex:none}
+.chk .bx.on{background:var(--verde);border-color:var(--verde)}
+.chk b{font-weight:600}
+.bar7{position:absolute;left:64px;right:64px;background:var(--tinta);color:#fff;border-radius:20px;padding:26px 32px;font:700 29px var(--pj);display:flex;align-items:center;gap:16px;letter-spacing:-.01em}
+.bar7 em{font-style:normal;color:var(--brote)}
+.lock{position:absolute;left:64px;display:flex;align-items:center;gap:18px;font:800 54px var(--pj);color:#fff;letter-spacing:-.03em}
+.lock svg{width:64px;height:64px}
+</style></head>
+<body>
+<div id="stage"></div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <g id="lgG"><path fill="#059669" d="M308.74,36.87L90.77,36.88C73.25,37.77,57.85,49.15,51.9,65.56c-1.97,5.26-2.84,10.64-2.83,16.34l0.05,206.73c0,9.19,3.68,17.99,8.98,25.18c7.97,9.82,19.36,16.25,32.11,16.62l31.01,0.12l9.85,44.72c0.67,3.22,1.62,5.5,3.91,6.77c2.54,1.42,5.74,1.55,8.37-0.25l86.57-51.24l76.68-1c10.22,0,19.74-3.34,27.6-9.84c9.58-7.91,16.72-18.68,16.72-31.35l0.02-209.05C350.05,56.17,331.83,37.8,308.74,36.87z"/><path fill="#FAFAFA" d="M206.57,266.88h-51.86c-7.49,0-12.83-1.68-16.03-5.04c-3.2-3.36-4.8-8.7-4.8-16.03V118.25c0-7.49,1.64-12.87,4.92-16.15s8.59-4.92,15.92-4.92h54.98c8.1,0,15.13,0.5,21.07,1.5c5.94,1,11.27,2.93,15.97,5.79c4.01,2.39,7.56,5.42,10.65,9.09c3.09,3.67,5.44,7.72,7.06,12.15c1.62,4.44,2.43,9.13,2.43,14.06c0,16.98-8.49,29.4-25.47,37.27c22.3,7.1,33.45,20.91,33.45,41.44c0,9.49-2.43,18.04-7.29,25.64c-4.86,7.6-11.42,13.22-19.68,16.84c-5.17,2.16-11.11,3.68-17.83,4.57S215.53,266.88,206.57,266.88z M168.26,123v43.87h31.48c8.57,0,15.18-0.81,19.85-2.43s8.24-4.71,10.71-9.26c1.93-3.24,2.89-6.87,2.89-10.88c0-8.57-3.05-14.26-9.14-17.07c-6.1-2.82-15.4-4.22-27.9-4.22H168.26z M204.03,191.52h-35.77v49.54h36.93c23.23,0,34.84-8.37,34.84-25.12c0-8.57-3.01-14.78-9.03-18.64C224.98,193.45,215.99,191.52,204.03,191.52z"/></g>
+</defs></svg>
+
+<script>
+// ---------- Utilidades ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const io = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const out = (k) => 1 - Math.pow(1 - k, 3);
+const back = (k) => { const c = 1.6; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+const prog = (t, a, b, f = io) => f(clamp((t - a) / (b - a)));
+const typed = (s, t, a, b) => s.slice(0, Math.round(s.length * clamp((t - a) / (b - a))));
+const caret = (t) => `<span class="caret" style="opacity:${Math.floor(t * 2.2) % 2 ? 0 : 1}"></span>`;
+const press = (t, c) => prog(t, c - 0.08, c, out) - prog(t, c, c + 0.18, out);
+const LOGO = (neg) => `<svg viewBox="18.5 28.6 362 362"><use href="#lgG" ${neg ? 'style="filter:none"' : ''}/></svg>`;
+const ICON_BLANK = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const ICON_TPL = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>';
+const LOCK = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="2"/></svg>';
+const CHECK = (c = '#fff', s = 24) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const OKICON = '<svg width="28" height="28" viewBox="0 0 16 16"><circle cx="8" cy="8" r="8" fill="#52c41a"/><path d="M4.6 8.2l2.3 2.2 4.5-4.6" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const steps = (cur) => {
+  const s = (n, l) => `<span class="s ${n === cur ? 'on' : n < cur ? 'ok' : ''}"><span class="n">${n < cur ? CHECK('#059669', 20) : n}</span>${l}</span>`;
+  return `<div class="steps">${s(1, 'Tipo')}<span class="bar ${cur > 1 ? 'ok' : ''}"></span>${s(2, 'Nombre')}<span class="bar ${cur > 2 ? 'ok' : ''}"></span>${s(3, 'Accesos')}</div>`;
+};
+
+// ---------- Diapositivas ----------
+const SL = [ // tema, píldora, antetítulo, título, nota, duración
+  { th: 'light', pill: 'Nuevo', dur: 5.4 },
+  { th: 'dark', pill: 'Cómo empezar', eye: 'PASO 1/3 · TIPO', h: 'En blanco<br><em>o con plantilla.</em>', dur: 5.2 },
+  { th: 'light', pill: 'Plantilla', eye: 'PASO 1/3 · PLANTILLA', h: 'Elegí <em>una<br>plantilla.</em>', dur: 5.6 },
+  { th: 'green', pill: 'En blanco', eye: 'PASO 1/3 · EN BLANCO', h: 'O empezá<br><em>en blanco.</em>', dur: 5.6 },
+  { th: 'dark', pill: 'Paso 2', eye: 'PASO 2/3 · NOMBRE', h: 'Ponele<br><em>nombre.</em>', dur: 5.2 },
+  { th: 'light', pill: 'Paso 3', eye: 'PASO 3/3 · ACCESOS', h: 'Decidí<br><em>quién entra.</em>', dur: 5.6 },
+  { th: 'green', pill: 'Listo', h: 'Abrí tu primer<br><em>buzón hoy.</em>', dur: 6.6 },
+];
+const SWIPE = 0.55;
+let acc = 0; SL.forEach((s) => { s.start = acc; acc += s.dur; });
+const DURATION = acc;
+const N = SL.length;
+const stage = document.getElementById('stage');
+
+const BODY = [
+// 1 · Portada
+`<div class="tiles">
+  <div class="tile" id="t1"><div class="sq" style="color:#047857">${ICON_BLANK.replace(/30/g, '96')}</div><div class="lb">En blanco</div></div>
+  <div class="tile" id="t2"><div class="sq" style="color:#047857">${ICON_TPL.replace(/30/g, '96')}</div><div class="lb">Plantilla</div></div>
+  <div class="tile" id="t3"><div class="sq" id="t3sq">${LOGO().replace('<svg', '<svg width="120" height="120"')}<span class="badge" id="t3b">${CHECK('#fff', 28)}</span></div><div class="lb">Tu buzón</div></div>
+</div>
+<div class="dash" style="left:294px;width:120px"></div><div class="dash" style="left:666px;width:120px"></div>
+<div class="mov" id="mv1"></div><div class="mov" id="mv2"></div>
+<div class="notif" id="nt"><div class="t1"><span>${LOGO().replace('<svg', '<svg width="30" height="30"')}Buzones</span><span style="font-family:var(--mono)">Hoy</span></div>
+  <div class="t2">Ideas para Pampa Pagos</div><div class="t3">Producto digital · <b>5 módulos</b> incluidos</div></div>
+<h1 style="top:770px">Tu buzón,<br><em>a tu medida.</em></h1>
+<div class="cta" id="cta">Armalo en <b>3 pasos</b> →</div>`,
+// 2 · En blanco o con plantilla
+`<div class="card" id="c2" style="top:560px">
+  <div class="mh">Crear buzón <i>✕</i></div>
+  <div class="mb">${steps(1)}
+    <div class="opts">
+      <div class="opt" id="o1"><span class="ic">${ICON_BLANK}</span><b>Buzón en blanco</b><span>Armalo a tu medida: elegí los módulos en la configuración.</span></div>
+      <div class="opt" id="o2"><span class="ic">${ICON_TPL}</span><b>Usar una plantilla</b><span>Elegí un tipo de buzón que ya viene armado para tu caso.</span></div>
+    </div></div>
+  <div class="mf"><span class="b1">Cancelar</span><span class="b2 off" id="nx2">Siguiente</span></div>
+</div>`,
+// 3 · Plantilla
+`<div class="card" id="c3" style="top:500px">
+  <div class="mb" style="padding-top:30px">
+    <span class="cat">Producto</span>
+    <div class="types">
+      <div class="ty" id="ty1"><b>Producto digital</b><span class="d">Escuchá a los usuarios de tu producto, priorizá y planificá en el Roadmap.</span></div>
+      <div class="ty soon" id="ty2"><b>Brainstorming <span class="soonp">Próximamente</span></b><span class="d">Tu equipo piensa ideas, las vota, las agrupa y decide cuáles hacer.</span></div>
+      <div class="ty soon" id="ty3"><b>Feedback de clientes <span class="soonp">Próximamente</span></b><span class="d">Opiniones de tus clientes sobre tu servicio o tu local.</span></div>
+      <div class="ty soon" id="ty4"><b>Reclamos <span class="soonp">Próximamente</span></b><span class="d">Reclamos privados con número de caso y seguimiento.</span></div>
+    </div>
+    <div id="incs" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span class="small" style="margin-right:4px" id="inc0">Viene con:</span>
+      ${['Ranking', 'Backlog', 'Roadmap', 'Status', 'Novedades'].map((m, n) => `<span class="inc" id="inc${n + 1}">${LOCK}${m}</span>`).join('')}</div>
+  </div>
+  <div class="mf"><span class="b1">Atrás</span><span class="b2 off" id="nx3">Siguiente</span></div>
+</div>`,
+// 4 · En blanco: módulos
+`<div class="card" id="c4" style="top:500px">
+  <div class="mh" style="font-size:26px">Tipo y módulos</div>
+  <div class="mb" style="gap:0;padding-top:14px">
+    <div style="display:flex;gap:10px;align-items:baseline;font-size:22px;padding-bottom:10px"><span style="color:rgba(0,0,0,.55)">Tipo de buzón</span><b style="font-weight:600">Buzón en blanco</b></div>
+    ${[['Ranking', 'Las 10 ideas pendientes con más votos.'], ['Backlog', 'Las ideas aprobadas, candidatas para hacer.'], ['Impacto y esfuerzo', 'Calificá cada idea de 1 a 5 y ordená con la Matriz.'], ['Roadmap', 'Qué se hace ahora, después y más adelante.'], ['Status', 'Métricas de lo que pasó con las ideas.'], ['Novedades', 'La página de lanzamientos del buzón.']]
+      .map(([l, d], n) => `<div class="row"><div class="tx"><b>${l}</b><span>${d}</span></div><span class="tg" id="tg${n}"><i></i></span></div>`).join('')}
+  </div>
+</div>`,
+// 5 · Nombre
+`<div class="card" id="c5" style="top:520px">
+  <div class="mh">Crear buzón <i>✕</i></div>
+  <div class="mb">${steps(2)}
+    <div class="fl">Nombre del buzón<div class="box" id="nm"></div></div>
+    <div class="fl">Descripción (opcional)<div class="box area" id="ds"></div><span class="cnt" id="dc">0 / 200</span></div>
+  </div>
+  <div class="mf"><span class="b1">Atrás</span><span class="b2" id="nx5">Siguiente</span></div>
+</div>`,
+// 6 · Accesos
+`<div class="card" id="c6" style="top:500px">
+  <div class="mh">Crear buzón <i>✕</i></div>
+  <div class="mb" style="gap:20px">${steps(3)}
+    <div style="display:flex;flex-direction:column;gap:12px"><b style="font-size:23px;font-weight:600">¿Quién puede verlo?</b>
+      <div class="choice"><span id="v0">Solo invitados</span><span id="v1">Público</span><span id="v2">Privado</span></div>
+      <span class="small" id="vd">Cualquiera con el link ve las ideas. Quien se registra puede participar como Invitado. Todos los miembros del equipo tienen acceso.</span></div>
+    <div class="grp"><b style="font-size:23px;font-weight:600">Quiénes pueden crear ideas</b>
+      <div class="row" style="border:0;padding:8px 0 0"><div class="tx"><b style="font-size:22px">Miembros del equipo</b></div><span class="tg" id="g0"><i></i></span></div>
+      <div class="row" style="padding:10px 0 0"><div class="tx"><b style="font-size:22px">Invitados</b><span>La Comunidad que se suma con el link o por invitación.</span></div><span class="tg" id="g1"><i></i></span></div>
+    </div>
+  </div>
+  <div class="mf"><span class="b1">Atrás</span><span class="b2" id="nx6">Crear buzón</span></div>
+  <div class="toast" id="ts">${OKICON}Buzón creado</div>
+</div>`,
+// 7 · Cierre
+`<div class="card" id="c7" style="top:470px;padding:30px 40px 24px">
+  <div style="font:700 21px var(--mono);letter-spacing:.08em;color:rgba(0,0,0,.45);margin-bottom:6px">CHECKLIST</div>
+  ${['<b>Tipo:</b> en blanco o con plantilla', '<b>Nombre:</b> y para qué es el buzón', '<b>Accesos:</b> quién lo ve y quién propone'].map((x, n) => `<div class="chk"><span class="bx" id="k${n}">${CHECK('#fff', 26)}</span><span>${x}</span></div>`).join('')}
+</div>
+<div class="bar7" id="b7" style="top:850px"><span style="font-size:34px">→</span><span>Plan Free sin tarjeta de crédito · <em>boxinger.com</em></span></div>
+<div class="lock" id="lk" style="top:1010px"><svg viewBox="18.5 28.6 362 362"><path fill="#fff" d="${''}"/></svg>Boxinger</div>`,
+];
+
+const els = [];
+SL.forEach((s, n) => {
+  const d = document.createElement('div');
+  d.className = 'slide ' + s.th;
+  d.innerHTML = `<div class="top"><span class="d">Oct ©2026</span><span class="h">boxinger.com</span><span class="p">${s.pill}</span></div>
+    ${s.eye ? `<div class="eye" style="top:176px">${s.eye}</div>` : ''}
+    ${s.h ? `<h1 style="top:226px">${s.h}</h1>` : ''}
+    ${BODY[n]}
+    <svg class="stub" id="stub${n}" width="1080" height="1350" style="left:0;top:0"></svg>
+    <svg class="arrow" id="ar${n}" width="1080" height="1350"></svg>
+    <div class="lineb"></div><div class="dot" id="dot${n}"></div>
+    <div class="foot"><span><b>0${n + 1}</b>/0${N}</span><span class="r">${n < N - 1 ? 'SEGUÍ →' : 'boxinger.com'}</span></div>`;
+  stage.appendChild(d);
+  els.push(d);
+});
+// Logo negativo en la diapositiva 7 (globo blanco, B verde)
+const lg = document.querySelector('#lgG').children;
+document.querySelector('#lk svg').innerHTML = `<path fill="#fff" d="${lg[0].getAttribute('d')}"/><path fill="#059669" d="${lg[1].getAttribute('d')}"/>`;
+// En la diapositiva 7 el título va arriba (sin antetítulo)
+els[6].querySelector('h1').style.top = '200px';
+
+const $ = (id) => document.getElementById(id);
+const VIS = ['Lo ven el Equipo y las personas que invitás por email.', 'Cualquiera con el link ve las ideas. Quien se registra puede participar como Invitado.', 'Solo el Equipo con acceso lo ve.'];
+const NAME = 'Ideas para Pampa Pagos';
+const DESC = 'Contanos qué te gustaría que sumemos a la app.';
+
+// Notas a mano: texto, posición, a qué apunta
+const NOTES = {
+  1: { text: 'elegís cómo arrancar', x: 520, y: 470, to: 'o2', dx: -40, dy: -4, at: 1.1 },
+  2: { text: 'ya viene armado', x: 470, y: 440, to: 'ty1', dx: 120, dy: -4, at: 1.5 },
+  3: { text: 'prendés solo lo que usás', x: 470, y: 440, to: 'tg1', dx: 0, dy: -24, at: 1.3 },
+  4: { text: 'para qué es el buzón', x: 520, y: 450, to: 'ds', dx: 140, dy: -6, at: 2.0 },
+  5: { text: 'público, con invitación o privado', x: 380, y: 440, to: 'v1', dx: 0, dy: -6, at: 1.2 },
+};
+const EVENTS = [];
+
+// ---------- Medidas ----------
+let G = {};
+function rel(el) { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, cx: r.left + r.width / 2, cy: r.top + r.height / 2, b: r.bottom }; }
+function measure() {
+  els.forEach((e) => (e.style.transform = 'none'));
+  G.tiles = [rel($('t1').firstChild), rel($('t2').firstChild), rel($('t3').firstChild)];
+  // Conector de la tarjeta a la línea de abajo (como en la referencia)
+  els.forEach((e, n) => {
+    const c = e.querySelector('.card') || e.querySelector('.notif');
+    if (!c || n === 0 || n === 6) return;
+    const r = rel(c), x = 120, y0 = r.b, y1 = 1170;
+    if (y1 - y0 < 30) return;
+    $('stub' + n).innerHTML = `<path d="M${x} ${y0} V${y1 - 26} Q${x} ${y1} ${x + 26} ${y1}" fill="none" stroke="var(--line)" stroke-width="4"/>`;
+  });
+  // Flechas de las notas
+  for (const [n, k] of Object.entries(NOTES)) {
+    const note = document.createElement('div');
+    note.className = 'note'; note.textContent = k.text;
+    note.style.left = k.x + 'px'; note.style.top = k.y + 'px';
+    els[n].appendChild(note);
+    k.el = note;
+    const tr = rel($(k.to)), w = note.offsetWidth;
+    const ex = tr.cx + k.dx, ey = tr.y + k.dy;
+    // sale del costado del texto que mira al destino (o de abajo si el destino está debajo) y llega desde arriba
+    let sx, sy;
+    if (ex < k.x) { sx = k.x - 14; sy = k.y + 24; } else if (ex > k.x + w) { sx = k.x + w + 14; sy = k.y + 24; } else { sx = ex; sy = k.y + 52; }
+    const cx = ex, cy = sy;
+    const ang = Math.atan2(ey - cy, ex - cx), h = 16;
+    const p = `M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`;
+    const hd = `M${ex - h * Math.cos(ang - 0.5)} ${ey - h * Math.sin(ang - 0.5)} L${ex} ${ey} L${ex - h * Math.cos(ang + 0.5)} ${ey - h * Math.sin(ang + 0.5)}`;
+    $('ar' + n).innerHTML = `<path class="ap" d="${p}" fill="none" stroke="var(--acc)" stroke-width="4" stroke-linecap="round"/><path class="ah" d="${hd}" fill="none" stroke="var(--acc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const ap = $('ar' + n).querySelector('.ap');
+    k.len = ap.getTotalLength(); ap.style.strokeDasharray = k.len;
+  }
+  buildEvents();
+}
+
+// ---------- Eventos de sonido (en segundos del video) ----------
+function buildEvents() {
+  const at = (n, lt, k, extra = {}) => EVENTS.push({ t: +(SL[n].start + lt).toFixed(3), k, ...extra });
+  for (let n = 1; n < N; n++) EVENTS.push({ t: +(SL[n].start - SWIPE / 2).toFixed(3), k: 'swipe' });
+  at(0, 0.3, 'pop'); at(0, 0.45, 'pop'); at(0, 0.6, 'pop'); at(0, 2.35, 'chime'); at(0, 2.7, 'pop');
+  at(1, 1.9, 'click'); at(1, 2.9, 'click');
+  at(2, 0.5, 'pop'); at(2, 2.2, 'click'); [3.0, 3.18, 3.36, 3.54, 3.72].forEach((x) => at(2, x, 'tick')); at(2, 4.6, 'click');
+  [1.6, 2.4, 3.2].forEach((x) => at(3, x, 'toggle'));
+  for (const [s, a, b] of [[NAME, 0.7, 1.9], [DESC, 2.2, 3.8]]) for (let k = 1; k <= s.length; k++) at(4, a + (b - a) * (k - 0.5) / s.length, 'key');
+  at(4, 4.4, 'click');
+  at(5, 1.5, 'click'); at(5, 3.3, 'click'); at(5, 3.7, 'chime');
+  [1.0, 1.6, 2.2].forEach((x) => at(6, x, 'tick')); at(6, 3.0, 'chime');
+  EVENTS.sort((a, b) => a.t - b.t);
+}
+
+// ---------- Cuadro ----------
+function renderAt(t) {
+  // Pase de diapositiva: la saliente se va a la izquierda y entra la siguiente
+  let cur = 0; for (let n = 0; n < N; n++) if (t >= SL[n].start - SWIPE / 2) cur = n;
+  els.forEach((e, n) => {
+    let x = 0;
+    const s0 = SL[n].start, s1 = s0 + SL[n].dur;
+    if (n > 0) x = 1080 * (1 - prog(t, s0 - SWIPE / 2, s0 + SWIPE / 2));
+    if (n < N - 1) x -= 1080 * prog(t, s1 - SWIPE / 2, s1 + SWIPE / 2);
+    const vis = t > s0 - SWIPE / 2 - 0.01 && t < s1 + SWIPE / 2 + 0.01;
+    e.style.display = vis ? 'block' : 'none';
+    e.style.transform = `translateX(${x}px)`;
+    if (!vis) return;
+    const lt = t - s0;
+    // título y antetítulo: entran apenas
+    const ti = prog(lt, -0.15, 0.45, out);
+    e.querySelectorAll('h1,.eye').forEach((h) => { h.style.opacity = n === 0 ? 1 : 0.2 + 0.8 * ti; h.style.transform = `translateY(${lerp(18, 0, ti)}px)`; });
+    // punto que avanza sobre la línea
+    $('dot' + n).style.left = lerp(64, 1016, clamp(lt / SL[n].dur)) + 'px';
+    // nota y flecha
+    const k = NOTES[n];
+    if (k) {
+      const a = prog(lt, k.at, k.at + 0.6, out);
+      k.el.style.opacity = prog(lt, k.at, k.at + 0.3); k.el.style.transform = `translateX(${lerp(-12, 0, a)}px)`;
+      const ar = $('ar' + n); ar.querySelector('.ap').style.strokeDashoffset = k.len * (1 - a);
+      ar.querySelector('.ah').style.opacity = a > 0.95 ? 1 : 0;
+    }
+    // la tarjeta sube al entrar
+    const card = e.querySelector('.card');
+    if (card && n > 0) { const c = prog(lt, 0.0, 0.6, out); card.style.transform = `translateY(${lerp(50, 0, c)}px)`; card.style.opacity = 0.3 + 0.7 * c; }
+    SCENES[n](lt);
+  });
+}
+
+const SCENES = [
+  (lt) => { // 1 · Portada
+    ['t1', 't2', 't3'].forEach((id, n) => { const k = prog(lt, 0.2 + n * 0.15, 0.75 + n * 0.15, back); $(id).style.transform = `scale(${lerp(0.6, 1, k)})`; $(id).style.opacity = clamp(k * 2); });
+    const m1 = prog(lt, 0.9, 1.9), m2 = prog(lt, 1.5, 2.35);
+    $('mv1').style.left = lerp(294, 414, m1) + 'px'; $('mv1').style.opacity = m1 > 0 && m1 < 1 ? 1 : 0;
+    $('mv2').style.left = lerp(666, 786, m2) + 'px'; $('mv2').style.opacity = m2 > 0 && m2 < 1 ? 1 : 0;
+    const on = prog(lt, 2.3, 2.6, out);
+    $('t3sq').style.boxShadow = `0 0 0 ${6 * on}px #059669, 0 18px 40px rgba(11,43,34,.12)`;
+    const b = prog(lt, 2.35, 2.75, back); $('t3b').style.transform = `scale(${b})`;
+    const nt = prog(lt, 2.6, 3.2, back); $('nt').style.opacity = clamp(nt * 2); $('nt').style.transform = `translateY(${lerp(40, 0, nt)}px) rotate(${lerp(0, -3, nt)}deg)`;
+    const c = prog(lt, 3.3, 3.8, out); $('cta').style.opacity = c; $('cta').style.transform = `translateX(${lerp(-20, 0, c)}px)`;
+  },
+  (lt) => { // 2 · En blanco o plantilla
+    $('o1').className = 'opt' + (lt > 1.3 && lt < 2.4 ? ' hov' : '');
+    $('o2').className = 'opt' + (lt > 2.9 ? ' on' : lt > 2.4 ? ' hov' : '');
+    $('o1').style.transform = `scale(${1 - 0.03 * press(lt, 1.9) * 0})`;
+    $('o2').style.transform = `scale(${1 - 0.03 * press(lt, 2.9)})`;
+    $('nx2').className = 'b2' + (lt > 2.9 ? '' : ' off');
+  },
+  (lt) => { // 3 · Plantilla
+    ['ty1', 'ty2', 'ty3', 'ty4'].forEach((id, n) => { const k = prog(lt, 0.35 + n * 0.12, 0.8 + n * 0.12, out); $(id).style.opacity = (n ? 0.62 : 1) * k; $(id).style.transform = `translateY(${lerp(16, 0, k)}px)`; });
+    $('ty1').className = 'ty' + (lt > 2.2 ? ' on' : '');
+    $('ty1').style.transform += ` scale(${1 - 0.03 * press(lt, 2.2)})`;
+    for (let n = 0; n <= 5; n++) { const k = prog(lt, (n ? 3.0 + (n - 1) * 0.18 : 2.8), (n ? 3.35 + (n - 1) * 0.18 : 3.1), back); $('inc' + n).style.opacity = clamp(k * 2); $('inc' + n).style.transform = `scale(${lerp(0.7, 1, k)})`; }
+    $('nx3').className = 'b2' + (lt > 2.2 ? '' : ' off');
+    $('nx3').style.transform = `scale(${1 - 0.06 * press(lt, 4.6)})`;
+  },
+  (lt) => { // 4 · En blanco: se prenden módulos
+    const ons = [0, 1.6, 99, 2.4, 99, 3.2]; // Ranking ya viene prendido
+    ons.forEach((a, n) => {
+      const k = n === 0 ? 1 : prog(lt, a, a + 0.25, out);
+      const tg = $('tg' + n);
+      tg.style.background = k > 0.5 ? '#059669' : 'rgba(0,0,0,0.25)';
+      tg.firstChild.style.transform = `translateX(${32 * k}px)`;
+    });
+  },
+  (lt) => { // 5 · Nombre
+    const nm = typed(NAME, lt, 0.7, 1.9), ds = typed(DESC, lt, 2.2, 3.8);
+    const f1 = lt > 0.5 && lt < 2.05, f2 = lt >= 2.05;
+    $('nm').className = 'box' + (f1 ? ' focus' : ''); $('ds').className = 'box area' + (f2 ? ' focus' : '');
+    $('nm').innerHTML = nm + (f1 ? caret(lt) : '');
+    $('ds').innerHTML = (ds || (f2 ? '' : '<span style="color:rgba(0,0,0,.25)">Para qué es este buzón y qué tipo de ideas esperás.</span>')) + (f2 && lt < 4.2 ? caret(lt) : '');
+    $('dc').textContent = ds.length + ' / 200';
+    $('nx5').style.transform = `scale(${1 - 0.06 * press(lt, 4.4)})`; $('nx5').style.background = lt > 4.2 ? '#047857' : '#059669';
+  },
+  (lt) => { // 6 · Accesos
+    const v = lt > 1.5 ? 1 : 0;
+    [0, 1, 2].forEach((n) => ($('v' + n).className = n === v ? 'on' : ''));
+    $('v1').style.transform = `scale(${1 - 0.04 * press(lt, 1.5)})`;
+    $('vd').textContent = VIS[v] + ' Todos los miembros del equipo tienen acceso.';
+    ['g0', 'g1'].forEach((id) => { $(id).style.background = '#059669'; $(id).firstChild.style.transform = 'translateX(32px)'; });
+    $('nx6').textContent = lt > 3.35 && lt < 3.75 ? 'Creando…' : 'Crear buzón';
+    $('nx6').style.transform = `scale(${1 - 0.06 * press(lt, 3.3)})`; $('nx6').style.background = lt > 3.1 ? '#047857' : '#059669';
+    const ts = prog(lt, 3.7, 4.0, out) * (1 - prog(lt, 5.3, 5.6)); $('ts').style.opacity = ts; $('ts').style.transform = `translate(-50%,${lerp(-20, 0, ts)}px)`;
+  },
+  (lt) => { // 7 · Cierre
+    [1.0, 1.6, 2.2].forEach((a, n) => { const k = prog(lt, a, a + 0.25, back); const b = $('k' + n); b.className = 'bx' + (lt > a ? ' on' : ''); b.firstChild.style.transform = `scale(${k})`; });
+    const b7 = prog(lt, 2.7, 3.2, out); $('b7').style.opacity = b7; $('b7').style.transform = `translateY(${lerp(24, 0, b7)}px)`;
+    const lk = prog(lt, 3.1, 3.7, back); $('lk').style.opacity = clamp(lk * 2); $('lk').style.transform = `scale(${lerp(0.85, 1, lk)})`; $('lk').style.transformOrigin = 'left center';
+  },
+];
+
+window.ready = document.fonts.ready.then(() => { measure(); renderAt(0); });
+if (location.search.includes('play')) window.ready.then(() => { const t0 = performance.now(); const f = () => { renderAt(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(f); }; f(); });
+</script>
+</body></html>
