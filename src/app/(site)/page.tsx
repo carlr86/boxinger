@@ -42,6 +42,9 @@ const I = {
   image: <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2zM4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 18M15.5 8.5h.01" />,
   chat: <path d="M5 5h14a1 1 0 011 1v9a1 1 0 01-1 1h-8l-4 3.5V16H5a1 1 0 01-1-1V6a1 1 0 011-1zM8 9.5h8M8 12.5h5" />,
   plug: <path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 01-11 0zM12 16.5V21" />,
+  mask: <path d="M3 9.5C3 8.1 4.1 7 5.5 7h13C19.9 7 21 8.1 21 9.5v1c0 3-2.3 5.5-5 5.5-1.6 0-2.6-.8-3.2-2-.3-.6-.5-.9-.8-.9s-.5.3-.8.9c-.6 1.2-1.6 2-3.2 2-2.7 0-5-2.5-5-5.5zM7.5 10.8h1.5M15 10.8h1.5" />,
+  sliders: <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4" />,
+  shield: <path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6zM9.5 12l1.8 1.8L15 10" />,
 };
 const FEATURES = [
   { t: 'Buzón', d: 'Todas las ideas del buzón, con filtros por categoría y estado, votos y comentarios.', pro: false, icon: I.inbox, tone: s.icoGreen },
@@ -49,12 +52,15 @@ const FEATURES = [
   { t: 'Backlog', d: 'Las ideas aprobadas por el equipo, candidatas para el roadmap.', pro: false, icon: I.backlog, tone: s.icoBlue },
   { t: 'Matriz', d: 'Esfuerzo contra impacto para detectar victorias rápidas y grandes apuestas.', pro: true, icon: I.matrix, tone: s.icoAmber },
   { t: 'Roadmap', d: 'Columnas propias, prioridad Alta, Media o Baja y estado de diseño y PRD por tarjeta.', pro: true, icon: I.roadmap, tone: s.icoTeal },
-  { t: 'Status', d: 'Cuántas ideas se aprobaron, cuántas están en desarrollo y cuáles ya se lanzaron.', pro: true, icon: I.status, tone: s.icoPink },
+  { t: 'Status', d: 'Cuántas ideas se aprueban y se lanzan, cuánto tardan y a qué objetivo de growth apuntan. Descargalo en Excel o PDF.', pro: true, icon: I.status, tone: s.icoPink },
   { t: 'Novedades', d: 'La página de lanzamientos del buzón: cada idea lanzada aparece sola, con quién la propuso, y avisamos a toda la comunidad.', pro: true, icon: I.news, tone: s.icoGreen },
   { t: 'Unir ideas', d: 'Juntá las ideas repetidas en una sola: pasan los votos y comentarios, y nadie pierde su lugar.', pro: true, icon: I.merge, tone: s.icoViolet },
   { t: 'Importar y exportar', d: 'Exportá todas tus ideas a Excel cuando quieras. Con Pro, importá las que ya tenés en planillas o encuestas.', pro: false, icon: I.sheet, tone: s.icoBlue },
   { t: 'Imagen en cada idea', d: 'Una captura o una foto vale más que mil palabras: quien carga la idea puede adjuntar una imagen.', pro: true, icon: I.image, tone: s.icoAmber },
   { t: 'Avisos en Slack', d: 'Las ideas nuevas, las que pasan al Roadmap y las lanzadas llegan al canal de Slack que elijas, con un resumen cada lunes.', pro: true, icon: I.chat, tone: s.icoTeal },
+  { t: 'Ideas anónimas', d: 'Quien quiera puede proponer sin mostrar su nombre: solo los Admins saben quién fue. Más ideas, menos vergüenza.', pro: false, icon: I.mask, tone: s.icoViolet },
+  { t: 'Tu buzón, a tu medida', d: 'Empezá en blanco y prendé solo los módulos que uses, o arrancá con una plantilla lista para tu caso.', pro: false, icon: I.sliders, tone: s.icoBlue },
+  { t: 'Admins en tu equipo', d: 'Sumá Admins que te ayuden a gestionar buzones y personas. Vos seguís a cargo de la suscripción.', pro: true, plan: 'TEAM', icon: I.shield, tone: s.icoAmber },
   { t: 'Integraciones', d: 'Conectá Zapier, Make, Google Forms o tu propio sistema y las ideas llegan solas al buzón, listas para revisar.', pro: true, icon: I.plug, tone: s.icoPink },
 ];
 
@@ -83,7 +89,7 @@ export default async function Landing() {
   const plans = [
     { name: 'Free', price: 'USD 0', per: 'para siempre', cls: '', items: ['1 equipo con 1 buzón', 'Solo vos, sin miembros', 'Buzón solo para invitados o público', 'Ideas ilimitadas', 'Votos, comentarios, Ranking y Backlog', 'Publicá ideas como anónimo', 'Exportá tus ideas a Excel'], cta: 'Empezar gratis', ctaCls: s.ctaGhost },
     { name: 'Pro', price: 'USD ' + fmtPrice(usd, locale), per: '/ mes', cls: s.planPro, items: ['Todo lo de Free', 'Equipos y buzones ilimitados', 'Hasta 4 miembros por equipo', 'Buzones privados, con acceso por miembro o por dominio', 'Matriz, Roadmap y Status', 'Importar ideas y unir las repetidas', 'Imagen en cada idea', 'Novedades con lo que lanzaste', 'Avisos en Slack, Zapier, Make y Google Forms'], cta: 'Crear cuenta', ctaCls: s.ctaGreen },
-    { name: 'Team', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Asistente IA: 30 análisis y 20 sugerencias por mes'], cta: 'Contratar Team', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=team' },
+    { name: 'Team', price: 'USD ' + fmtPrice(entUsd, locale), per: '/ mes', cls: s.planEnt, badge: 'Con IA', items: ['Todo lo de Pro', 'Hasta 20 miembros por equipo', 'Invitados y buzones ilimitados', 'Admins además de vos', 'Asistente IA: 30 análisis y 20 sugerencias por mes'], cta: 'Contratar Team', ctaCls: s.ctaViolet, href: '/app/perfil?tab=sub&contratar=team' },
     { name: 'Enterprise', price: 'A medida', per: '', cls: '', items: ['Todo lo de Team', 'Más miembros por equipo', 'Más uso del Asistente IA', 'Precio y facturación a medida', 'Atención directa con el equipo de Boxinger'], note: '¿Necesitás más miembros o más uso de IA? Te armamos un plan para tu empresa.', cta: 'Contactanos', ctaCls: s.ctaGhost, href: '#contacto-enterprise' },
   ];
 
@@ -319,7 +325,7 @@ export default async function Landing() {
           {FEATURES.map((f) => (
             <div key={f.t} className={s.feature}>
               <span className={`${s.ico} ${f.tone}`}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{f.icon}</svg></span>
-              <div className={s.featureHead}><span className={s.featureT}>{t(f.t)}</span>{f.pro && <span className={s.pro}>PRO</span>}</div>
+              <div className={s.featureHead}><span className={s.featureT}>{t(f.t)}</span>{f.pro && <span className={s.pro} style={'plan' in f && f.plan ? { background: 'var(--violet)' } : undefined}>{'plan' in f && f.plan ? f.plan : 'PRO'}</span>}</div>
               <p className={s.featureD}>{t(f.d)}</p>
             </div>
           ))}

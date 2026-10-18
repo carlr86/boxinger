@@ -1894,6 +1894,15 @@ export const EN: Record<string, string> = {
   "Ese módulo viene incluido en este tipo de buzón y no se puede apagar.": "That module is included in this board type and can't be turned off.",
   "Ese módulo no está disponible en este tipo de buzón.": "That module isn't available in this board type.",
 
+  // ── Landing: últimas funciones ──
+  "Cuántas ideas se aprueban y se lanzan, cuánto tardan y a qué objetivo de growth apuntan. Descargalo en Excel o PDF.": "How many ideas get approved and launched, how long they take and which growth goal they target. Download it as Excel or PDF.",
+  "Quien quiera puede proponer sin mostrar su nombre: solo los Admins saben quién fue. Más ideas, menos vergüenza.": "Anyone can propose without showing their name: only Admins know who it was. More ideas, less awkwardness.",
+  "Tu buzón, a tu medida": "Your board, your way",
+  "Empezá en blanco y prendé solo los módulos que uses, o arrancá con una plantilla lista para tu caso.": "Start blank and turn on only the modules you use, or begin with a template ready for your case.",
+  "Admins en tu equipo": "Admins on your team",
+  "Sumá Admins que te ayuden a gestionar buzones y personas. Vos seguís a cargo de la suscripción.": "Add Admins to help you manage boards and people. You stay in charge of the subscription.",
+  "Admins además de vos": "Admins besides you",
+
   // ── Errores de la app ──
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",
