@@ -1904,6 +1904,17 @@ export const EN: Record<string, string> = {
   "Admins además de vos": "Admins besides you",
 
   // ── Brainstorming ──
+  "Aceptada el": "Accepted on",
+  "Aceptada el {date}": "Accepted on {date}",
+  "Backlog: las ideas aceptadas": "Backlog: accepted ideas",
+  "En el grupo": "In the group",
+  "Grupo": "Group",
+  "Promedio": "Average",
+  "Puntos": "Points",
+  "Sin grupo": "No group",
+  "Todavía no hay ideas aceptadas.": "No accepted ideas yet.",
+  "Todavía no hay ideas agrupadas.": "No grouped ideas yet.",
+  "{n} me gusta": "{n} likes",
   "Aceptada": "Accepted",
   "Aceptar": "Accept",
   "Acá aparecen las ideas que recibieron votos y todavía no están en un grupo.": "Ideas that got votes and aren't in a group yet show up here.",

@@ -34,3 +34,7 @@ Calificá el impacto y el esfuerzo de las ideas agrupadas desde su detalle. La *
 Tocá **Aceptar** en la vista Agrupar o en la Matriz: la idea queda aprobada, sale de Agrupar y pasa directo al **Backlog**. Así termina la sesión, con el Backlog lleno de lo que se decidió hacer.
 
 Para **rechazar** una idea, abrila y cambiá su estado a **Rechazada**, con el motivo.
+
+## Descargar
+
+En **Agrupar** y en **Backlog** está el botón **Descargar**: bajá los grupos con sus ideas, o las ideas aceptadas, en **Excel (CSV)** o en **PDF para compartir**, con votos, puntos, impacto y esfuerzo.

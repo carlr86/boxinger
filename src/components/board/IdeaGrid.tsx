@@ -10,6 +10,8 @@ import { AiButton, AiPanel, AiTag } from './AiPanel';
 import { ImportButton, ImportModal } from './ImportModal';
 import { ExportButton } from './ExportButton';
 import { KindChip } from '@/components/boards/KindChip';
+import { ListDownload } from './ListDownload';
+import { backlogExport } from '@/lib/brainstorm-export';
 
 const PAGE = 20;
 const LAYOUT_KEY = 'bx-ideas-layout';
@@ -127,7 +129,7 @@ function ViewToggle({ label, title, on, onChange, tone }: { label: string; title
 }
 
 export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { cols, isMobile } = useGridCols();
   const [q, setQ] = useState('');
   const [fCat, setFCat] = useState('all');
@@ -178,6 +180,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {!backlog && api.data.role === 'admin' && <AiButton onClick={() => setAiOpen(true)} />}
+            {backlog && api.isTeam && api.data.board.kind === 'brainstorm' && <ListDownload build={() => backlogExport({ t, locale, board: api.data.board, ideas: api.data.ideas, origin: window.location.origin })} />}
             <LayoutToggle value={layout} onChange={setLayout} />
             {!backlog && !isMobile && api.isAdmin && (
               <div style={{ display: 'flex', gap: 6 }}>

@@ -6,6 +6,8 @@ import { PageHead, ProLock, Tag } from '@/components/ui';
 import { useI18n } from '@/lib/i18n/client';
 import type { Idea } from '@/lib/types';
 import type { BoardApi } from './shared';
+import { ListDownload } from './ListDownload';
+import { affinityExport } from '@/lib/brainstorm-export';
 
 // Brainstorming › «Agrupar»: the voted ideas on the left; the team creates named groups (columns) and drags each idea
 // into the one it belongs to. Then impact/effort in the Matrix, and «Aceptar» sends an idea to the Backlog.
@@ -15,7 +17,7 @@ const COLORS = ['#7aa7f5', '#b18ae0', '#f5917e', '#73c48f', '#f2c14e', '#5ec2c6'
 export const groupColor = (pos: number) => COLORS[((pos % COLORS.length) + COLORS.length) % COLORS.length];
 
 export function Affinity({ api }: { api: BoardApi }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [drag, setDrag] = useState<number | null>(null);
   const [over, setOver] = useState<string | null>(null); // group id, or 'list'
   const [newName, setNewName] = useState('');
@@ -28,7 +30,8 @@ export function Affinity({ api }: { api: BoardApi }) {
   const loose = live.filter((i) => !i.group_id && i.votes > 0).sort((a, b) => pts(b) - pts(a));
   const inGroup = (g: string) => live.filter((i) => i.group_id === g).sort((a, b) => pts(b) - pts(a));
 
-  const head = <PageHead title={t('Agrupar por afinidad')} sub={t('Arrastrá las ideas votadas a grupos con nombre. Después calificá impacto y esfuerzo en la Matriz y aceptá las que se van a hacer.')} />;
+  const head = <PageHead title={t('Agrupar por afinidad')} sub={t('Arrastrá las ideas votadas a grupos con nombre. Después calificá impacto y esfuerzo en la Matriz y aceptá las que se van a hacer.')}
+    right={api.pro ? <ListDownload build={() => affinityExport({ t, locale, board: api.data.board, ideas: api.data.ideas, origin: window.location.origin })} /> : undefined} />;
   if (!api.pro) return <>{head}<ProLock title={t('Agrupá las ideas de tu brainstorming')} text={t('Juntá las ideas votadas por afinidad, priorizalas en la Matriz y pasá las aceptadas al Backlog.')} onGo={api.goPro} /></>;
 
   async function move(id: number, group: string | null) {
