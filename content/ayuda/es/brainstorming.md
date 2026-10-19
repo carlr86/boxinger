@@ -31,7 +31,7 @@ Calificá el impacto y el esfuerzo de las ideas agrupadas desde su detalle. La *
 
 ## 4. Aceptar
 
-Tocá **Aceptar** en la vista Agrupar o en la Matriz: la idea queda aprobada, sale de Agrupar y pasa directo al **Backlog**. Así termina la sesión, con el Backlog lleno de lo que se decidió hacer.
+Tocá **Aceptar** en la vista Agrupar o en la Matriz: la idea queda aprobada y pasa al **Backlog**; en Agrupar sigue en su grupo, marcada como **Aceptada**. Así termina la sesión, con el Backlog lleno de lo que se decidió hacer.
 
 Para **rechazar** una idea, abrila y cambiá su estado a **Rechazada**, con el motivo.
 

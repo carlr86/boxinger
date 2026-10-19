@@ -31,7 +31,7 @@ Rate the impact and effort of grouped ideas from their detail. The **Matrix** sh
 
 ## 4. Accept
 
-Tap **Accept** in the Group view or the Matrix: the idea gets approved, leaves Group and goes straight to the **Backlog**. That ends the session, with the Backlog full of what you decided to do.
+Tap **Accept** in the Group view or the Matrix: the idea gets approved and moves to the **Backlog**; in Group it stays in its group, marked **Accepted**. That ends the session, with the Backlog full of what you decided to do.
 
 To **reject** an idea, open it and set its status to **Rejected**, with the reason.
 

@@ -25,8 +25,8 @@ export function Affinity({ api }: { api: BoardApi }) {
   const [editVal, setEditVal] = useState('');
   const groups = api.data.board.groups || [];
   const pts = (i: Idea) => Number(i.points ?? i.votes ?? 0);
-  // Accepted ideas are in the Backlog now and rejected ones are out: «Agrupar» shows the rest.
-  const live = api.data.ideas.filter((i) => !i.hidden && i.status !== 'rechazada' && i.status !== 'aprobada');
+  // Accepted ideas stay in their group marked «Aceptada» (they're also in the Backlog); rejected ones are out.
+  const live = api.data.ideas.filter((i) => !i.hidden && i.status !== 'rechazada');
   const loose = live.filter((i) => !i.group_id && i.votes > 0).sort((a, b) => pts(b) - pts(a));
   const inGroup = (g: string) => live.filter((i) => i.group_id === g).sort((a, b) => pts(b) - pts(a));
 
@@ -56,7 +56,7 @@ export function Affinity({ api }: { api: BoardApi }) {
     api.reload();
   }
   async function accept(i: Idea) {
-    api.patchIdea(i.id, { status: 'aprobada' }); // leaves the column right away
+    api.patchIdea(i.id, { status: 'aprobada' }); // shows «Aceptada» right away
     const r = await api.run(rpc('accept_idea', { p_idea: i.id }), 'Idea aceptada: pasó al Backlog');
     if (r !== undefined) flushEmails();
     api.reload();
