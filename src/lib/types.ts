@@ -111,7 +111,7 @@ export interface BoardData {
 
 export interface BoardCard {
   id: string; name: string; slug: string; description: string; logo_url: string | null;
-  visibility: Visibility; status: string; color: string; team_id: string; team_name: string;
+  visibility: Visibility; kind?: string; status: string; color: string; team_id: string; team_name: string;
   created_at: string; last_activity_at: string; ideas: number; guests: number; fav: boolean;
   locked: boolean; account_status: string; role: Role; joined_at?: string;
 }

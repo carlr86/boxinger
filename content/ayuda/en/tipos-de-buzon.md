@@ -37,6 +37,8 @@ The classic board, to listen to your product's users and plan. It includes Ranki
 
 For a team to come up with ideas, vote, group them and decide which to do. It includes Group by affinity, the Matrix and the Backlog; Ranking is optional. Pro and up. See [Brainstorming](/app/ayuda/brainstorming).
 
+In **My boards** and next to each board's title, a tag shows its type (for example, ✦ Brainstorming).
+
 > **Important:** The type is chosen when the board is created and doesn't change afterwards. Boards that already existed are Digital product and stay exactly the same.
 
 ## Modules and plans

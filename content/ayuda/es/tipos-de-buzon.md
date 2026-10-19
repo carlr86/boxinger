@@ -37,6 +37,8 @@ Es el buzón de siempre, para escuchar a los usuarios de tu producto y planifica
 
 Para que un equipo piense ideas, las vote, las agrupe y decida cuáles hacer. Incluye Agrupar por afinidad, la Matriz y el Backlog; el Ranking es opcional. Es de Pro en adelante. Ver [Brainstorming](/app/ayuda/brainstorming).
 
+En **Mis Buzones** y al lado del título de cada buzón, una etiqueta muestra su tipo (por ejemplo, ✦ Brainstorming).
+
 > **Importante:** El tipo se elige al crear el buzón y no se cambia después. Los buzones que ya existían son de tipo Producto digital y siguen igual que siempre.
 
 ## Módulos y planes

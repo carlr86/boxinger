@@ -9,6 +9,7 @@ import { rateOf, usesGrowth, usesRating, voteMode, type BoardApi, voteOptions } 
 import { AiButton, AiPanel, AiTag } from './AiPanel';
 import { ImportButton, ImportModal } from './ImportModal';
 import { ExportButton } from './ExportButton';
+import { KindChip } from '@/components/boards/KindChip';
 
 const PAGE = 20;
 const LAYOUT_KEY = 'bx-ideas-layout';
@@ -172,7 +173,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   return (
     <>
       <PageHead
-        title={backlog ? t('Backlog') : t('Buzón de Ideas')}
+        title={backlog ? t('Backlog') : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>{t('Buzón de Ideas')}<KindChip kind={api.data.board.kind} style={{ fontSize: 13 }} /></span>}
         sub={backlog ? t('Ideas aprobadas por el Equipo, candidatas para el roadmap.') : t('Agrega tus ideas, deja tus comentarios y vota para que luego pasen al backlog.')}
         right={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

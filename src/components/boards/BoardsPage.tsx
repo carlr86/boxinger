@@ -12,6 +12,7 @@ import { boardUrl, displayUrl } from '@/lib/env';
 import { useI18n } from '@/lib/i18n/client';
 import { MAX_MEMBERS, VISIBILITY, VISIBILITY_ORDER, planName } from '@/lib/constants';
 import { CreateBoardModal } from './CreateBoardModal';
+import { KindChip } from './KindChip';
 import type { BoardCard, TeamCtx, Visibility } from '@/lib/types';
 import { TeamDrawer } from './TeamDrawer';
 import { BoardDetail } from './BoardDetail';
@@ -113,6 +114,7 @@ export function BoardsPage() {
           </Dropdown>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <KindChip kind={b.kind} />
           <Tag>{t(VISIBILITY[b.visibility].l)}</Tag>
           {guestOnly && <Tag tone={{ l: '', bg: '#f9f0ff', bd: '#d3adf7', fg: '#531dab' }}>{t('Invitado')}</Tag>}
           {guestOnly && <Tag>{b.team_name}</Tag>}
