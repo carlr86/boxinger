@@ -21,6 +21,7 @@ import { Affinity } from './Affinity';
 import { useI18n } from '@/lib/i18n/client';
 
 const VIEWS: View[] = ['buzon', 'ranking', 'backlog', 'afinidad', 'matriz', 'roadmap', 'status', 'novedades', 'config'];
+const BRAIN_ORDER = ['buzon', 'ranking', 'afinidad', 'matriz', 'backlog', 'config'];
 const TEAM_VIEWS: View[] = ['afinidad', 'matriz', 'roadmap', 'status', 'config'];
 
 function parse(path: string): { view: View; idea: number | null } {
@@ -161,7 +162,9 @@ export function BoardApp({ initial, path, join }: { initial: BoardData; path: st
     .concat(isTeam ? [{ key: 'afinidad', label: t('Agrupar') }, { key: 'matriz', label: t('Matriz') }, { key: 'roadmap', label: t('Roadmap') }, { key: 'status', label: t('Status') }]
       : b.guests_can_view_roadmap ? [{ key: 'roadmap', label: t('Roadmap') }] : [])
     .concat(isTeam || b.pro ? [{ key: 'novedades', label: t('Novedades') }] : [])
-    .filter((x) => hasModule(x.key as View));
+    .filter((x) => hasModule(x.key as View))
+    // Brainstorming follows its flow: propose and vote, rank, group, prioritize, accept.
+    .sort((x, y) => (b.kind === 'brainstorm' ? BRAIN_ORDER.indexOf(x.key) - BRAIN_ORDER.indexOf(y.key) : 0));
   const shownView = canSee(view) ? view : 'buzon';
 
   return (

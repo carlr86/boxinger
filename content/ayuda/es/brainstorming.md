@@ -7,7 +7,7 @@ plans: Pro, Team y Enterprise
 roles: Equipo
 covers: brainstorm, affinity, vote_scale, accept_idea
 ---
-El tipo de buzón **Brainstorming** sigue la dinámica clásica de una lluvia de ideas. Se crea desde **Crear buzón › Usar una plantilla › Brainstorming**.
+El tipo de buzón **Brainstorming** sigue la dinámica clásica de una lluvia de ideas. Se crea desde **Crear buzón › Usar una plantilla › Brainstorming**, y sus pestañas siguen el recorrido: **Buzón → Ranking → Agrupar → Matriz → Backlog**.
 
 ## 1. Proponer y votar
 
@@ -31,4 +31,6 @@ Calificá el impacto y el esfuerzo de las ideas agrupadas desde su detalle. La *
 
 ## 4. Aceptar
 
-Tocá **Aceptar** en la vista Agrupar o en la Matriz: la idea queda aprobada y pasa al **Backlog**. Así termina la sesión, con el Backlog lleno de lo que se decidió hacer.
+Tocá **Aceptar** en la vista Agrupar o en la Matriz: la idea queda aprobada, sale de Agrupar y pasa directo al **Backlog**. Así termina la sesión, con el Backlog lleno de lo que se decidió hacer.
+
+Para **rechazar** una idea, abrila y cambiá su estado a **Rechazada**, con el motivo.

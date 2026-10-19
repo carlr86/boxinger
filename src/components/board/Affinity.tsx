@@ -23,7 +23,8 @@ export function Affinity({ api }: { api: BoardApi }) {
   const [editVal, setEditVal] = useState('');
   const groups = api.data.board.groups || [];
   const pts = (i: Idea) => Number(i.points ?? i.votes ?? 0);
-  const live = api.data.ideas.filter((i) => !i.hidden && i.status !== 'rechazada');
+  // Accepted ideas are in the Backlog now and rejected ones are out: «Agrupar» shows the rest.
+  const live = api.data.ideas.filter((i) => !i.hidden && i.status !== 'rechazada' && i.status !== 'aprobada');
   const loose = live.filter((i) => !i.group_id && i.votes > 0).sort((a, b) => pts(b) - pts(a));
   const inGroup = (g: string) => live.filter((i) => i.group_id === g).sort((a, b) => pts(b) - pts(a));
 
@@ -52,8 +53,10 @@ export function Affinity({ api }: { api: BoardApi }) {
     api.reload();
   }
   async function accept(i: Idea) {
+    api.patchIdea(i.id, { status: 'aprobada' }); // leaves the column right away
     const r = await api.run(rpc('accept_idea', { p_idea: i.id }), 'Idea aceptada: pasó al Backlog');
-    if (r !== undefined) { flushEmails(); api.reload(); }
+    if (r !== undefined) flushEmails();
+    api.reload();
   }
 
   const drop = (target: string) => ({
@@ -74,7 +77,8 @@ export function Affinity({ api }: { api: BoardApi }) {
         <span style={{ marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
           {i.status === 'aprobada'
             ? <Tag tone={{ l: '', bg: '#f6ffed', bd: '#b7eb8f', fg: '#389e0d' }}>{t('Aceptada')}</Tag>
-            : color && api.canWrite && <button type="button" className="bx-btn" style={{ height: 24, padding: '0 10px', fontSize: 12 }} onClick={() => accept(i)}>{t('Aceptar')}</button>}
+            : color && api.canWrite && <button type="button" className="bx-btn" style={{ height: 24, padding: '0 10px', fontSize: 12 }}
+                draggable={false} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.preventDefault(); e.stopPropagation(); accept(i); }}>{t('Aceptar')}</button>}
         </span>
       </div>
     </div>

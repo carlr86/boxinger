@@ -7,7 +7,7 @@ plans: Pro, Team and Enterprise
 roles: Team
 covers: brainstorm, affinity, vote_scale, accept_idea
 ---
-The **Brainstorming** board type follows the classic brainstorming flow. Create it from **Create board › Use a template › Brainstorming**.
+The **Brainstorming** board type follows the classic brainstorming flow. Create it from **Create board › Use a template › Brainstorming**; its tabs follow the flow: **Board → Ranking → Group → Matrix → Backlog**.
 
 ## 1. Propose and vote
 
@@ -31,4 +31,6 @@ Rate the impact and effort of grouped ideas from their detail. The **Matrix** sh
 
 ## 4. Accept
 
-Tap **Accept** in the Group view or the Matrix: the idea gets approved and moves to the **Backlog**. That ends the session, with the Backlog full of what you decided to do.
+Tap **Accept** in the Group view or the Matrix: the idea gets approved, leaves Group and goes straight to the **Backlog**. That ends the session, with the Backlog full of what you decided to do.
+
+To **reject** an idea, open it and set its status to **Rejected**, with the reason.
