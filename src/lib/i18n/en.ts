@@ -1904,6 +1904,8 @@ export const EN: Record<string, string> = {
   "Admins además de vos": "Admins besides you",
 
   // ── Brainstorming ──
+  "Nombres de las opciones": "Option names",
+  "De {min} a {max} caracteres cada una.": "{min} to {max} characters each.",
   "Aceptada el": "Accepted on",
   "Aceptada el {date}": "Accepted on {date}",
   "Backlog: las ideas aceptadas": "Backlog: accepted ideas",

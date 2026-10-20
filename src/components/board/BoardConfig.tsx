@@ -146,6 +146,13 @@ function General({ api }: { api: BoardApi }) {
                 : b.vote_scale === 'like' ? t('Un solo voto: «me gusta». Ordena por cantidad de me gusta.')
                 : t('Importante, Interesante o No importante (con los nombres que elijas). Suman 2, 1 y 0 puntos.')}
             </span>
+            {(b.vote_scale || 'tres') === 'tres' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid #f0f0f0', paddingTop: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Nombres de las opciones')}</span>
+                <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('De {min} a {max} caracteres cada una.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}</span>
+                <VoteLabels api={api} />
+              </div>
+            )}
           </Options>
         </Section>
       )}
@@ -205,9 +212,12 @@ function General({ api }: { api: BoardApi }) {
         </Options>
       </Section>
 
-      <Section title={t('Opciones de voto')} desc={t('Cómo se llaman los tres votos en este buzón (de {min} a {max} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}>
-        <VoteLabels api={api} />
-      </Section>
+      {/* Brainstorming names the three options inside «Escala de votos» (only when that scale is chosen). */}
+      {b.kind !== 'brainstorm' && (
+        <Section title={t('Opciones de voto')} desc={t('Cómo se llaman los tres votos en este buzón (de {min} a {max} caracteres). El puntaje no cambia: la primera opción suma 2 puntos, la segunda 1 y la tercera 0.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}>
+          <VoteLabels api={api} />
+        </Section>
+      )}
 
       <Section title={t('Zona de peligro')} desc={t('Acciones que no se pueden deshacer.')}>
         <div style={{ border: '1px solid #ffccc7', background: '#fff2f0', borderRadius: 8, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>

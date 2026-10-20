@@ -19,6 +19,8 @@ Everyone posts ideas, votes and comments on the board. Anonymous ideas are allow
 | 1 to 5 | 1 to 5 stars | Sum of stars |
 | Like | A single vote | Number of likes |
 
+With **Three options**, you name each option right there.
+
 > **Important:** The scale can be changed while nobody has voted.
 
 ## 2. Group by affinity

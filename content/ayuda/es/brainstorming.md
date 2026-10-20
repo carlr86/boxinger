@@ -19,6 +19,8 @@ Todos cargan ideas, votan y comentan en el Buzón. Las ideas anónimas vienen pe
 | Del 1 al 5 | De 1 a 5 estrellas | Suma de estrellas |
 | Me gusta | Un solo voto | Cantidad de me gusta |
 
+Con **Tres opciones**, ahí mismo le ponés el nombre que quieras a cada opción.
+
 > **Importante:** La escala se puede cambiar mientras nadie haya votado.
 
 ## 2. Agrupar por afinidad
