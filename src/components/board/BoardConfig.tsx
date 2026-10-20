@@ -147,7 +147,7 @@ function General({ api }: { api: BoardApi }) {
                 : t('Importante, Interesante o No importante (con los nombres que elijas). Suman 2, 1 y 0 puntos.')}
             </span>
             {(b.vote_scale || 'tres') === 'tres' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid #f0f0f0', paddingTop: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Nombres de las opciones')}</span>
                 <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('De {min} a {max} caracteres cada una.', { min: VOTE_LABEL_MIN, max: VOTE_LABEL_MAX })}</span>
                 <VoteLabels api={api} />
