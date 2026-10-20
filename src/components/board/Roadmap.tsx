@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Dropdown } from 'antd';
+import { ArrowDownOutlined, ArrowRightOutlined, ArrowUpOutlined, EyeOutlined, RocketOutlined, RollbackOutlined, UndoOutlined } from '@ant-design/icons';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { Dots, Help, PageHead, ProLock, Seg, Tag } from '@/components/ui';
 import { DEV, LAUNCH_COL, LAUNCH_RECENT_DAYS, NO_PRIO, PRIO, RM_COLS, SHADOW_POP } from '@/lib/constants';
@@ -187,14 +188,14 @@ export function Roadmap({ api }: { api: BoardApi }) {
                   onOver={() => { if (over?.before !== i.id) setOver({ col: c.k, before: i.id }); }}
                   onDrop={() => { if (drag && drag !== i.id) move(drag, c.k, i.id); else { setDrag(null); setOver(null); } }}
                   menu={[
-                    { key: 'open', label: t('Ver detalle'), onClick: () => api.openIdea(i.id) },
-                    ...(idx > 0 ? [{ key: 'up', label: t('Subir'), onClick: () => move(i.id, c.k, cards[idx - 1].id) }] : []),
-                    ...(idx < cards.length - 1 ? [{ key: 'down', label: t('Bajar'), onClick: () => move(i.id, c.k, cards[idx + 2]?.id ?? null) }] : []),
-                    { type: 'group' as const, key: 'to', label: t('Mover a'), children: RM_COLS.filter((x) => x.k !== c.k).map((x) => ({ key: 'm' + x.k, label: colL(x.k), onClick: () => move(i.id, x.k, null, t('Movida a {col}', { col: colL(x.k) })) })) },
+                    { key: 'open', icon: <EyeOutlined />, label: t('Ver detalle'), onClick: () => api.openIdea(i.id) },
+                    ...(idx > 0 ? [{ key: 'up', icon: <ArrowUpOutlined />, label: t('Subir'), onClick: () => move(i.id, c.k, cards[idx - 1].id) }] : []),
+                    ...(idx < cards.length - 1 ? [{ key: 'down', icon: <ArrowDownOutlined />, label: t('Bajar'), onClick: () => move(i.id, c.k, cards[idx + 2]?.id ?? null) }] : []),
+                    { type: 'group' as const, key: 'to', label: t('Mover a'), children: RM_COLS.filter((x) => x.k !== c.k).map((x) => ({ key: 'm' + x.k, icon: <ArrowRightOutlined />, label: colL(x.k), onClick: () => move(i.id, x.k, null, t('Movida a {col}', { col: colL(x.k) })) })) },
                     { type: 'divider' as const },
-                    { key: 'launch', label: t('Marcar como lanzada'), onClick: async () => { await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'lanzada' } }), 'Idea lanzada · pasó a la columna Lanzadas'); flushEmails(); api.reload(); } },
+                    { key: 'launch', icon: <RocketOutlined />, label: t('Marcar como lanzada'), onClick: async () => { await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'lanzada' } }), 'Idea lanzada · pasó a la columna Lanzadas'); flushEmails(); api.reload(); } },
                     { type: 'divider' as const },
-                    { key: 'back', label: t('Volver al Backlog'), onClick: () => move(i.id, null, null, 'Volvió al Backlog') },
+                    { key: 'back', icon: <RollbackOutlined />, label: t('Volver al Backlog'), onClick: () => move(i.id, null, null, 'Volvió al Backlog') },
                   ]} />
               ))}
               {cards.length === 0 && <div style={{ border: '1px dashed rgba(0,0,0,0.12)', borderRadius: 8, padding: '20px 12px', textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Arrastrá una tarjeta o añadí una idea del Backlog.')}</div>}
@@ -228,8 +229,8 @@ export function Roadmap({ api }: { api: BoardApi }) {
           <RmCard key={i.id} api={api} i={i} compact={compact} launched dragging={false} overMe={false}
             onDragStart={() => {}} onDragEnd={() => {}} onOver={() => {}} onDrop={() => {}}
             menu={[
-              { key: 'open', label: t('Ver detalle'), onClick: () => api.openIdea(i.id) },
-              { key: 'undo', label: t('Deshacer lanzamiento'), onClick: async () => {
+              { key: 'open', icon: <EyeOutlined />, label: t('Ver detalle'), onClick: () => api.openIdea(i.id) },
+              { key: 'undo', icon: <UndoOutlined />, label: t('Deshacer lanzamiento'), onClick: async () => {
                 await api.run(rpc('update_idea_plan', { p_id: i.id, p_patch: { dev_status: 'en_curso' } }));
                 await move(i.id, 'ahora', null, t('Volvió a {col}, en curso', { col: colL('ahora') }));
               } },
@@ -240,7 +241,7 @@ export function Roadmap({ api }: { api: BoardApi }) {
   );
 }
 
-type MenuItem = { key?: string; label?: string; onClick?: () => void; type?: 'group' | 'divider'; children?: MenuItem[] };
+type MenuItem = { key?: string; icon?: React.ReactNode; label?: string; onClick?: () => void; type?: 'group' | 'divider'; children?: MenuItem[] };
 
 function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDragEnd, onOver, onDrop, menu }: {
   api: BoardApi; i: Idea; compact: boolean; launched?: boolean; dragging: boolean; overMe: boolean; menu: MenuItem[];
