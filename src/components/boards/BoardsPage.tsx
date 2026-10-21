@@ -124,7 +124,7 @@ export function BoardsPage() {
           {b.status !== 'active' && <Tag tone={{ l: '', bg: '#fff2f0', bd: '#ffccc7', fg: '#cf1322' }}>{t('Suspendido')}</Tag>}
         </div>
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.57, color: 'rgba(0,0,0,0.65)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 44 }}>{b.description || t('Sin descripción.')}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8, borderTop: '1px solid #f0f0f0', paddingTop: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 8, borderTop: '1px solid #f0f0f0', paddingTop: 14, marginTop: 'auto' }}>
           <Num l={t('Ideas')} v={b.ideas} />
           <Num l={t('Miembros')} v={priv ? t('Solo Equipo') : b.guests} small={priv} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}><span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{t('Última actividad')}</span><span style={{ fontSize: 13, lineHeight: '27px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{rel(b.last_activity_at)}</span></div>
