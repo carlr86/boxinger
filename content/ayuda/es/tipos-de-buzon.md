@@ -11,7 +11,7 @@ Al crear un buzón, Boxinger te pregunta **¿Cómo querés empezar?**. Hay dos c
 
 ## Buzón en blanco
 
-Arranca solo con el Buzón y el Ranking. Después, en **Configuración › Tipo y módulos**, prendés los módulos que quieras: Backlog, Impacto y esfuerzo, Growth, Roadmap, Status y Novedades.
+Arranca solo con el Buzón y el Ranking. Después, en **Configuración › Tipo y módulos**, prendés los módulos que quieras: Backlog, Impacto y esfuerzo, Growth, MRR, Segmentos de clientes, Roadmap, Status y Novedades.
 
 ## Por categoría y tipo
 
@@ -31,7 +31,7 @@ Cada tipo viene armado para un uso, con sus módulos listos:
 
 ### Producto digital
 
-Es el buzón de siempre, para escuchar a los usuarios de tu producto y planificar. Incluye Ranking, Backlog, Roadmap, Status y Novedades. Impacto y esfuerzo y Growth son opcionales.
+Es el buzón de siempre, para escuchar a los usuarios de tu producto y planificar. Incluye Ranking, Backlog, Roadmap, Status y Novedades. Impacto y esfuerzo, Growth, MRR y Segmentos de clientes son opcionales.
 
 ### Brainstorming
 
@@ -43,6 +43,6 @@ En **Mis Buzones** y al lado del título de cada buzón, una etiqueta muestra su
 
 ## Módulos y planes
 
-Algunos módulos son de Pro en adelante (Matriz, Roadmap, Status y Novedades). Un tipo no cambia eso: si tu plan no los incluye, aparecen con la etiqueta del plan.
+Algunos módulos son de Pro en adelante (Matriz, Roadmap, Status, Novedades, MRR y Segmentos de clientes). Un tipo no cambia eso: si tu plan no los incluye, aparecen con la etiqueta del plan.
 
 > **Tip:** Apagar un módulo no borra nada. Si lo volvés a prender, todo aparece como estaba.

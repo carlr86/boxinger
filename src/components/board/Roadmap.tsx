@@ -10,6 +10,7 @@ import { useToast } from '@/components/Providers';
 import type { Idea } from '@/lib/types';
 import { rateOf, scoreOf, usesRating, type BoardApi } from './shared';
 import { AuthorLine } from './IdeaGrid';
+import { CustomerGridRows } from './CustomerData';
 
 const Pencil = () => (<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M11 2.5l2.5 2.5L6 12.5H3.5V10z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>);
 const More = () => (<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden><circle cx="3.5" cy="8" r="1.3" fill="currentColor" /><circle cx="8" cy="8" r="1.3" fill="currentColor" /><circle cx="12.5" cy="8" r="1.3" fill="currentColor" /></svg>);
@@ -293,6 +294,7 @@ function RmCard({ api, i, compact, launched, dragging, overMe, onDragStart, onDr
           </>
         )}
         {rating && <><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{t('Valor')} <Help><ValueHelp /></Help></span><span style={{ color: 'rgba(0,0,0,0.88)' }}>{sc == null ? t('Sin calificar') : num(sc)}</span></>}
+        <CustomerGridRows api={api} i={i} />
         <span>{t('Desarrollo')}</span><span><Tag tone={D}>{t(D.l)}</Tag></span>
         {([['chk_design', t('Diseño')], ['chk_prd', 'PRD / SPEC']] as const).map(([k, l]) => (
           <span key={k} style={{ display: 'contents' }}>

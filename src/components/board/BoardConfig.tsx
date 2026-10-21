@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Modal, Popconfirm, Tooltip } from 'antd';
+import { App, Modal, Popconfirm, Tooltip } from 'antd';
 import { rpc, flushEmails } from '@/lib/rpc';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { Avatar, EmailChips, Note, PageHead, ProPill, Seg, ToggleRow } from '@/components/ui';
@@ -14,9 +14,10 @@ import { ExportButton } from './ExportButton';
 import { Integrations } from './Integrations';
 import { MODULES, kindLabel } from '@/lib/board-kinds';
 import { usesModule } from './shared';
+import { MRR_CURRENCIES } from './CustomerData';
 
 // Boards from before types: «Producto digital» rules.
-const PRODUCT_STATES: Record<string, string> = { ranking: 'fixed', backlog: 'fixed', rating: 'optional', growth: 'optional', roadmap: 'fixed', status: 'fixed', changelog: 'fixed', affinity: 'off' };
+const PRODUCT_STATES: Record<string, string> = { ranking: 'fixed', backlog: 'fixed', rating: 'optional', growth: 'optional', roadmap: 'fixed', status: 'fixed', changelog: 'fixed', affinity: 'off', mrr: 'optional', segments: 'optional' };
 import { VISIBILITY, VOTE, VOTE_KEYS, VOTE_LABEL_MAX, VOTE_LABEL_MIN } from '@/lib/constants';
 
 type Tab = 'general' | 'cats' | 'com' | 'integ';
@@ -181,12 +182,24 @@ function General({ api }: { api: BoardApi }) {
               </div>
             );
             return (
-              <ToggleRow key={m.k} label={t(m.l)} desc={t(m.d)} on={on}
-                onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, ['p_' + m.k]: v }), v ? t('{m} activado', { m: t(m.l) }) : t('{m} desactivado', { m: t(m.l) })); api.reload(); }} />
+              <div key={m.k} style={{ padding: '8px 0' }}><ToggleRow label={paidOnly(m.k) && !api.pro ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>{t(m.l)} <ProPill /></span> : t(m.l)} desc={t(m.d)} on={on}
+                onChange={async (v) => { if (v && paidOnly(m.k) && !api.pro) return api.goPro(); await api.run(rpc('set_board_features', { p_board: b.id, ['p_' + m.k]: v }), v ? t('{m} activado', { m: t(m.l) }) : t('{m} desactivado', { m: t(m.l) })); api.reload(); }} /></div>
             );
           })}
         </Options>
       </Section>
+
+      {(usesModule(api, 'mrr') || usesModule(api, 'segments')) && (
+        <Section title={t('MRR y segmentos de clientes')} desc={t('Solo los ve el Equipo, en el detalle de cada idea.')}>
+          <Options>
+            {usesModule(api, 'mrr') && <MrrCurrency api={api} />}
+            {usesModule(api, 'segments') && <Segments api={api} />}
+            <ToggleRow label={t('Mostrar en las tarjetas')} desc={t('Suma el MRR y los segmentos a las tarjetas del Buzón, del Roadmap y de la Matriz. Solo los ve el Equipo.')}
+              on={!!b.segments_on_cards}
+              onChange={async (v) => { await api.run(rpc('set_board_features', { p_board: b.id, p_cards: v }), v ? 'Ahora se ven en las tarjetas' : 'Ya no se ven en las tarjetas'); api.reload(); }} />
+          </Options>
+        </Section>
+      )}
 
       <Section title={t('Ideas anónimas')} desc={t('Quien carga una idea puede elegir que se muestre como «Anónimo». Solo los Admins del equipo ven quién la propuso, y al autor le siguen llegando los avisos por email.')}>
         <Options>
@@ -234,6 +247,111 @@ function General({ api }: { api: BoardApi }) {
       {paidNote && <Note>{t('Buzones ilimitados en el plan Pro.')} <a onClick={api.goPro}>{t('Ver planes')}</a></Note>}
       <VisibilityModal board={visOpen ? { id: b.id, name: b.name, visibility: b.visibility, guests: b.guests } : null} pro={api.pro}
         onClose={() => setVisOpen(false)} onDone={() => api.reload()} onGoPro={api.goPro} />
+    </div>
+  );
+}
+
+// Turning these on needs a paid plan (the server checks it too).
+const paidOnly = (k: string) => k === 'mrr' || k === 'segments';
+
+/** The currency every MRR of the board is written in. Changing it doesn't convert the amounts. */
+function MrrCurrency({ api }: { api: BoardApi }) {
+  const { t } = useI18n();
+  const { modal } = App.useApp();
+  const b = api.data.board;
+  const save = async (c: string) => { await api.run(rpc('set_mrr_currency', { p_board: b.id, p_currency: c }), t('Moneda: {c}', { c })); api.reload(); };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+      <div style={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 14 }}>{t('Moneda del MRR')}</span>
+        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('La misma para todas las ideas del buzón.')}</span>
+      </div>
+      <select className="bx-input" style={{ width: 110 }} value={b.mrr_currency || 'USD'} aria-label={t('Moneda del MRR')}
+        onChange={(e) => {
+          const c = e.target.value;
+          if (!api.data.ideas.some((i) => i.mrr != null)) return save(c);
+          modal.confirm({ title: t('¿Cambiar la moneda a {c}?', { c }), content: t('Los montos cargados no se convierten: solo cambia la moneda que se muestra.'),
+            okText: t('Cambiar'), cancelText: t('Cancelar'), onOk: () => save(c) });
+        }}>
+        {MRR_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+    </div>
+  );
+}
+
+/** The board's customer segments: add, rename and delete (it comes off the ideas that had it). */
+function Segments({ api }: { api: BoardApi }) {
+  const { t, plural } = useI18n();
+  const toast = useToast();
+  const segs = api.data.board.segments || [];
+  const [newName, setNewName] = useState('');
+  const [err, setErr] = useState('');
+  const [edit, setEdit] = useState<string | null>(null);
+  const [editVal, setEditVal] = useState('');
+  const used = (id: string) => api.data.ideas.filter((i) => i.segments?.includes(id)).length;
+
+  async function add() {
+    const v = newName.trim();
+    if (!v) return setErr(t('Escribí un nombre'));
+    if (segs.some((s) => s.name.toLowerCase() === v.toLowerCase())) return setErr(t('Ya existe un segmento con ese nombre'));
+    if (segs.length >= 12) return setErr(t('Máximo 12 segmentos'));
+    const r = await api.run(rpc('add_segment', { p_board: api.data.board.id, p_name: v }), 'Segmento agregado');
+    if (r !== undefined) { setNewName(''); setErr(''); api.reload(); }
+  }
+  async function saveEdit() {
+    if (!editVal.trim()) return toast.err(new Error(t('El nombre no puede quedar vacío')));
+    const r = await api.run(rpc('rename_segment', { p_id: edit, p_name: editVal }), 'Segmento actualizado');
+    if (r !== undefined) { setEdit(null); api.reload(); }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 14 }}>{t('Segmentos de clientes')}</span>
+        <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>{t('Hasta 12. En cada idea se pueden marcar varios.')}</span>
+      </div>
+      <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, background: '#fff' }}>
+        {segs.map((s) => {
+          const n = used(s.id);
+          return (
+            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', borderBottom: '1px solid #f0f0f0', minHeight: 48 }}>
+              {edit === s.id ? (
+                <>
+                  <input autoFocus className="bx-input" style={{ flex: 1, minWidth: 0, borderColor: '#059669' }} maxLength={40} value={editVal} onChange={(e) => setEditVal(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEdit(null); }} />
+                  <a onClick={saveEdit} style={{ fontSize: 14 }}>{t('Guardar')}</a>
+                  <a onClick={() => setEdit(null)} className="bx-link-muted" style={{ fontSize: 14 }}>{t('Cancelar')}</a>
+                </>
+              ) : (
+                <>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 14 }}>{s.name}</span>
+                    <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{n === 0 ? t('Sin ideas') : plural(n, 'idea', 'ideas')}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Tooltip title={t('Editar nombre')}>
+                      <button type="button" className="bx-icon-btn" aria-label={t('Editar {name}', { name: s.name })} style={{ width: 30, height: 30 }}
+                        onClick={() => { setEdit(s.id); setEditVal(s.name); }}><PencilIcon /></button>
+                    </Tooltip>
+                    <Popconfirm title={t('¿Borrar el segmento «{name}»?', { name: s.name })}
+                      description={n === 0 ? t('Ninguna idea lo tiene marcado.') : n === 1 ? t('Se quita de 1 idea que lo tiene marcado.') : t('Se quita de las {n} ideas que lo tienen marcado.', { n })}
+                      okText={t('Borrar')} cancelText={t('Cancelar')} okButtonProps={{ danger: true }}
+                      onConfirm={async () => { await api.run(rpc('delete_segment', { p_id: s.id }), 'Segmento borrado'); api.reload(); }}>
+                      <button type="button" className="bx-icon-btn bx-icon-danger" aria-label={t('Eliminar {name}', { name: s.name })} title={t('Borrar segmento')} style={{ width: 30, height: 30 }}><TrashIcon /></button>
+                    </Popconfirm>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+        <div style={{ display: 'flex', gap: 8, padding: 12 }}>
+          <input className={'bx-input' + (err ? ' err' : '')} style={{ flex: 1, minWidth: 0 }} placeholder={t('Nuevo segmento')} maxLength={40} value={newName}
+            onChange={(e) => { setNewName(e.target.value); setErr(''); }} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
+          <button type="button" className="bx-btn" onClick={add}>+ {t('Agregar')}</button>
+        </div>
+        {err && <span style={{ fontSize: 13, color: '#ff4d4f', padding: '0 12px 12px', display: 'block' }}>{err}</span>}
+      </div>
     </div>
   );
 }

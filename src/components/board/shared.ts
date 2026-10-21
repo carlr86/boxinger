@@ -58,11 +58,15 @@ export const voteOptions = (api: Pick<BoardApi, 'data'>): string[] =>
   api.data.board.vote_scale === 'cinco' ? ['5', '4', '3', '2', '1'] : api.data.board.vote_scale === 'like' ? ['like'] : ['importante', 'interesante', 'no_importante'];
 export const usesRating = (api: BoardApi) => usesModule(api, 'rating');
 export const usesGrowth = (api: BoardApi) => usesModule(api, 'growth');
+export const usesMrr = (api: BoardApi) => usesModule(api, 'mrr');
+export const usesSegments = (api: BoardApi) => usesModule(api, 'segments');
+/** MRR / segments rows on the cards of the Buzón, Roadmap and Matrix: the team, on a paid plan, when the Admin turned it on. */
+export const customerOnCards = (api: BoardApi) => api.isTeam && api.pro && !!api.data.board.segments_on_cards && (usesMrr(api) || usesSegments(api));
 /** Whether the board shows a module (its type and the Admin decide; boards from before types have them all). */
 export const usesModule = (api: Pick<BoardApi, 'data'>, k: string) => {
   const b = api.data.board;
   if (b.modules && k in b.modules) return !!b.modules[k];
-  return k === 'rating' ? b.use_rating !== false : k === 'growth' ? b.use_growth !== false : k !== 'affinity';
+  return k === 'rating' ? b.use_rating !== false : k === 'growth' ? b.use_growth !== false : !['affinity', 'mrr', 'segments'].includes(k);
 };
 
 export const scoreOf = (i: Idea) => {

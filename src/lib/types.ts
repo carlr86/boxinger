@@ -50,6 +50,8 @@ export interface Idea {
   chk_design?: boolean;
   chk_prd?: boolean;
   growth?: string[];
+  mrr?: number | null; // monthly revenue of the customers asking for it, in the board's currency (team only)
+  segments?: string[]; // customer segment ids (team only)
 }
 
 export interface Reply {
@@ -83,6 +85,8 @@ export interface BoardInfo {
   created_by: string | null; members_can_create_ideas: boolean; guests_can_create_ideas: boolean; allow_anonymous?: boolean;
   use_rating?: boolean; use_growth?: boolean; // optional prioritization tools (on by default)
   kind?: string; // board type: producto | brainstorm | blank (src/lib/board-kinds.ts)
+  mrr_currency?: string; segments_on_cards?: boolean; // MRR and customer segments (optional modules)
+  segments?: { id: string; name: string }[] | null; // the board's customer segments (team only)
   vote_scale?: 'tres' | 'cinco' | 'like'; // how people vote (Brainstorming can change it while nobody has voted)
   groups?: { id: string; name: string; position: number }[] | null; // affinity groups (team only)
   modules?: Record<string, boolean>; // effective modules: ranking, backlog, rating, growth, roadmap, status, changelog, affinity

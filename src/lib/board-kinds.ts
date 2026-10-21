@@ -33,6 +33,8 @@ export const MODULES: { k: string; l: string; d: string; pro?: boolean }[] = [
   { k: 'backlog', l: 'Backlog', d: 'Las ideas aprobadas, candidatas para hacer.' },
   { k: 'rating', l: 'Impacto y esfuerzo', d: 'Calificá cada idea de 1 a 5 y ordená con la Matriz y el Valor del Roadmap.', pro: true },
   { k: 'growth', l: 'Growth', d: 'Marcá a qué objetivo apunta cada idea: adquisición, activación, retención, monetización o churn.', pro: true },
+  { k: 'mrr', l: 'MRR', d: 'Anotá cuánto MRR representan los clientes que piden cada idea.', pro: true },
+  { k: 'segments', l: 'Segmentos de clientes', d: 'Marcá qué tipo de clientes pide cada idea: Startup, Small Business, BPO…', pro: true },
   { k: 'roadmap', l: 'Roadmap', d: 'Qué se hace ahora, después y más adelante.', pro: true },
   { k: 'status', l: 'Status', d: 'Métricas de lo que pasó con las ideas.', pro: true },
   { k: 'changelog', l: 'Novedades', d: 'La página de lanzamientos del buzón.', pro: true },

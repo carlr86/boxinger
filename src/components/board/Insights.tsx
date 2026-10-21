@@ -10,6 +10,7 @@ import { downloadStatusCsv, downloadStatusPdf, type StatusCtx } from '@/lib/stat
 import { useI18n } from '@/lib/i18n/client';
 import { rateOf, scoreOf, usesGrowth, type BoardApi } from './shared';
 import { useGridCols } from './IdeaGrid';
+import { CustomerGridRows } from './CustomerData';
 
 const DAY = 864e5;
 
@@ -123,6 +124,7 @@ export function Matrix({ api }: { api: BoardApi }) {
                       ? x.i.growth.map((k) => GROWTH[k] && <Tag key={k} tone={GROWTH[k]} style={{ borderRadius: 10 }}>{t(GROWTH[k].l)}</Tag>)
                       : <Tag tone={NO_PRIO}>{t('Sin definir')}</Tag>}
                   </span>
+                  <CustomerGridRows api={api} i={x.i} />
                 </div>
               </div>
             );

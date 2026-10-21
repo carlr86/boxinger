@@ -6,7 +6,7 @@ import { csvSep, downloadBlob, toCsv, type CsvCell } from '@/lib/csv';
 import { DEV, GROWTH, IDEA_STATUS, PRIO, RM_COLS } from '@/lib/constants';
 import { useToast } from '@/components/Providers';
 import { useI18n } from '@/lib/i18n/client';
-import type { BoardApi } from './shared';
+import { usesMrr, usesSegments, type BoardApi } from './shared';
 
 type Row = {
   id: number; title: string; description: string; category: string; status: string; origin: string; reject_reason: string | null;
@@ -14,8 +14,9 @@ type Row = {
   author_name: string | null; author_email: string | null; created_at: string; approved_at: string | null; launched_at: string | null;
   importante: number; interesante: number; no_importante: number; comments: number;
   impact: number | null; effort: number | null; priority: string | null; rm_col: string | null; dev_status: string; growth: string[] | null;
+  mrr?: number | null; segments?: string | null; // segment names, comma-separated
 };
-type Export = { board: string; slug: string; roadmap_names: Record<string, string>; ideas: Row[] };
+type Export = { board: string; slug: string; roadmap_names: Record<string, string>; mrr_currency?: string; ideas: Row[] };
 
 /** "Exportar": every idea of the board to a CSV for Excel or Google Sheets (team Admin, every plan). Same first columns as the import. */
 export function ExportButton({ api, iconOnly }: { api: BoardApi; iconOnly?: boolean }) {
@@ -38,9 +39,12 @@ export function ExportButton({ api, iconOnly }: { api: BoardApi; iconOnly?: bool
     const r = await api.run(rpc<Export>('export_ideas', { p_board: api.data.board.id }));
     setBusy(false);
     if (!r) return;
+    // MRR and segments only when the board uses them.
+    const mrr = usesMrr(api), segs = usesSegments(api);
     const col = (k: string | null) => (k ? r.roadmap_names?.[k] || t(RM_COLS.find((c) => c.k === k)?.l || k) : '');
     const head = ['ID', 'Título', 'Descripción', 'Categoría', 'Estado', 'Fecha', 'Nombre', 'Email', 'Origen', 'Votos', 'Importante', 'Interesante', 'No importante',
       'Puntaje', 'Comentarios', 'Impacto', 'Esfuerzo', 'Prioridad', 'Roadmap', 'Desarrollo', 'Lanzada el', 'Aprobada el', 'Motivo del rechazo', 'Growth',
+      ...(mrr ? ['MRR', 'Moneda'] : []), ...(segs ? ['Segmentos'] : []),
       'Oculta para la Comunidad', 'Importada', 'Sugerida por IA', 'Tiene imagen', 'Anónima', 'Link'].map((h) => t(h));
     const rows: CsvCell[][] = r.ideas.map((i) => {
       const votes = Number(i.importante) + Number(i.interesante) + Number(i.no_importante);
@@ -51,6 +55,7 @@ export function ExportButton({ api, iconOnly }: { api: BoardApi; iconOnly?: bool
         2 * Number(i.importante) + Number(i.interesante), Number(i.comments), i.impact ?? '', i.effort ?? '',
         i.priority && PRIO[i.priority] ? t(PRIO[i.priority].l) : '', col(i.rm_col), DEV[i.dev_status] ? t(DEV[i.dev_status].l) : '',
         day(i.launched_at), day(i.approved_at), i.reject_reason || '', (i.growth || []).map((g) => (GROWTH[g] ? t(GROWTH[g].l) : g)).join(', '),
+        ...(mrr ? [i.mrr ?? '', i.mrr != null ? r.mrr_currency || '' : ''] : []), ...(segs ? [i.segments || ''] : []),
         yesNo(i.hidden), yesNo(i.imported), yesNo(i.ai), yesNo(!!i.has_image), yesNo(!!i.anonymous), `${window.location.origin}/app/b/${r.slug}/idea/${i.id}`,
       ];
     });

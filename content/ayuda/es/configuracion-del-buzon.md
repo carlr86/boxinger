@@ -5,7 +5,7 @@ section: cuenta
 order: 1
 plans: Todos los planes
 roles: Admin
-covers: board_settings, categories, vote_labels, use_rating, use_growth, allow_anonymous, empty_board
+covers: board_settings, categories, vote_labels, use_rating, use_growth, use_mrr, use_segments, allow_anonymous, empty_board
 ---
 Entrá desde la pestaña **Configuración** del buzón.
 
@@ -16,7 +16,8 @@ Entrá desde la pestaña **Configuración** del buzón.
 - **Quiénes pueden crear ideas:** miembros del equipo e invitados.
 - **Qué ven los invitados:** si pueden ver el Roadmap.
 - **Opciones de voto:** cambiá *Importante*, *Interesante* y *No importante* por los que prefieras.
-- **Tipo y módulos:** el tipo del buzón y sus módulos (Ranking, Backlog, Impacto y esfuerzo, Growth, Roadmap, Status, Novedades). Los incluidos en el tipo tienen candado; los opcionales se prenden o apagan sin borrar lo cargado. Ver [Tipos de buzón y módulos](/app/ayuda/tipos-de-buzon).
+- **Tipo y módulos:** el tipo del buzón y sus módulos (Ranking, Backlog, Impacto y esfuerzo, Growth, MRR, Segmentos de clientes, Roadmap, Status, Novedades). Los incluidos en el tipo tienen candado; los opcionales se prenden o apagan sin borrar lo cargado. Ver [Tipos de buzón y módulos](/app/ayuda/tipos-de-buzon).
+- **MRR y segmentos de clientes:** aparece cuando prendés alguno de los dos módulos. Elegí la moneda del MRR, armá la lista de segmentos y decidí si se muestran también en las tarjetas. Ver [MRR y segmentos de clientes](/app/ayuda/mrr-y-segmentos).
 - **Ideas anónimas:** permitir o no que se publiquen ideas como anónimo; solo los Admins ven quién las propuso. Viene prendido.
 
 ## Categorías

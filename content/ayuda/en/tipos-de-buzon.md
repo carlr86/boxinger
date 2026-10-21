@@ -11,7 +11,7 @@ When you create a board, Boxinger asks **How do you want to start?**. There are 
 
 ## Blank board
 
-It starts with just the Board and the Ranking. Then, in **Settings › Type and modules**, you turn on the modules you want: Backlog, Impact and effort, Growth, Roadmap, Status and Updates.
+It starts with just the Board and the Ranking. Then, in **Settings › Type and modules**, you turn on the modules you want: Backlog, Impact and effort, Growth, MRR, Customer segments, Roadmap, Status and Updates.
 
 ## By category and type
 
@@ -31,7 +31,7 @@ Each type comes set up for a use, with its modules ready:
 
 ### Digital product
 
-The classic board, to listen to your product's users and plan. It includes Ranking, Backlog, Roadmap, Status and Updates. Impact and effort and Growth are optional.
+The classic board, to listen to your product's users and plan. It includes Ranking, Backlog, Roadmap, Status and Updates. Impact and effort, Growth, MRR and Customer segments are optional.
 
 ### Brainstorming
 
@@ -43,6 +43,6 @@ In **My boards** and next to each board's title, a tag shows its type (for examp
 
 ## Modules and plans
 
-Some modules are on Pro and up (Matrix, Roadmap, Status and Updates). A type doesn't change that: if your plan doesn't include them, they show the plan's tag.
+Some modules are on Pro and up (Matrix, Roadmap, Status, Updates, MRR and Customer segments). A type doesn't change that: if your plan doesn't include them, they show the plan's tag.
 
 > **Tip:** Turning a module off deletes nothing. If you turn it back on, everything shows as it was.

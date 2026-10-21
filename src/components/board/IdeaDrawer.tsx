@@ -11,6 +11,7 @@ import { boardUrl } from '@/lib/env';
 import type { Comment, IdeaDetail, MergedIdea } from '@/lib/types';
 import { AnonAvatar, MaskIcon, OriginTag, toReviewIdea, useGridCols } from './IdeaGrid';
 import { MergeModal } from './MergeModal';
+import { CustomerSection } from './CustomerData';
 import { quadrant, rateOf, usesGrowth, usesRating, voteMode, type BoardApi, voteOptions } from './shared';
 import { useToast } from '@/components/Providers';
 
@@ -389,6 +390,8 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
               )}
             </div>
           )}
+
+          <CustomerSection api={api} i={i} act={act} />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>{t('Comentarios')}</span>

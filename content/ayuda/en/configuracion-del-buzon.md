@@ -5,7 +5,7 @@ section: cuenta
 order: 1
 plans: Every plan
 roles: Admin
-covers: board_settings, categories, vote_labels, use_rating, use_growth, allow_anonymous, empty_board
+covers: board_settings, categories, vote_labels, use_rating, use_growth, use_mrr, use_segments, allow_anonymous, empty_board
 ---
 Open them from the board's **Settings** tab.
 
@@ -16,7 +16,8 @@ Open them from the board's **Settings** tab.
 - **Who can create ideas:** team members and guests.
 - **What guests see:** whether they can see the Roadmap.
 - **Vote options:** rename *Important*, *Interesting* and *Not important* to whatever you prefer.
-- **Type and modules:** the board's type and its modules (Ranking, Backlog, Impact and effort, Growth, Roadmap, Status, Updates). Ones included in the type have a lock; optional ones turn on or off without deleting anything. See [Board types and modules](/app/ayuda/tipos-de-buzon).
+- **Type and modules:** the board's type and its modules (Ranking, Backlog, Impact and effort, Growth, MRR, Customer segments, Roadmap, Status, Updates). Ones included in the type have a lock; optional ones turn on or off without deleting anything. See [Board types and modules](/app/ayuda/tipos-de-buzon).
+- **MRR and customer segments:** shows up when you turn on either module. Pick the MRR currency, build the segment list and decide whether they also show on the cards. See [MRR and customer segments](/app/ayuda/mrr-y-segmentos).
 - **Anonymous ideas:** allow ideas to be posted anonymously or not; only Admins see who proposed them. Starts on.
 
 ## Categories

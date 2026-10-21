@@ -11,6 +11,7 @@ import { ImportButton, ImportModal } from './ImportModal';
 import { ExportButton } from './ExportButton';
 import { KindChip } from '@/components/boards/KindChip';
 import { ListDownload } from './ListDownload';
+import { CustomerCardLine } from './CustomerData';
 import { backlogExport } from '@/lib/brainstorm-export';
 
 const PAGE = 20;
@@ -411,6 +412,7 @@ function IdeaCard({ api, i, backlog }: { api: BoardApi; i: Idea; backlog?: boole
             : <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)' }}>{t('Sin growth')}</span>}
         </div>
       )}
+      <CustomerCardLine api={api} i={i} />
       {backlog && i.approved_at && (
         <div style={{ fontSize: 13, color: '#389e0d', background: '#f6ffed', borderRadius: 6, padding: '6px 10px' }}>
           {t('Aprobada el {date} · {n} votos finales', { date: dshort(i.approved_at), n: i.votes })}

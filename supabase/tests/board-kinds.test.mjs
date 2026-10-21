@@ -16,7 +16,7 @@ console.log('\n# Producto digital (every board today)');
 await ok('a board made the old way is Producto digital with everything on', async () => {
   const b = await mods(ob.board_id);
   eq(b.kind, 'producto');
-  eq(sorted(b.modules), sorted({ ranking: true, backlog: true, rating: true, growth: true, roadmap: true, status: true, changelog: true, affinity: false }));
+  eq(sorted(b.modules), sorted({ ranking: true, backlog: true, rating: true, growth: true, roadmap: true, status: true, changelog: true, affinity: false, mrr: false, segments: false }));
   eq([b.use_rating, b.use_growth], [true, true]);
 });
 await err('its fixed modules (Roadmap) can\'t be turned off', () => rpc(owner, 'set_board_features', [ob.board_id, null, null, null, null, false]), 'incluido');
@@ -36,7 +36,7 @@ await ok('a blank board starts with only the Buzón and Ranking', async () => {
   blank = (await rpc(owner, 'create_board', [team, 'En blanco', 'public', true, true, 'blank'])).id;
   const b = await mods(blank);
   eq(b.kind, 'blank');
-  eq(sorted(b.modules), sorted({ ranking: true, backlog: false, rating: false, growth: false, roadmap: false, status: false, changelog: false, affinity: false }));
+  eq(sorted(b.modules), sorted({ ranking: true, backlog: false, rating: false, growth: false, roadmap: false, status: false, changelog: false, affinity: false, mrr: false, segments: false }));
 });
 await ok('and the Admin turns modules on', async () => {
   await rpc(owner, 'set_board_features', [blank, true, null, null, true, true]);
@@ -47,7 +47,7 @@ await ok('a Brainstorming board has Affinity, Matrix and Backlog fixed', async (
   brain = (await rpc(owner, 'create_board', [team, 'Lluvia de ideas', 'private', true, true, 'brainstorm'])).id;
   const b = await mods(brain);
   eq(b.kind, 'brainstorm');
-  eq(sorted(b.modules), sorted({ ranking: true, backlog: true, rating: true, growth: false, roadmap: false, status: false, changelog: false, affinity: true }));
+  eq(sorted(b.modules), sorted({ ranking: true, backlog: true, rating: true, growth: false, roadmap: false, status: false, changelog: false, affinity: true, mrr: false, segments: false }));
   eq(b.module_states.affinity, 'fixed');
 });
 await err('its Roadmap is not available', () => rpc(owner, 'set_board_features', [brain, null, null, null, null, true]), 'no está disponible');
