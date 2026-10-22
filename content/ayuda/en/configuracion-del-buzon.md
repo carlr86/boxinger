@@ -30,7 +30,7 @@ Invitations, guests, access by domain and access requests.
 
 ## Integrations
 
-Zapier, Make, Google Forms and [Slack notices](/app/ayuda/avisos-en-slack).
+Zapier, Make, Google Forms, Google Sheets and [Slack notices](/app/ayuda/avisos-en-slack).
 
 ## Empty the board
 

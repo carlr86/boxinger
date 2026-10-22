@@ -30,7 +30,7 @@ Invitaciones, invitados, acceso por dominio y solicitudes de acceso.
 
 ## Integraciones
 
-Zapier, Make, Google Forms y [avisos en Slack](/app/ayuda/avisos-en-slack).
+Zapier, Make, Google Forms, Google Sheets y [avisos en Slack](/app/ayuda/avisos-en-slack).
 
 ## Vaciar el buzón
 

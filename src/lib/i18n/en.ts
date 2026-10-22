@@ -1687,7 +1687,7 @@ export const EN: Record<string, string> = {
   "Plan {plan} · equipos, buzones y miembros ilimitados.": "{plan} plan · unlimited teams, boards and members.",
   "Planes Pro, Team y Enterprise.": "Pro, Team and Enterprise plans.",
   "Quedarme en Team": "Stay on Team",
-  "Recibí avisos en Slack y recibí ideas desde Zapier, Make, Google Forms y otras herramientas, sin copiarlas a mano. Está en los planes Pro, Team y Enterprise.": "Get notices in Slack and get ideas from Zapier, Make, Google Forms and other tools without copying them by hand. Available on the Pro, Team and Enterprise plans.",
+  "Recibí avisos en Slack y recibí ideas desde Zapier, Make, Google Forms, Google Sheets y otras herramientas, sin copiarlas a mano. Está en los planes Pro, Team y Enterprise.": "Get notices in Slack and get ideas from Zapier, Make, Google Forms, Google Sheets and other tools without copying them by hand. Available on the Pro, Team and Enterprise plans.",
   "Seguís con Team hasta el fin del período pagado.": "You keep Team until the end of the paid period.",
   "Seguís con Team hasta el {date}.": "You keep Team until {date}.",
   "Si después volvés a Team, recuperás todo tal como estaba.": "If you come back to Team later, you get everything back just as it was.",
@@ -2036,11 +2036,11 @@ export const EN: Record<string, string> = {
   "Archivada: la Comunidad no la ve y no está en «Por revisar».": "Archived: the Community can't see it and it isn't in “To review”.",
   "Ideas que el Equipo sacó de «Por revisar» sin publicarlas": "Ideas the Team took out of “To review” without publishing them",
   "La saca de «Por revisar» sin publicarla. Sigue oculta y la encontrás en Archivadas.": "Takes it out of “To review” without publishing it. It stays hidden and you'll find it in Archived.",
-  "Conectá Zapier, Make, Google Forms o cualquier herramienta que pueda mandar un pedido web. Las ideas llegan ocultas, con la etiqueta «Por integración», y el Equipo decide qué hacer con cada una.": "Connect Zapier, Make, Google Forms or any tool that can send a web request. Ideas arrive hidden, tagged “Via integration”, and the Team decides what to do with each one.",
+  "Conectá Zapier, Make, Google Forms, Google Sheets o cualquier herramienta que pueda mandar un pedido web. Las ideas llegan ocultas, con la etiqueta «Por integración», y el Equipo decide qué hacer con cada una.": "Connect Zapier, Make, Google Forms, Google Sheets or any tool that can send a web request. Ideas arrive hidden, tagged “Via integration”, and the Team decides what to do with each one.",
   "Creá la conexión": "Create the connection",
   "Te damos una dirección y una clave para este buzón.": "We give you an address and a key for this board.",
   "Conectá tu herramienta": "Connect your tool",
-  "Un formulario de Google, Make, Zapier u otra. Más abajo tenés la guía de cada una.": "A Google form, Make, Zapier or another one. Below you'll find a guide for each.",
+  "Un formulario o una planilla de Google, Make, Zapier u otra. Más abajo tenés la guía de cada una.": "A Google form or sheet, Make, Zapier or another one. Below you'll find a guide for each.",
   "Revisá y decidí": "Review and decide",
   "Las ideas llegan a «Por revisar», en el Buzón. Cada una se puede publicar, rechazar o archivar.": "Ideas arrive in “To review”, in the board. Each one can be published, rejected or archived.",
   "Cómo conectarla": "How to connect it",
@@ -2173,6 +2173,15 @@ export const EN: Record<string, string> = {
   "Escribí el MRR con números.": "Write the MRR with numbers.",
   "El MRR no puede ser negativo.": "The MRR can't be negative.",
   "El MRR es demasiado grande.": "The MRR is too large.",
+  // Integrations › Google Sheets / Apps Script
+  "Gratis y sin otras herramientas: las filas nuevas de una pestaña de tu planilla llegan como ideas. Sirve aunque las escriba un formulario propio o una app hecha con Apps Script.": "Free and with no other tools: new rows in a tab of your sheet arrive as ideas. It works even when your own form or an Apps Script app writes them.",
+  "Abrí la planilla y entrá a «Extensiones» › «Apps Script». Si ya tiene un proyecto (por ejemplo, tu app hecha con Apps Script), se abre ese: no hace falta tocar lo que tiene.": "Open the sheet and go to “Extensions” › “Apps Script”. If it already has a project (for example, your Apps Script app), that one opens: no need to touch what's in it.",
+  "Al lado de «Archivos», tocá «+» › «Secuencia de comandos» y llamalo Boxinger.": "Next to “Files”, tap “+” › “Script” and name it Boxinger.",
+  "Pegá este código y cambiá BOXINGER_PESTANA por el nombre de la pestaña donde se guardan las sugerencias. Revisá que la primera fila tenga los títulos de las columnas (por ejemplo, Título, Descripción, Nombre y Email). Tocá Guardar:": "Paste this code and change BOXINGER_PESTANA to the name of the tab where suggestions are saved. Check that the first row has the column titles (for example, Title, Description, Name and Email). Tap Save:",
+  "Arriba elegí la función boxingerPreparar y tocá «Ejecutar». Google te va a pedir permiso: aceptalo con tu cuenta. Desde ahí revisa la pestaña cada 5 minutos y suma una columna «Boxinger» que dice «Enviada» (o el error) en cada fila.": "At the top, pick the boxingerPreparar function and tap “Run”. Google will ask for permission: accept it with your account. From then on it checks the tab every 5 minutes and adds a “Boxinger” column that says “Enviada” (sent) or the error on each row.",
+  "Agregá una sugerencia de prueba: en unos minutos aparece en «Por revisar».": "Add a test suggestion: in a few minutes it shows up in “To review”.",
+  "¿Querés que llegue al instante? Si la sugerencia la guarda tu propio código de Apps Script, sumá una línea con boxingerEnviar (en el código hay un ejemplo) en la función que la guarda y publicá una versión nueva de la app («Implementar» › «Gestionar implementaciones»). En ese caso no ejecutes boxingerPreparar, para no mandarla dos veces.": "Want it to arrive instantly? If your own Apps Script code saves the suggestion, add a line with boxingerEnviar (there's an example in the code) to the function that saves it and publish a new version of the app (“Deploy” › “Manage deployments”). In that case don't run boxingerPreparar, so it isn't sent twice.",
+  "Si otras personas pueden ver el proyecto, guardá la clave en «Configuración del proyecto» › «Propiedades del script», con el nombre BOXINGER_CLAVE, y borrala del código.": "If other people can see the project, save the key in “Project Settings” › “Script Properties” as BOXINGER_CLAVE and delete it from the code.",
 };
 
 /** Database messages with values inside: regex on the Spanish text → English with $1, $2… */
