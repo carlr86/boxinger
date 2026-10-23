@@ -25,7 +25,7 @@ With **Three options**, you name each option right there.
 
 ## 2. Group by affinity
 
-In the **Group** tab, voted ideas are on the left. Create groups with **+ Create group** (for example "Onboarding" or "Payments") and drag each idea into its group. Tap a group's name to rename it; deleting a group sends its ideas back to the list.
+In the **Group** tab, voted ideas are on the left. Create groups with **+ Create group** (for example "Onboarding" or "Payments") and drag each idea into its group. On a phone, or if you'd rather not drag, tap **⋯** on the card and pick the group under **Move to** (**Remove from group** sends it back to the list). Tap a group's name to rename it; deleting a group sends its ideas back to the list.
 
 ## 3. Impact and effort
 

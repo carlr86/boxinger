@@ -25,7 +25,7 @@ Con **Tres opciones**, ahí mismo le ponés el nombre que quieras a cada opción
 
 ## 2. Agrupar por afinidad
 
-En la pestaña **Agrupar**, a la izquierda están las ideas que recibieron votos. Creá grupos con **+ Crear grupo** (por ejemplo "Onboarding" o "Pagos") y arrastrá cada idea al grupo que corresponda. Tocá el nombre de un grupo para cambiarlo; si borrás un grupo, sus ideas vuelven a la lista.
+En la pestaña **Agrupar**, a la izquierda están las ideas que recibieron votos. Creá grupos con **+ Crear grupo** (por ejemplo "Onboarding" o "Pagos") y arrastrá cada idea al grupo que corresponda. En el celular, o si preferís no arrastrar, tocá **⋯** en la tarjeta y elegí el grupo en **Mover a** (con **Sacar del grupo** vuelve a la lista). Tocá el nombre de un grupo para cambiarlo; si borrás un grupo, sus ideas vuelven a la lista.
 
 ## 3. Impacto y esfuerzo
 
