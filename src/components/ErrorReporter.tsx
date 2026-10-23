@@ -17,6 +17,17 @@ export function sendClientError(e: { message: string; stack?: string; digest?: s
 // Noise from browsers and extensions, not from Boxinger.
 const IGNORE = /ResizeObserver loop|^Script error\.?$|Non-Error promise rejection|AbortError|Load failed|Failed to fetch|NetworkError|chrome-extension:|moz-extension:/i;
 
+// The connection dropped (Safari says «Load failed»): not a bug, nothing to report.
+const OFFLINE = /^(TypeError: )?(Load failed|Failed to fetch|NetworkError)|Failed to load chunk|ChunkLoadError|Loading chunk .* failed/i;
+export const isOffline = (msg: string) => OFFLINE.test(msg) || (typeof navigator !== 'undefined' && navigator.onLine === false);
+
+/** Reloads the page as soon as the connection comes back. */
+export function reloadWhenOnline() {
+  const go = () => location.reload();
+  window.addEventListener('online', go, { once: true });
+  return () => window.removeEventListener('online', go);
+}
+
 // A new version was deployed while this tab was open: its Server Action ids no longer exist.
 const STALE = /UnrecognizedActionError|Server Action "[^"]*" was not found on the server/i;
 

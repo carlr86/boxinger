@@ -1961,6 +1961,8 @@ export const EN: Record<string, string> = {
   "Algo salió mal": "Something went wrong",
   "Ya nos llegó el aviso del error. Probá de nuevo; si sigue pasando, escribinos a hola@boxinger.com.": "We’ve been notified of the error. Please try again; if it keeps happening, write to hola@boxinger.com.",
   "Reintentar": "Retry",
+  "Se cortó la conexión": "Connection lost",
+  "Revisá tu internet. La página se vuelve a cargar sola cuando vuelva la conexión.": "Check your internet. The page reloads on its own when the connection comes back.",
   // ── Suscripción cancelada ──
   "Cancelaste tu suscripción Pro. Seguís con Pro hasta el {date}; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.": "You canceled your Pro subscription. You keep Pro until {date}; then your account moves to Free and boards over the plan become read-only.",
   "Cancelaste tu suscripción Pro. Seguís con Pro hasta el fin del período pagado; después tu cuenta pasa a Free y los buzones que superan el plan quedan en solo lectura.": "You canceled your Pro subscription. You keep Pro until the end of the paid period; then your account moves to Free and boards over the plan become read-only.",

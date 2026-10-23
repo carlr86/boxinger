@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
   const message = str(b?.message, 500);
   if (!message) return NextResponse.json({ ok: true });
   await reportError('navegador', new Error(message), {
-    path: str(b?.path, 300), stack: str(b?.stack, 2000) || undefined, digest: str(b?.digest, 100) || undefined,
+    // An empty stack stays empty: falling back to this route's own stack would point at the server.
+    path: str(b?.path, 300), stack: str(b?.stack, 2000), digest: str(b?.digest, 100) || undefined,
     kind: str(b?.kind, 30), browser: str(req.headers.get('user-agent'), 200),
   });
   return NextResponse.json({ ok: true });

@@ -11,7 +11,7 @@ export async function rpc<T = unknown>(fn: string, args: Record<string, unknown>
 export function cleanError(msg: string): string {
   if (!msg) return 'Algo salió mal. Probá de nuevo.';
   if (/JWT|jwt expired/i.test(msg)) return 'Tu sesión venció. Volvé a ingresar.';
-  if (/Failed to fetch|NetworkError/i.test(msg)) return 'No hay conexión. Probá de nuevo.';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) return 'No hay conexión. Probá de nuevo.';
   return msg;
 }
 
