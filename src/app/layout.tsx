@@ -21,7 +21,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   return (
     <html lang={locale}>
-      <body><I18nProvider locale={locale}>{children}<ErrorReporter /></I18nProvider></body>
+      <body><I18nProvider locale={locale} serverNow={Date.now()}>{children}<ErrorReporter /></I18nProvider></body>
     </html>
   );
 }

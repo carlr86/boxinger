@@ -20,8 +20,9 @@ export function money(currency: 'USD' | 'ARS', v: number, l: Locale = 'es'): str
 
 const ts = (d: string | number | Date) => (d instanceof Date ? d.getTime() : typeof d === 'number' ? d : new Date(d).getTime());
 
-export function rel(d: string | number | Date, l: Locale = 'es'): string {
-  const m = (Date.now() - ts(d)) / 6e4;
+// `now` lets the page print, while it hydrates, the same "hace 5 min" the server printed.
+export function rel(d: string | number | Date, l: Locale = 'es', now = Date.now()): string {
+  const m = (now - ts(d)) / 6e4;
   if (l === 'en') {
     if (m < 1) return 'just now';
     if (m < 60) return Math.floor(m) + ' min ago';
@@ -43,8 +44,8 @@ export function rel(d: string | number | Date, l: Locale = 'es'): string {
 }
 
 /** Compact relative time for tight spots (idea cards): "ahora", "5 min", "3 h", "2 d", "4 mes". */
-export function relShort(d: string | number | Date, l: Locale = 'es'): string {
-  const m = Math.floor((Date.now() - ts(d)) / 6e4);
+export function relShort(d: string | number | Date, l: Locale = 'es', now = Date.now()): string {
+  const m = Math.floor((now - ts(d)) / 6e4);
   if (m < 1) return l === 'en' ? 'now' : 'ahora';
   if (m < 60) return m + ' min';
   const h = Math.floor(m / 60);
