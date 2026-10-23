@@ -15,6 +15,10 @@ html{scroll-behavior:smooth}
 .bx-btn:hover{border-color:#059669;color:#059669}
 @keyframes bx-spin{to{transform:rotate(360deg)}}
 .bx-spinner{display:inline-block;width:14px;height:14px;flex:none;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:bx-spin .7s linear infinite;vertical-align:-2px}
+/* Loading bar while the next page arrives (NavProgress) */
+.bx-nav-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:2000;pointer-events:none;transition:opacity .3s}
+.bx-nav-progress>div{height:100%;background:#059669;box-shadow:0 0 8px rgba(5,150,105,.6);transform-origin:left;transition:transform .25s ease-out}
+.bx-nav-busy,.bx-nav-busy *{cursor:progress!important}
 .bx-pay:disabled{cursor:not-allowed;opacity:.5}
 .bx-pay:disabled:hover{border-color:#d9d9d9;color:rgba(0,0,0,0.88)}
 .bx-pay.is-loading:disabled{cursor:wait;opacity:1;border-color:#059669;box-shadow:0 0 0 2px rgba(5,150,105,0.1)}
