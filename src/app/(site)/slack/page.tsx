@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import s from '../landing.module.css';
 import k from './slack.module.css';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { CookieSettingsLink } from '@/components/CookieBanner';
 import { SlackLogo } from '@/components/SlackLogo';
 import { getT } from '@/lib/i18n/server';
 import { LEGAL } from '@/lib/legal';
@@ -133,7 +134,7 @@ export default async function SlackPage() {
 
       <footer className={s.footer}>
         <div className={s.footBottom}>
-          <span>© 2026 Boxinger · <Link href="/" style={{ color: 'inherit' }}>www.boxinger.com</Link> · <Link href="/privacidad" style={{ color: 'inherit' }}>{t('Privacidad')}</Link> · <Link href="/terminos" style={{ color: 'inherit' }}>{t('Términos')}</Link></span>
+          <span>© 2026 Boxinger · <Link href="/" style={{ color: 'inherit' }}>www.boxinger.com</Link> · <Link href="/privacidad" style={{ color: 'inherit' }}>{t('Privacidad')}</Link> · <Link href="/terminos" style={{ color: 'inherit' }}>{t('Términos')}</Link> · <CookieSettingsLink /></span>
           <LanguageSwitch style={{ color: 'rgba(255,255,255,0.7)' }} />
         </div>
       </footer>

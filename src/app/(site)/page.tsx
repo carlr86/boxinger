@@ -6,6 +6,7 @@ import { getPublicEnterprisePrice, getPublicProPrice } from '@/lib/pricing';
 import { fmtPrice } from '@/lib/format';
 import ContactForm from '@/components/ContactForm';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { CookieSettingsLink } from '@/components/CookieBanner';
 import { getT } from '@/lib/i18n/server';
 import { SlackLogo } from '@/components/SlackLogo';
 
@@ -394,7 +395,7 @@ export default async function Landing() {
             <span className={s.footTag}>{t('Buzón de ideas para equipos de producto.')}</span>
           </div>
           <div className={s.footCol}><b>{t('Producto')}</b><a href="#como">{t('Cómo funciona')}</a><a href="#funciones">{t('Funciones')}</a><a href={SAMPLE_BOARD} target="_blank" rel="noopener">{t('Buzón de ejemplo')}</a><a href="#planes">{t('Planes')}</a><Link href="/slack">{t('Boxinger para Slack')}</Link></div>
-          <div className={s.footCol}><b>{t('Legales')}</b><Link href="/terminos">{t('Términos')}</Link><Link href="/privacidad">{t('Privacidad')}</Link><Link href="/seguridad">{t('Seguridad')}</Link><Link href="/arrepentimiento">{t('Botón de arrepentimiento')}</Link></div>
+          <div className={s.footCol}><b>{t('Legales')}</b><Link href="/terminos">{t('Términos')}</Link><Link href="/privacidad">{t('Privacidad')}</Link><Link href="/seguridad">{t('Seguridad')}</Link><Link href="/arrepentimiento">{t('Botón de arrepentimiento')}</Link><CookieSettingsLink style={{ color: 'rgba(255,255,255,0.7)' }} /></div>
           <div className={s.footCol}><b>{t('Contacto')}</b><a href="mailto:hola@boxinger.com">hola@boxinger.com</a><a href="#contacto">{t('Escribinos')}</a></div>
         </div>
         <div className={s.footBottom}>

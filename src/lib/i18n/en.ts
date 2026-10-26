@@ -1126,6 +1126,11 @@ export const EN: Record<string, string> = {
   "Abrí tu primer buzón hoy.": "Open your first board today.",
   "Privacidad": "Privacy",
   "Botón de arrepentimiento": "Withdrawal button",
+  // ── Aviso de cookies ──
+  "Cookies": "Cookies",
+  "Usamos Microsoft Clarity para ver cómo se navegan estas páginas y mejorarlas. Sus cookies solo se activan si aceptás. Nunca se usa dentro de la app.": "We use Microsoft Clarity to see how these pages are browsed and improve them. Its cookies are only turned on if you accept. It is never used inside the app.",
+  "Más información": "Learn more",
+  "Preferencias de cookies": "Cookie preferences",
   // ── Formularios públicos ──
   "1 a 10 personas": "1 to 10 people",
   "11 a 50 personas": "11 to 50 people",

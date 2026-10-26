@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getT } from '@/lib/i18n/server';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { CookieSettingsLink } from '@/components/CookieBanner';
 
 export async function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
   const { t, locale } = await getT();
@@ -33,6 +34,7 @@ export async function LegalPage({ title, updated, children }: { title: string; u
           <Link href="/seguridad" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Seguridad')}</Link>
           <Link href="/arrepentimiento" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Botón de arrepentimiento')}</Link>
           <Link href="/#contacto" style={{ color: 'rgba(0,0,0,0.45)' }}>{t('Contacto')}</Link>
+          <CookieSettingsLink style={{ color: 'rgba(0,0,0,0.45)' }} />
         </div>
       </footer>
     </div>

@@ -1,11 +1,11 @@
 ---
 title: Tu perfil, idioma y privacidad
-summary: Tus datos, el idioma de Boxinger y cómo borrar tu cuenta.
+summary: Tus datos, el idioma de Boxinger, las cookies de la web y cómo borrar tu cuenta.
 section: cuenta
 order: 3
 plans: Todos los planes
 roles: Todos
-covers: profile, locale, delete_account
+covers: profile, locale, delete_account, cookies
 ---
 Entrá desde el menú de tu nombre, arriba a la derecha, a **Mi perfil**.
 
@@ -20,6 +20,12 @@ En el menú de tu nombre, elegí **Español** o **English**. Cambia toda la inte
 ## Notificaciones
 
 En **Mi perfil › Notificaciones** elegís qué emails recibir. Más detalle en [Avisos y notificaciones](/app/ayuda/avisos-y-notificaciones).
+
+## Cookies en la web pública
+
+En las páginas públicas de Boxinger (inicio, Slack y textos legales) aparece un aviso de cookies con dos botones, **Rechazar** y **Aceptar**. Si aceptás, usamos Microsoft Clarity para ver cómo se navegan esas páginas y mejorarlas. Si rechazás, no se carga. Dentro de la app nunca se usa, así que tus buzones e ideas no se registran.
+
+Para cambiar tu respuesta, tocá **Preferencias de cookies** al pie de esas páginas. Tu respuesta se recuerda durante un año en ese navegador.
 
 ## Borrar tu cuenta
 

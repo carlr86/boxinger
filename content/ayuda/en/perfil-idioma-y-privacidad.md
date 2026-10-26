@@ -1,11 +1,11 @@
 ---
 title: Your profile, language and privacy
-summary: Your details, Boxinger's language and how to delete your account.
+summary: Your details, Boxinger's language, the website's cookies and how to delete your account.
 section: cuenta
 order: 3
 plans: Every plan
 roles: Everyone
-covers: profile, locale, delete_account
+covers: profile, locale, delete_account, cookies
 ---
 Open **My profile** from the menu with your name, at the top right.
 
@@ -20,6 +20,12 @@ In the menu with your name, pick **Español** or **English**. It changes the who
 ## Notifications
 
 In **My profile › Notifications** you choose which emails to get. More in [Notices and notifications](/app/ayuda/avisos-y-notificaciones).
+
+## Cookies on the public site
+
+On Boxinger's public pages (home, Slack and legal texts) a cookie notice shows two buttons, **Reject** and **Accept**. If you accept, we use Microsoft Clarity to see how those pages are browsed and improve them. If you reject, it isn't loaded. It's never used inside the app, so your boards and ideas aren't recorded.
+
+To change your answer, click **Cookie preferences** at the bottom of those pages. Your answer is remembered for a year in that browser.
 
 ## Delete your account
 
