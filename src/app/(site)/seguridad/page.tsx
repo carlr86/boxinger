@@ -31,7 +31,7 @@ export default async function Seguridad() {
       </ul>
 
       <h2>3. Uso de los datos</h2>
-      <p>No vendemos ni alquilamos datos, no hacemos publicidad de terceros y no construimos perfiles comerciales. Solo tratamos los datos para prestar el servicio contratado y según el consentimiento del usuario. No usamos herramientas de analítica de terceros ni cookies publicitarias.</p>
+      <p>No vendemos ni alquilamos datos, no hacemos publicidad de terceros y no construimos perfiles comerciales. Solo tratamos los datos para prestar el servicio contratado y según el consentimiento del usuario. No usamos cookies publicitarias. Solo en las páginas públicas usamos Microsoft Clarity para estadísticas de navegación; nunca dentro de la app, donde están los buzones y las ideas.</p>
 
       <h2>4. Asistente de IA y tus datos</h2>
       <p>El asistente de IA está disponible solo en los planes Team y Enterprise y se usa cuando el equipo decide activarlo. Cuando se usa, se envía al proveedor del modelo (Anthropic) solo el texto de las ideas del buzón, su descripción y los votos y comentarios contados, <b>sin nombres ni emails</b> de los usuarios. Anthropic no usa estos datos para entrenar sus modelos. Si el asistente no se activa, no se envía nada a la IA.</p>
@@ -53,6 +53,7 @@ export default async function Seguridad() {
         <li><b>Hostinger:</b> alojamiento de la web y envío de emails.</li>
         <li><b>Anthropic:</b> asistente de IA (solo Team y Enterprise; texto de ideas sin datos personales).</li>
         <li><b>Creem y Mercado Pago:</b> procesamiento de pagos. Creem actúa como revendedor en los pagos en dólares.</li>
+        <li><b>Microsoft Clarity:</b> estadísticas de uso de las páginas públicas (no de la app).</li>
       </ul>
       <p>Ante cualquier cambio de sub-encargados lo notificamos a los clientes Enterprise. La lista vigente forma parte del DPA.</p>
 

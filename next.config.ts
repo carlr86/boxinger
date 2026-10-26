@@ -2,8 +2,9 @@ import type { NextConfig } from 'next';
 
 const dev = process.env.NODE_ENV !== 'production';
 
-// Content-Security-Policy. The app loads no third-party scripts (PayPal / Mercado Pago / Creem
-// open by full-page redirect, not embedded), so the only outside origin the browser talks to is
+// Content-Security-Policy. The only third-party script is Microsoft Clarity, loaded on the public
+// pages only (src/components/Clarity.tsx); it talks to *.clarity.ms and c.bing.com. PayPal / Mercado
+// Pago / Creem open by full-page redirect, not embedded. Otherwise the browser only talks to
 // Supabase (REST + realtime websockets) and its Storage images, plus Google profile photos. antd 6 and Next inject inline
 // styles and inline hydration scripts, so 'unsafe-inline' is needed for style/script; prod does
 // NOT need eval, but `next dev` (HMR / React Refresh) does, so eval is allowed in development only.
@@ -11,12 +12,12 @@ const dev = process.env.NODE_ENV !== 'production';
 // route needs its own looser frame-ancestors so other sites can embed it — do it per-route, not here.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' https://*.clarity.ms${dev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   // Google sign-in profile photos come from lh3.googleusercontent.com.
-  "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com",
+  "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.clarity.ms https://c.bing.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.clarity.ms https://c.bing.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",
