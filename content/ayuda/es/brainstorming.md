@@ -11,7 +11,7 @@ El tipo de buzón **Brainstorming** sigue la dinámica clásica de una lluvia de
 
 ## 1. Proponer y votar
 
-Todos cargan ideas, votan y comentan en el Buzón. Las ideas anónimas vienen permitidas. En **Configuración › Escala de votos** elegís cómo se vota:
+Todos cargan ideas, votan y comentan en el Buzón, sin límite de ideas por persona. Las ideas anónimas vienen permitidas. En **Configuración › Escala de votos** elegís cómo se vota:
 
 | Escala | Cómo vota cada persona | Cómo ordena |
 |---|---|---|

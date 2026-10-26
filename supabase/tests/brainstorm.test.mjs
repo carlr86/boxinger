@@ -72,4 +72,23 @@ await ok('emptying the board removes the groups too', async () => {
   eq((await db.query(`select count(*)::int n from public.idea_groups where board_id = $1`, [brain])).rows[0].n, 0);
 });
 
+
+console.log('\n# no idea limit');
+await ok('Admins, members and guests load more than 5 ideas in a row', async () => {
+  const open = (await rpc(owner, 'create_board', [team, 'Lluvia abierta', 'invite', true, true, 'brainstorm'])).id;
+  const oc = (await db.query(`select id from public.categories where board_id = $1 limit 1`, [open])).rows[0].id;
+  const guest = await mk('flor@gmail.com', 'Flor');
+  await rpc(owner, 'invite_guests', [open, ['flor@gmail.com']]);
+  await rpc(guest, 'join_board', [(await db.query(`select slug from public.boards where id = $1`, [open])).rows[0].slug]);
+  await db.query(`delete from public.ideas where author_id = any($1)`, [[owner, member, guest]]);
+  for (const who of [owner, member, guest]) for (let k = 1; k <= 12; k++) await rpc(who, 'create_idea', [open, `Idea rápida ${k}`, 'Una descripción para la lluvia de ideas del equipo.', oc]);
+  eq((await db.query(`select count(*)::int n from public.ideas where board_id = $1 and author_id = any($2)`, [open, [owner, member, guest]])).rows[0].n, 36);
+});
+await err('a Producto digital board keeps the limit of 5 every 10 minutes', async () => {
+  const prod = (await rpc(owner, 'create_board', [team, 'Producto', 'private', true, true, 'producto'])).id;
+  const pc = (await db.query(`select id from public.categories where board_id = $1 limit 1`, [prod])).rows[0].id;
+  await db.query(`delete from public.ideas where author_id = $1`, [u2]);
+  for (let k = 1; k <= 6; k++) await rpc(u2, 'create_idea', [prod, `Idea de producto ${k}`, 'Una descripción para el buzón de producto.', pc]);
+}, 'Demasiadas acciones');
+
 await done();

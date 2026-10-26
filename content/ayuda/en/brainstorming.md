@@ -11,7 +11,7 @@ The **Brainstorming** board type follows the classic brainstorming flow. Create 
 
 ## 1. Propose and vote
 
-Everyone posts ideas, votes and comments on the board. Anonymous ideas are allowed. In **Settings › Vote scale** you choose how people vote:
+Everyone posts ideas, votes and comments on the board, with no limit on ideas per person. Anonymous ideas are allowed. In **Settings › Vote scale** you choose how people vote:
 
 | Scale | How each person votes | How it sorts |
 |---|---|---|
