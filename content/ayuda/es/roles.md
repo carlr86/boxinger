@@ -21,7 +21,7 @@ Quien crea un buzón también lo puede administrar, aunque sea Miembro.
 
 ## Comunidad
 
-- **Invitados:** se suman a un buzón con el link o con una invitación. Proponen ideas (si el buzón lo permite), votan y comentan.
+- **Invitados:** se suman a un buzón con el link o con una invitación. Proponen ideas (si el buzón lo permite), editan las suyas, votan y comentan.
 - **Visitantes:** en un buzón público, cualquiera con el link puede ver las ideas. Para votar o comentar tiene que ingresar.
 
 ## Qué ve cada uno

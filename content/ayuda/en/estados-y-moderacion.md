@@ -32,6 +32,6 @@ Ideas from Zapier, Make, Google Forms or Slack arrive **hidden**, with the *Via 
 
 ## Edit and delete
 
-The team can edit the title, description and category, and delete an idea from the **⋯** menu. Deleting can't be undone.
+The team can edit the title, description and category of any idea, and delete it from the **⋯** menu. Whoever posted an idea can also always edit it, but not delete it. Deleting can't be undone.
 
 > **Tip:** If two ideas ask for the same thing, don't delete one: [merge them](/app/ayuda/unir-ideas) and no votes are lost.

@@ -32,6 +32,10 @@ If you check **Post anonymously**, the idea shows as "Anonymous" to the Communit
 - You can show your name later: open the idea and tap **Show my name**.
 - If you don't see the option, the board's Admin turned it off in the settings.
 
+## Edit your idea
+
+You can correct your idea whenever you want, even if it already has votes or is approved: open it and tap **Edit my idea**. You change the title, description, category and image. Other people's ideas can only be edited by the team.
+
 ## Who can post ideas?
 
 The Admin decides whether **members** and **guests** can post ideas, in **Settings › Who can create ideas**. If you can't, you can still vote and comment.

@@ -2194,6 +2194,7 @@ export const EN: Record<string, string> = {
   "Agregá una sugerencia de prueba: en unos minutos aparece en «Por revisar».": "Add a test suggestion: in a few minutes it shows up in “To review”.",
   "¿Querés que llegue al instante? Si la sugerencia la guarda tu propio código de Apps Script, sumá una línea con boxingerEnviar (en el código hay un ejemplo) en la función que la guarda y publicá una versión nueva de la app («Implementar» › «Gestionar implementaciones»). En ese caso no ejecutes boxingerPreparar, para no mandarla dos veces.": "Want it to arrive instantly? If your own Apps Script code saves the suggestion, add a line with boxingerEnviar (there's an example in the code) to the function that saves it and publish a new version of the app (“Deploy” › “Manage deployments”). In that case don't run boxingerPreparar, so it isn't sent twice.",
   "Si otras personas pueden ver el proyecto, guardá la clave en «Configuración del proyecto» › «Propiedades del script», con el nombre BOXINGER_CLAVE, y borrala del código.": "If other people can see the project, save the key in “Project Settings” › “Script Properties” as BOXINGER_CLAVE and delete it from the code.",
+  'Editar mi idea': 'Edit my idea',
 };
 
 /** Database messages with values inside: regex on the Spanish text → English with $1, $2… */

@@ -21,7 +21,7 @@ Whoever creates a board can also manage it, even as a Member.
 
 ## Community
 
-- **Guests:** join a board with the link or an invitation. They propose ideas (if the board allows it), vote and comment.
+- **Guests:** join a board with the link or an invitation. They propose ideas (if the board allows it), edit their own, vote and comment.
 - **Visitors:** on a public board, anyone with the link can see the ideas. To vote or comment they need to sign in.
 
 ## What each one sees

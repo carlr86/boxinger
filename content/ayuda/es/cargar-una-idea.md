@@ -32,6 +32,10 @@ Si marcás **Publicar como anónimo**, la idea aparece como «Anónimo» para la
 - Podés mostrar tu nombre más tarde: abrí la idea y tocá **Mostrar mi nombre**.
 - Si no ves la opción, el Admin del buzón la apagó en la configuración.
 
+## Editar tu idea
+
+Podés corregir tu idea cuando quieras, aunque ya tenga votos o esté aprobada: abrila y tocá **Editar mi idea**. Cambiás el título, la descripción, la categoría y la imagen. Las ideas de otras personas solo las edita el equipo.
+
 ## ¿Quién puede cargar ideas?
 
 El Admin decide si los **miembros** y los **invitados** pueden cargar ideas, en **Configuración › Quiénes pueden crear ideas**. Si no podés, igual podés votar y comentar.

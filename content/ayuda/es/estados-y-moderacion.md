@@ -32,6 +32,6 @@ Las ideas que llegan desde Zapier, Make, Google Forms o Slack entran **ocultas**
 
 ## Editar y borrar
 
-El equipo puede editar el título, la descripción y la categoría, y borrar una idea desde el menú **⋯**. Borrar no se puede deshacer.
+El equipo puede editar el título, la descripción y la categoría de cualquier idea, y borrarla desde el menú **⋯**. Quien cargó una idea también puede editarla siempre, pero no borrarla. Borrar no se puede deshacer.
 
 > **Tip:** Si dos ideas piden lo mismo, no borres una: [unilas](/app/ayuda/unir-ideas) y no se pierden los votos.

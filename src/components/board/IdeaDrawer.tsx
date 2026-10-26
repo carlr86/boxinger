@@ -173,6 +173,10 @@ export function IdeaDrawer({ api, id, onClose }: { api: BoardApi; id: number; on
               {i.anonymous && <span title={t('Publicada como anónimo: solo los Admins del equipo ven quién la propuso.')} style={{ display: 'inline-flex' }}><MaskIcon size={14} /></span>}
               <span>{byLine(i)} · <span title={exact(i.created_at)}>{rel(i.created_at)}</span>{i.imported && <span title={t('Idea importada desde un archivo, con su fecha original')}> · {t('Importada')}</span>}</span>
             </span>
+            {/* The author can always correct their idea (the team edits it from «Gestión de la idea»). */}
+            {!team && api.me && i.author_id === api.me.id && api.canWrite && (
+              <a style={{ fontSize: 13, alignSelf: 'flex-start' }} onClick={() => api.openEdit(i)}>{t('Editar mi idea')}</a>
+            )}
             {/* The author can hide or show their name at any time. */}
             {api.me && i.author_id === api.me.id && api.canWrite && (i.anonymous || api.data.board.allow_anonymous !== false) && (
               <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>
