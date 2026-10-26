@@ -7,6 +7,15 @@ plans: Every plan
 roles: Community and Team
 covers: votes, comments, reactions
 ---
+## Find ideas
+
+On the **Board** and the **Backlog**, above the cards, you can filter the ideas:
+
+- **Search:** by words in the title or description.
+- **All, Team or Community:** by who posted them.
+- **Category** and **status**. The Backlog has no search or status: every idea there is approved.
+- **People:** pick someone to see only their ideas, or **My ideas** to see yours. Anonymous ideas don't show under anyone's name.
+
 ## Vote
 
 On any idea, tap **Vote** and pick an option:

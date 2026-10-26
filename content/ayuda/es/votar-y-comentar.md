@@ -7,6 +7,15 @@ plans: Todos los planes
 roles: Comunidad y Equipo
 covers: votes, comments, reactions
 ---
+## Encontrar ideas
+
+En el **Buzón** y en el **Backlog**, arriba de las tarjetas, podés filtrar las ideas:
+
+- **Buscar:** por palabras del título o la descripción.
+- **Todas, Equipo o Comunidad:** según quién las cargó.
+- **Categoría** y **estado**. En el Backlog no están el buscador ni el estado: son todas aprobadas.
+- **Personas:** elegí a alguien para ver solo sus ideas, o **Mis ideas** para ver las tuyas. Las ideas anónimas no aparecen bajo el nombre de nadie.
+
 ## Votar
 
 En cada idea tocá **Votar** y elegí una opción:

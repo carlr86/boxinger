@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Dropdown, Tooltip } from 'antd';
 import { Avatar, Dots, Empty, PageHead, Seg, Tag, TeamIcon, CommunityIcon } from '@/components/ui';
 import { GROWTH, IDEA_STATUS, LAUNCHED, ORIGIN, SHADOW_POP, SOURCE_TAG, VOTE_KEYS, statusTone } from '@/lib/constants';
@@ -136,6 +136,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
   const [fCat, setFCat] = useState('all');
   const [fOri, setFOri] = useState<'all' | 'equipo' | 'comunidad'>('all');
   const [fSt, setFSt] = useState('all');
+  const [fWho, setFWho] = useState('all'); // an author's id: only their ideas
   const [sort, setSort] = useState<Sort>('recent');
   const [limit, setLimit] = useState(PAGE);
   const [aiOpen, setAiOpen] = useState(false);
@@ -154,9 +155,17 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
     </>
   );
 
+  // People who loaded ideas, by name. Anonymous ideas don't put anyone on the list (the Admin, who knows who it was, still finds them under that person).
+  const people = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const i of api.data.ideas) if (i.author_id && !i.anonymous && i.author_id !== api.me?.id) m.set(i.author_id, i.author_name);
+    return [...m].sort((a, b) => a[1].localeCompare(b[1], locale));
+  }, [api.data.ideas, api.me?.id, locale]);
+  const mine = !!api.me && api.data.ideas.some((i) => i.author_id === api.me!.id);
+
   const list = useMemo(() => {
     const qq = q.trim().toLowerCase();
-    let l = api.data.ideas.filter((i) => (fCat === 'all' || i.category_id === fCat) && (fOri === 'all' || i.origin === fOri) && (special === 'inbox' ? toReviewIdea(i) : special === 'archived' ? !!i.archived : !i.archived));
+    let l = api.data.ideas.filter((i) => (fCat === 'all' || i.category_id === fCat) && (fOri === 'all' || i.origin === fOri) && (fWho === 'all' || i.author_id === fWho) && (special === 'inbox' ? toReviewIdea(i) : special === 'archived' ? !!i.archived : !i.archived));
     if (backlog) {
       // With Pro, ideas on the Roadmap leave the Backlog.
       l = l.filter((i) => i.status === 'aprobada' && !(api.pro && i.rm_col)).sort((a, b) => +new Date(b.approved_at || 0) - +new Date(a.approved_at || 0));
@@ -167,11 +176,18 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
       l.sort(sort === 'votes' ? (a, b) => b.votes - a.votes : sort === 'comments' ? (a, b) => b.comments - a.comments : (a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     }
     return l;
-  }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fSt, sort, special]);
+  }, [api.data.ideas, api.pro, backlog, q, fCat, fOri, fWho, fSt, sort, special]);
 
-  useEffect(() => setLimit(PAGE), [q, fCat, fOri, fSt, sort, backlog, special]);
+  useEffect(() => setLimit(PAGE), [q, fCat, fOri, fWho, fSt, sort, backlog, special]);
   const [layout, setLayout] = useLayout();
-  const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fSt !== 'all' || !!special;
+  const filtersOn = !!q || fCat !== 'all' || fOri !== 'all' || fWho !== 'all' || fSt !== 'all' || !!special;
+  const whoSelect = (style?: CSSProperties) => (people.length > 0 || mine) && (
+    <select className="bx-select" value={fWho} onChange={(e) => setFWho(e.target.value)} style={style} aria-label={t('Filtrar por persona')}>
+      <option value="all">{isMobile ? t('Personas') : t('Todas las personas')}</option>
+      {mine && <option value={api.me!.id}>{t('Mis ideas')}</option>}
+      {people.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+    </select>
+  );
 
   return (
     <>
@@ -220,6 +236,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
               </select>
             )}
           </div>
+          {whoSelect({ width: '100%', minWidth: 0, height: 36 })}
         </div>
       ) : (
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -230,6 +247,7 @@ export function IdeaGrid({ api, backlog }: { api: BoardApi; backlog?: boolean })
           <option value="all">{t('Todas las categorías')}</option>
           {api.cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+        {whoSelect({ maxWidth: 220 })}
         {!backlog && (
           <>
             <select className="bx-select" value={fSt} onChange={(e) => setFSt(e.target.value)}>
