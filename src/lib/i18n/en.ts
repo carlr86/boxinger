@@ -1128,7 +1128,7 @@ export const EN: Record<string, string> = {
   "Botón de arrepentimiento": "Withdrawal button",
   // ── Aviso de cookies ──
   "Cookies": "Cookies",
-  "Usamos Microsoft Clarity para ver cómo se navegan estas páginas y mejorarlas. Sus cookies solo se activan si aceptás. Nunca se usa dentro de la app.": "We use Microsoft Clarity to see how these pages are browsed and improve them. Its cookies are only turned on if you accept. It is never used inside the app.",
+  "Usamos cookies para mejorar tu experiencia de navegación en nuestra web y para analizar el tráfico. Solo se activan si aceptás.": "We use cookies to improve your browsing experience on our website and to analyze traffic. They are only turned on if you accept.",
   "Más información": "Learn more",
   "Preferencias de cookies": "Cookie preferences",
   // ── Formularios públicos ──

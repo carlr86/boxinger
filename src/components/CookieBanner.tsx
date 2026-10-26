@@ -32,7 +32,7 @@ export function CookieBanner() {
       }}>
       <b id="bx-cookies-t" style={{ display: 'block', fontSize: 15, color: 'rgba(0,0,0,0.88)', marginBottom: 6 }}>{t('Cookies')}</b>
       <p style={{ margin: '0 0 14px' }}>
-        {t('Usamos Microsoft Clarity para ver cómo se navegan estas páginas y mejorarlas. Sus cookies solo se activan si aceptás. Nunca se usa dentro de la app.')}{' '}
+        {t('Usamos cookies para mejorar tu experiencia de navegación en nuestra web y para analizar el tráfico. Solo se activan si aceptás.')}{' '}
         <Link href="/privacidad#cookies" style={{ color: '#4338ca', textDecoration: 'underline' }}>{t('Más información')}</Link>
       </p>
       <div style={{ display: 'flex', gap: 10 }}>
