@@ -43,7 +43,9 @@ export async function POST(req: Request) {
       await mercadopago.cancelPreapproval(s.provider_subscription_id);
     }
     await cancelled(acc.id, s.provider_subscription_id, end || addMonth());
-    await admin.from('subscriptions').update({ cancel_reason: reason, cancel_note: note, cancelled_at: new Date().toISOString() }).eq('account_id', acc.id);
+    // Already cancelled at the provider: a lost reason is reported, the person still sees the cancellation.
+    const { error: why } = await admin.from('subscriptions').update({ cancel_reason: reason, cancel_note: note, cancelled_at: new Date().toISOString() }).eq('account_id', acc.id);
+    if (why) await reportError('cancelar-suscripcion', why, { provider: s.provider, step: 'motivo' });
     await notifyCancel(user.id, s.provider, end || addMonth(), reason, note);
     return NextResponse.json({ ok: true });
   } catch (e) {

@@ -334,6 +334,7 @@ export const EN: Record<string, string> = {
   "El link venció. Pedile a Boxinger uno nuevo.": "The link expired. Ask Boxinger for a new one.",
   "La cuenta no existe.": "The account doesn’t exist.",
   "No pudimos guardar la contraseña. Probá de nuevo.": "We couldn’t save the password. Please try again.",
+  "No pudimos activar la cuenta. Probá de nuevo en unos minutos.": "We couldn’t activate the account. Please try again in a few minutes.",
   // ── Invitaciones, onboarding y comunes ──
   "email@ejemplo.com y Enter": "email@example.com and Enter",
   "Cómo se calcula": "How it’s calculated",

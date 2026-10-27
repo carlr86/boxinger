@@ -1,4 +1,4 @@
-# Checks every push and pull request: types, missing English texts and the database tests.
+# Checks every push and pull request: types, missing English texts, the database tests and the server tests.
 # GitHub emails the author of the push when it fails.
 name: Checks
 
@@ -24,3 +24,5 @@ jobs:
         run: npm run i18n
       - name: Database tests (all migrations on PGlite)
         run: npm run test:db
+      - name: Server tests (webhooks, activation link)
+        run: npm run test:server

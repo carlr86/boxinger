@@ -29,15 +29,16 @@ async function accountFor(subId: string | null, o: Obj, checkoutId?: string): Pr
   const found = await findAccount('creem', subId, o.metadata?.account_id || o.request_id || null);
   if (found) return found;
   if (checkoutId) {
-    const { data } = await supabaseAdmin().from('subscriptions').select('account_id').eq('pending_checkout_id', checkoutId).maybeSingle();
+    const { data } = await supabaseAdmin().from('subscriptions').select('account_id').eq('pending_checkout_id', checkoutId).maybeSingle().throwOnError();
     if (data) return data.account_id;
   }
   const email: string | undefined = (typeof o.customer === 'object' ? o.customer?.email : null) || undefined;
   if (!email) return null;
   const admin = supabaseAdmin();
-  const { data: p } = await admin.from('profiles').select('id').ilike('email', email).maybeSingle();
+  // Case-insensitive but exact: "_" and "%" in an email are not wildcards.
+  const { data: p } = await admin.from('profiles').select('id').ilike('email', email.replace(/[\\%_]/g, '\\$&')).maybeSingle().throwOnError();
   if (!p) return null;
-  const { data: acc } = await admin.from('accounts').select('id').eq('owner_id', p.id).maybeSingle();
+  const { data: acc } = await admin.from('accounts').select('id').eq('owner_id', p.id).maybeSingle().throwOnError();
   return acc?.id || null;
 }
 
@@ -50,7 +51,14 @@ export async function POST(req: NextRequest) {
   const o: Obj = body.object || {};
   const eventId = body.id || `${type}:${o.id || ''}`;
   if (!type) return NextResponse.json({ ok: true });
-  if (!(await claimEvent('creem', eventId, type, body))) return NextResponse.json({ ok: true, duplicate: true });
+  let fresh: boolean;
+  try {
+    fresh = await claimEvent('creem', eventId, type, body);
+  } catch (e) {
+    await reportError('webhook-creem', e, { event: eventId, type });
+    return NextResponse.json({ error: 'processing failed' }, { status: 500 });
+  }
+  if (!fresh) return NextResponse.json({ ok: true, duplicate: true });
 
   try {
     const plan = await planOf(o);
@@ -98,14 +106,15 @@ export async function POST(req: NextRequest) {
           accountId, provider: 'creem', paymentId: String(o.id), subId, amount: refund,
           currency: String(o.refund_currency || o.currency || 'USD'), status: 'refunded', paidAt: new Date().toISOString(), raw: body,
         });
-        await supabaseAdmin().from('payments').update({ refunded_amount: refund }).eq('provider', 'creem').eq('provider_payment_id', String(o.id));
+        await supabaseAdmin().from('payments').update({ refunded_amount: refund }).eq('provider', 'creem').eq('provider_payment_id', String(o.id)).throwOnError();
       }
     }
     await finishEvent('creem', eventId);
     return NextResponse.json({ ok: true });
   } catch (e) {
     await reportError('webhook-creem', e, { event: eventId, type: body?.eventType });
-    await finishEvent('creem', eventId, String((e as Error).message).slice(0, 500));
+    // Not processed: Creem sends it again and claimEvent lets it through.
+    await finishEvent('creem', eventId, String((e as Error).message).slice(0, 500)).catch(() => {});
     return NextResponse.json({ error: 'processing failed' }, { status: 500 });
   }
 }

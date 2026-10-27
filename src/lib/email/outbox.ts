@@ -53,17 +53,20 @@ export async function dispatchOutbox(limit = 50): Promise<{ sent: number; failed
       } else {
         console.info(`[email:dev] → ${r.to_email} · ${subject}`);
       }
-      await admin.from('email_outbox').update({ status: 'sent', sent_at: new Date().toISOString(), last_error: null }).eq('id', r.id);
+      // Already sent: if it can't be marked, it is reported (claim_outbox would send it again after 10 minutes).
+      const { error: mark } = await admin.from('email_outbox').update({ status: 'sent', sent_at: new Date().toISOString(), last_error: null }).eq('id', r.id);
+      if (mark) await reportError('emails', mark, { step: 'marcar enviado', template: r.template, outbox_id: r.id });
       sent++;
     } catch (e) {
       failed++;
       const retry = r.attempts < 5;
       if (!retry) await reportError('emails', e, { template: r.template, to: r.to_email, attempts: r.attempts, outbox_id: r.id });
-      await admin.from('email_outbox').update({
+      const { error: mark } = await admin.from('email_outbox').update({
         status: retry ? 'pending' : 'failed',
         last_error: String((e as Error).message).slice(0, 500),
         send_after: new Date(Date.now() + 2 ** r.attempts * 60_000).toISOString(),
       }).eq('id', r.id);
+      if (mark) await reportError('emails', mark, { step: 'marcar reintento', template: r.template, outbox_id: r.id });
     }
   }
   return { sent, failed };
@@ -72,6 +75,8 @@ export async function dispatchOutbox(limit = 50): Promise<{ sent: number; failed
 /** Queues and immediately tries to send one email (used by server actions and webhooks). */
 export async function sendNow(to: string, template: string, payload: Record<string, unknown>, userId?: string | null, dedupe?: string) {
   const admin = supabaseAdmin();
-  await admin.from('email_outbox').upsert({ to_email: to.toLowerCase(), user_id: userId || null, template, payload, dedupe_key: dedupe || null }, { onConflict: 'dedupe_key', ignoreDuplicates: true });
+  // Reported, not thrown: the action that sends it (a cancellation, a payment) already happened.
+  const { error } = await admin.from('email_outbox').upsert({ to_email: to.toLowerCase(), user_id: userId || null, template, payload, dedupe_key: dedupe || null }, { onConflict: 'dedupe_key', ignoreDuplicates: true });
+  if (error) await reportError('emails', error, { step: 'encolar', template, to });
   await dispatchOutbox(10).catch((e) => console.error('outbox', e));
 }

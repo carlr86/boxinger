@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/browser';
-import { rpc } from '@/lib/rpc';
 import { signInWithGoogle } from '@/lib/oauth';
 import { passwordError } from '@/lib/auth-errors';
 import { Field, Note } from '@/components/ui';
@@ -34,9 +33,8 @@ export function Activate({ token, email }: { token: string; email: string }) {
     if (r.error || !r.email) { setBusy(false); return setError(r.error || 'Algo salió mal. Probá de nuevo.'); }
     const { error } = await supabaseBrowser().auth.signInWithPassword({ email: r.email, password: pass });
     if (error) { setBusy(false); return setError('La contraseña quedó guardada. Ingresá con tu email.'); }
-    const acc = await rpc<{ slug: string | null }>('accept_invitation', { p_token: token }).catch(() => ({ slug: null }));
     await refresh();
-    router.replace(acc.slug ? '/app/b/' + acc.slug : '/app/buzones');
+    router.replace(r.slug ? '/app/b/' + r.slug : '/app/buzones');
   }
   return (
     <form onSubmit={submit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

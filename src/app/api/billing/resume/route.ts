@@ -20,7 +20,7 @@ export async function POST() {
     const c = await creem.resumeSubscription(s.provider_subscription_id);
     await admin.from('subscriptions').update({
       status: 'active', cancel_at_period_end: false, current_period_end: c?.current_period_end_date || s.current_period_end, updated_at: new Date().toISOString(),
-    }).eq('account_id', acc.id);
+    }).eq('account_id', acc.id).throwOnError();
     return NextResponse.json({ ok: true });
   } catch (e) {
     await reportError('volver-a-pro', e, { provider: s.provider, account: acc.id });

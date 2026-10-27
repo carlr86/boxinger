@@ -28,5 +28,5 @@ export async function syncAmount(accountId: string, force = false): Promise<void
   else if (s.provider === 'mercadopago') await mercadopago.updateAmount(s.provider_subscription_id, value);
   // Creem can't change the price of a running subscription.
   else return;
-  await admin.from('subscriptions').update({ charged_amount: value, updated_at: new Date().toISOString() }).eq('account_id', accountId);
+  await admin.from('subscriptions').update({ charged_amount: value, updated_at: new Date().toISOString() }).eq('account_id', accountId).throwOnError();
 }

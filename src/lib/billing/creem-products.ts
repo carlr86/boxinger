@@ -16,11 +16,11 @@ export async function creemProductFor(plan: 'pro' | 'enterprise'): Promise<strin
     .not('creem_product_id', 'is', null).order('effective_from', { ascending: false }).limit(1).maybeSingle();
   const base = await creem.getProduct(prev?.creem_product_id || creem.baseProduct(plan));
   if (Math.round(Number(base.price)) === Math.round(row.amount * 100)) {
-    await admin.from('price_schedule').update({ creem_product_id: base.id }).eq('id', row.id);
+    await admin.from('price_schedule').update({ creem_product_id: base.id }).eq('id', row.id).throwOnError();
     return base.id;
   }
   const id = await creem.cloneProductWithPrice(base, row.amount);
-  await admin.from('price_schedule').update({ creem_product_id: id }).eq('id', row.id);
+  await admin.from('price_schedule').update({ creem_product_id: id }).eq('id', row.id).throwOnError();
   return id;
 }
 

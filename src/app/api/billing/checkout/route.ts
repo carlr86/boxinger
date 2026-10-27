@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       const payer = typeof body.payer_email === 'string' && isEmail(body.payer_email) ? body.payer_email : owner.email;
       r = await mercadopago.createPreapproval({ accountId: acc.id, payerEmail: payer, amount, backUrl: `${SITE_URL}/api/billing/mercadopago/return`, startDate: paidUntil, plan });
     }
-    await admin.from('subscriptions').update({ checkout_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(provider === 'creem' ? { pending_checkout_id: r.id } : {}) }).eq('account_id', acc.id);
+    await admin.from('subscriptions').update({ checkout_started_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...(provider === 'creem' ? { pending_checkout_id: r.id } : {}) }).eq('account_id', acc.id).throwOnError();
     return NextResponse.json({ url: r.url });
   } catch (e) {
     await reportError('checkout', e, { provider, plan, account: acc.id });

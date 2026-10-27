@@ -15,7 +15,14 @@ export async function POST(req: NextRequest) {
   if (!mercadopago.verifySignature(req.headers, url.searchParams.get('data.id') || dataId)) return NextResponse.json({ error: 'invalid signature' }, { status: 401 });
 
   const eventId = `${type}:${dataId}:${body.id || req.headers.get('x-request-id') || ''}`;
-  if (!(await claimEvent('mercadopago', eventId, type, body))) return NextResponse.json({ ok: true, duplicate: true });
+  let fresh: boolean;
+  try {
+    fresh = await claimEvent('mercadopago', eventId, type, body);
+  } catch (e) {
+    await reportError('webhook-mercadopago', e, { event: eventId });
+    return NextResponse.json({ error: 'processing failed' }, { status: 500 });
+  }
+  if (!fresh) return NextResponse.json({ ok: true, duplicate: true });
 
   try {
     if (type === 'subscription_preapproval' || type === 'preapproval') {
@@ -43,7 +50,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (e) {
     await reportError('webhook-mercadopago', e, { event: eventId });
-    await finishEvent('mercadopago', eventId, String((e as Error).message).slice(0, 500));
+    // Not processed: Mercado Pago sends it again and claimEvent lets it through.
+    await finishEvent('mercadopago', eventId, String((e as Error).message).slice(0, 500)).catch(() => {});
     return NextResponse.json({ error: 'processing failed' }, { status: 500 });
   }
 }
